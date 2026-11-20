@@ -16,6 +16,7 @@ from objects.agent import (
     COLOR_AGENT_DEAD,
     create_agents,
 )
+from objects.sensors import RaySensor, RayHit
 
 __all__ = [
     "ScrollingMap",
@@ -28,6 +29,8 @@ __all__ = [
     "COLOR_AGENT_DEFAULT",
     "COLOR_AGENT_DEAD",
     "create_agents",
+    "RaySensor",
+    "RayHit",
     "COLOR_LAND",
     "COLOR_MOUNTAIN",
     "COLOR_TREE_LEAVES",

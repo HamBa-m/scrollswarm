@@ -12,6 +12,7 @@ import numpy as np
 
 from objects.items import Tree, Target
 from objects.map import ScrollingMap
+from objects.sensors import RaySensor
 
 
 class Action(IntEnum):
@@ -70,6 +71,9 @@ class Agent:
 
         # Collision radius (circumscribed circle approximation for entity checks)
         self.collision_radius: float = max(self.width, self.height) / 2.0
+
+        # Perception sensor
+        self.sensor: Optional[RaySensor] = None
 
     @property
     def vertices(self) -> List[Tuple[float, float]]:
@@ -177,6 +181,15 @@ class Agent:
         self.alive = True
         self.score = 0
         self.steps_alive = 0
+
+    def get_observation(self, scrolling_map: ScrollingMap) -> np.ndarray:
+        """
+        Computes the 15-dimensional continuous observation vector:
+        [self_y / H, 7 obstacle ray distances, 7 target ray distances].
+        """
+        if self.sensor is None:
+            self.sensor = RaySensor(max_range=float(scrolling_map.width) / 2.0)
+        return self.sensor.observe(self.x, self.y, scrolling_map)
 
 
 def create_agents(

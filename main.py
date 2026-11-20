@@ -39,6 +39,7 @@ from objects.agent import (
     COLOR_AGENT_DEAD,
     create_agents,
 )
+from objects.sensors import RaySensor
 
 
 def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
@@ -75,6 +76,35 @@ def draw_targets(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
         cx, cy, s = int(target.x), int(target.y), target.size
         pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy - s), (cx + s, cy + s), width=2)
         pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy + s), (cx + s, cy - s), width=2)
+
+
+def draw_sensor_rays(surface: pygame.Surface, agent: Agent, scrolling_map: ScrollingMap) -> None:
+    """Renders the 7 forward sensor beams for the agent."""
+    if not agent.alive:
+        return
+    if agent.sensor is None:
+        agent.sensor = RaySensor(max_range=float(scrolling_map.width) / 2.0)
+
+    obs_hits, tgt_hits = agent.sensor.cast_rays(agent.x, agent.y, scrolling_map)
+
+    # Draw obstacle detection beams
+    for hit in obs_hits:
+        start_pt = (int(agent.x), int(agent.y))
+        end_pt = (int(hit.endpoint[0]), int(hit.endpoint[1]))
+
+        if hit.hit_type != "none":
+            # Orange/red beam when striking an obstacle
+            pygame.draw.line(surface, (230, 140, 50), start_pt, end_pt, 1)
+            pygame.draw.circle(surface, (220, 40, 40), end_pt, 3)
+        else:
+            # Faint cyan beam when path is clear
+            pygame.draw.line(surface, (160, 210, 240), start_pt, end_pt, 1)
+
+    # Highlight detected targets along rays
+    for hit in tgt_hits:
+        if hit.hit_type == "target":
+            end_pt = (int(hit.endpoint[0]), int(hit.endpoint[1]))
+            pygame.draw.circle(surface, (40, 200, 40), end_pt, 5, width=1)
 
 
 def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int, font: pygame.font.Font) -> None:
@@ -120,6 +150,7 @@ def main() -> None:
     agents = create_agents(num_agents=num_agents, map_width=config.width, scrolling_map=scrolling_map, step_size=5)
 
     selected_idx = 0
+    show_sensors = True
     running = True
     paused = False
 
@@ -133,6 +164,8 @@ def main() -> None:
                     running = False
                 elif event.key == pygame.K_SPACE:
                     paused = not paused
+                elif event.key == pygame.K_v:
+                    show_sensors = not show_sensors
                 elif event.key == pygame.K_TAB:
                     # Cycle through agents
                     selected_idx = (selected_idx + 1) % len(agents)
@@ -182,6 +215,10 @@ def main() -> None:
         draw_topography(screen, scrolling_map)
         draw_trees(screen, scrolling_map)
         draw_targets(screen, scrolling_map)
+
+        if show_sensors and agents[selected_idx].alive:
+            draw_sensor_rays(screen, agents[selected_idx], scrolling_map)
+
         draw_agents(screen, agents, selected_idx, id_font)
 
         # HUD Overlay
@@ -195,7 +232,7 @@ def main() -> None:
             f"Focused: Agent #{focused_agent.agent_id} ({status_str}, Score: {focused_agent.score})"
         )
         hud_line2 = (
-            "[W/UP, S/DOWN] Move Focused | [TAB / 1-9] Select Agent | [A] Move All | [R] Reset | [SPACE] Pause"
+            "[W/UP, S/DOWN] Move Focused | [TAB / 1-9] Select | [A] Move All | [V] Rays | [R] Reset | [SPACE] Pause"
         )
 
         txt_line1 = font.render(hud_line1, True, (20, 20, 20))

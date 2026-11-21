@@ -1,5 +1,5 @@
 """
-Unit tests for ScrollingMap and topography math.
+Unit tests for ScrollingMap, multi-scale topography math, and guaranteed clearance.
 """
 
 import numpy as np
@@ -20,7 +20,7 @@ def test_map_initialization():
     # Ensure corridor constraints are respected everywhere
     for x in range(m.width):
         corridor_gap = m.height - (m.top_heights[x] + m.bot_heights[x])
-        assert corridor_gap >= config.min_corridor_gap - 1e-3
+        assert corridor_gap >= m.min_corridor_gap - 1e-3
         assert m.top_heights[x] >= config.min_ridge_height
         assert m.bot_heights[x] >= config.min_ridge_height
 
@@ -84,3 +84,37 @@ def test_seed_reproducibility():
     np.testing.assert_allclose(m1.bot_heights, m2.bot_heights)
     assert len(m1.trees) == len(m2.trees)
     assert len(m1.targets) == len(m2.targets)
+
+
+def test_guaranteed_minimal_passage_across_500_steps():
+    """
+    Rigorously tests that across 500 consecutive scrolling steps,
+    EVERY single column on the screen unconditionally preserves
+    at least the minimal corridor gap (no bottlenecks ever squeeze below threshold).
+    """
+    config = MapConfig(width=800, height=400, min_corridor_gap=110, seed=42)
+    m = ScrollingMap(config)
+
+    for step_idx in range(500):
+        m.step()
+        gaps = m.height - (m.top_heights + m.bot_heights)
+        min_gap = float(np.min(gaps))
+        assert min_gap >= config.min_corridor_gap - 1e-3, (
+            f"Step {step_idx}: minimum passage violated! Gap was {min_gap:.2f}px"
+        )
+
+
+def test_topography_dynamic_variance_not_flat():
+    """
+    Tests that the multi-scale topography exhibits real undulating terrain
+    (macro climbs, valleys, chicanes) rather than a flat line.
+    """
+    config = MapConfig(width=800, height=400, seed=99)
+    m = ScrollingMap(config)
+
+    # The top height across columns must have substantial vertical variation (std > 15px)
+    std_top = float(np.std(m.top_heights))
+    ptp_top = float(np.ptp(m.top_heights))  # peak to peak
+
+    assert std_top > 15.0, f"Topography too flat! Standard deviation was only {std_top:.2f}px"
+    assert ptp_top > 50.0, f"Topography peak-to-peak difference too small! PTP was only {ptp_top:.2f}px"

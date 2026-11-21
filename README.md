@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![Renderer](https://img.shields.io/badge/renderer-pygame--2.6-green.svg?logo=python&logoColor=white)](https://www.pygame.org/)
-[![Tests](https://img.shields.io/badge/tests-18%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-20%20passed-brightgreen.svg)](tests/)
 [![Status](https://img.shields.io/badge/status-active%20research-informational.svg)](README.md)
 
 **A side-scrolling environment for cooperative multi-agent navigation and collection.**

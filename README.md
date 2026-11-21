@@ -12,7 +12,7 @@
 
 ScrollSwarm is a lightweight, visualizable benchmark for studying how agents coordinate under **partial observability** (forward rangefinder perception) and **local graph communication** (chain graph with adjacent column teammates).
 
-The world scrolls continuously from right to left at 1 pixel per timestep ($30\text{ FPS}$). Agents occupy fixed horizontal columns and navigate vertically ($k = 5\text{ px/step}$) through an undulating mountain cavern to collect targets and avoid collisions.
+The world scrolls continuously from right to left at 1 pixel per timestep (30 FPS). Agents occupy fixed horizontal columns and navigate vertically (5 px per step) through an undulating mountain cavern to collect targets and avoid collisions.
 
 ---
 
@@ -33,8 +33,8 @@ uv run python main.py -n 8
 ### Controls
 | Key | Action |
 | :--- | :--- |
-| **`W` / `UP`** | Move focused agent up ($k = 5\text{ px}$) |
-| **`S` / `DOWN`** | Move focused agent down ($k = 5\text{ px}$) |
+| **`W` / `UP`** | Move focused agent up (5 px) |
+| **`S` / `DOWN`** | Move focused agent down (5 px) |
 | **`TAB`** / **`1`–`9`** | Switch active focused agent (white outline) |
 | **`A`** | Move all alive agents synchronously |
 | **`V`** | Toggle 7-ray LiDAR beam visualization |
@@ -64,10 +64,14 @@ Agent [>] ======= Ray 3:   0° (Horizontal Corridor) ===> (Oncoming Trees & Targ
 ```
 
 ### Observation Vector
-At every timestep $t$, agent $i$ receives a continuous observation vector $\mathbf{o}_i \in [0.0, 1.0]^{15}$:
-$$\mathbf{o}_i = \left[ \frac{y_i}{H},\, d_{\text{obs}, 0},\, \dots,\, d_{\text{obs}, 6},\, d_{\text{tgt}, 0},\, \dots,\, d_{\text{tgt}, 6} \right]$$
 
-- **Self-State:** Normalized vertical coordinate $\frac{y_i}{H} \in [0, 1]$.
+At every timestep $t$, each agent receives a continuous 15-dimensional observation vector:
+
+$$
+\mathbf{o}_i = \left[ \frac{y_i}{H}, d_{\text{obs}, 0}, \dots, d_{\text{obs}, 6}, d_{\text{tgt}, 0}, \dots, d_{\text{tgt}, 6} \right] \in [0, 1]^{15}
+$$
+
+- **Self-State:** Normalized vertical coordinate $y_i / H \in [0, 1]$.
 - **Obstacle Distances ($d_{\text{obs}, k}$):** Normalized distance to the nearest mountain boundary surface or circular tree canopy along ray $k$ ($1.0$ = clear path). Boundary clearances and obstacle warnings are unified into this single continuous channel.
 - **Target Distances ($d_{\text{tgt}, k}$):** Normalized distance to the nearest collection target along ray $k$ ($1.0$ = no target).
 
@@ -78,17 +82,26 @@ $$\mathbf{o}_i = \left[ \frac{y_i}{H},\, d_{\text{obs}, 0},\, \dots,\, d_{\text{
 Rather than flat borders, ScrollSwarm features procedural, multi-scale undulating terrain designed to force genuine swarm maneuvers (climbing, diving, squeezing into single file):
 
 1. **Centerline Meander (Climbs & Dives):**
-   $$C(t) = \frac{H}{2} + A_1 \sin\left(\frac{2\pi t}{\lambda_1} + \phi_1\right) + A_2 \sin\left(\frac{2\pi t}{\lambda_2} + \phi_2\right)$$
+   $$
+   C(t) = \frac{H}{2} + A_1 \sin\left(\frac{2\pi t}{\lambda_1} + \phi_1\right) + A_2 \sin\left(\frac{2\pi t}{\lambda_2} + \phi_2\right)
+   $$
    Sweeps the navigable channel vertically between high-altitude peaks and low valleys ($\lambda_1 = 540\text{ px}, A_1 = 65\text{ px}$; $\lambda_2 = 190\text{ px}, A_2 = 28\text{ px}$).
+
 2. **Dynamic Chokepoints:**
-   $$G(t) = \bar{G} + A_G \sin\left(\frac{2\pi t}{\lambda_G} + \phi_G\right)$$
-   Pulses corridor width between tight gorges ($130\text{ px}$) and open basins ($210\text{ px}$).
+   $$
+   G(t) = \bar{G} + A_G \sin\left(\frac{2\pi t}{\lambda_G} + \phi_G\right)
+   $$
+   Pulses corridor width between tight gorges (130 px) and open basins (210 px).
+
 3. **Stalactites & Stalagmites:**
-   Occasional cosine-bell rock crags protruding $25 - 45\text{ px}$ from the ceiling or floor.
+   Occasional cosine-bell rock crags protruding 25 to 45 px from the ceiling or floor.
+
 4. **Guaranteed Passage Invariant:**
    At every column $x$, clearance is strictly verified:
-   $$\text{Gap}(x) = H - (h_{\text{top}}[x] + h_{\text{bot}}[x]) \ge G_{\min} \quad (110\text{ px})$$
-   Safe vertical passage for the $14\text{ px}$ agents is mathematically guaranteed across the entire screen.
+   $$
+   \text{Gap}(x) = H - (h_{\text{top}}[x] + h_{\text{bot}}[x]) \ge G_{\min} \quad (110\text{ px})
+   $$
+   Safe vertical passage for the 14 px agents is mathematically guaranteed across the entire screen.
 
 ---
 

@@ -29,7 +29,9 @@ from objects.map import (
     MapConfig,
     COLOR_LAND,
     COLOR_MOUNTAIN,
+    COLOR_MOUNTAIN_RIM,
     COLOR_TREE_LEAVES,
+    COLOR_TREE_RIM,
     COLOR_TREE_TRUNK,
     COLOR_TARGET,
 )
@@ -43,43 +45,60 @@ from objects.sensors import RaySensor
 
 
 def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
-    """Renders the top and bottom mountain boundary polygons."""
+    """Renders the top and bottom mountain boundary polygons with dark rim contours."""
     w = scrolling_map.width
     h = scrolling_map.height
 
+    # Top mountain polygon: (0,0) -> (x, top_heights[x]) -> (w-1, 0)
     top_points = [(0, 0)]
     for x in range(w):
         top_points.append((x, int(scrolling_map.top_heights[x])))
     top_points.append((w - 1, 0))
     pygame.draw.polygon(surface, COLOR_MOUNTAIN, top_points)
 
+    # Top rim line
+    top_rim = [(x, int(scrolling_map.top_heights[x])) for x in range(w)]
+    pygame.draw.lines(surface, COLOR_MOUNTAIN_RIM, False, top_rim, width=2)
+
+    # Bottom mountain polygon: (0, h) -> (x, h - bot_heights[x]) -> (w-1, h)
     bot_points = [(0, h)]
     for x in range(w):
         bot_points.append((x, int(h - scrolling_map.bot_heights[x])))
     bot_points.append((w - 1, h))
     pygame.draw.polygon(surface, COLOR_MOUNTAIN, bot_points)
 
+    # Bottom rim line
+    bot_rim = [(x, int(h - scrolling_map.bot_heights[x])) for x in range(w)]
+    pygame.draw.lines(surface, COLOR_MOUNTAIN_RIM, False, bot_rim, width=2)
+
 
 def draw_trees(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
-    """Renders all active trees with dark green canopy and brown trunk."""
+    """Renders all active trees with dark outline, vibrant canopy, and cedar trunk."""
     for tree in scrolling_map.trees:
         pos = (int(tree.x), int(tree.y))
+        # Dark canopy rim for sharp contrast against land
+        pygame.draw.circle(surface, COLOR_TREE_RIM, pos, tree.outer_radius + 1)
+        # Outer vibrant canopy
         pygame.draw.circle(surface, COLOR_TREE_LEAVES, pos, tree.outer_radius)
+        # Inner trunk
         pygame.draw.circle(surface, COLOR_TREE_TRUNK, pos, tree.inner_radius)
 
 
 def draw_targets(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
-    """Renders all uncollected targets as red X marks."""
+    """Renders all uncollected targets as bold scarlet X marks with center dot."""
     for target in scrolling_map.targets:
         if target.collected:
             continue
         cx, cy, s = int(target.x), int(target.y), target.size
-        pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy - s), (cx + s, cy + s), width=2)
-        pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy + s), (cx + s, cy - s), width=2)
+        # Bold 3px scarlet cross
+        pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy - s), (cx + s, cy + s), width=3)
+        pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy + s), (cx + s, cy - s), width=3)
+        # Center anchor dot
+        pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
 
 
 def draw_sensor_rays(surface: pygame.Surface, agent: Agent, scrolling_map: ScrollingMap) -> None:
-    """Renders the 7 forward sensor beams for the agent."""
+    """Renders the 7 forward sensor beams with high-contrast laser styling."""
     if not agent.alive:
         return
     if agent.sensor is None:
@@ -93,18 +112,19 @@ def draw_sensor_rays(surface: pygame.Surface, agent: Agent, scrolling_map: Scrol
         end_pt = (int(hit.endpoint[0]), int(hit.endpoint[1]))
 
         if hit.hit_type != "none":
-            # Orange/red beam when striking an obstacle
-            pygame.draw.line(surface, (230, 140, 50), start_pt, end_pt, 1)
-            pygame.draw.circle(surface, (220, 40, 40), end_pt, 3)
+            # High-alert orange-red beam striking an obstacle
+            pygame.draw.line(surface, (255, 70, 0), start_pt, end_pt, 2)
+            pygame.draw.circle(surface, (255, 40, 20), end_pt, 4)
         else:
-            # Faint cyan beam when path is clear
-            pygame.draw.line(surface, (160, 210, 240), start_pt, end_pt, 1)
+            # High-contrast deep navy beam when path is clear
+            pygame.draw.line(surface, (50, 100, 160), start_pt, end_pt, 1)
 
     # Highlight detected targets along rays
     for hit in tgt_hits:
         if hit.hit_type == "target":
             end_pt = (int(hit.endpoint[0]), int(hit.endpoint[1]))
-            pygame.draw.circle(surface, (40, 200, 40), end_pt, 5, width=1)
+            # Vivid emerald ring
+            pygame.draw.circle(surface, (0, 180, 60), end_pt, 6, width=2)
 
 
 def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int, font: pygame.font.Font) -> None:
@@ -221,24 +241,38 @@ def main() -> None:
 
         draw_agents(screen, agents, selected_idx, id_font)
 
-        # HUD Overlay
+        # HUD Overlay with translucent dark backdrop for maximum legibility
+        hud_bg = pygame.Surface((config.width - 24, 46), pygame.SRCALPHA)
+        pygame.draw.rect(hud_bg, (22, 28, 36, 215), (0, 0, config.width - 24, 46), border_radius=6)
+        screen.blit(hud_bg, (12, 6))
+
         alive_count = sum(1 for a in agents if a.alive)
         team_score = sum(a.score for a in agents)
         focused_agent = agents[selected_idx]
-        status_str = "ALIVE" if focused_agent.alive else "DEAD"
+        status_str = "ALIVE" if focused_agent.alive else "TERMINATED"
+        status_color = (80, 230, 130) if focused_agent.alive else (255, 90, 90)
 
-        hud_line1 = (
-            f"Agents Alive: {alive_count}/{num_agents} | Team Score: {team_score} | "
-            f"Focused: Agent #{focused_agent.agent_id} ({status_str}, Score: {focused_agent.score})"
-        )
+        # Line 1: Swarm & Focused Agent Telemetry
+        hud_prefix = f"Agents Alive: {alive_count}/{num_agents} | Team Score: {team_score} | Focused: Agent #{focused_agent.agent_id} ("
+        txt_prefix = font.render(hud_prefix, True, (240, 245, 250))
+        txt_status = font.render(status_str, True, status_color)
+        hud_suffix = f", Score: {focused_agent.score})"
+        txt_suffix = font.render(hud_suffix, True, (240, 245, 250))
+
         hud_line2 = (
-            "[W/UP, S/DOWN] Move Focused | [TAB / 1-9] Select | [A] Move All | [V] Rays | [R] Reset | [SPACE] Pause"
+            "[W/UP, S/DOWN] Move Focused | [TAB / 1-9] Select | [A] Move All | [V] Toggle Rays | [R] Reset | [SPACE] Pause"
         )
+        txt_line2 = font.render(hud_line2, True, (175, 185, 200))
 
-        txt_line1 = font.render(hud_line1, True, (20, 20, 20))
-        txt_line2 = font.render(hud_line2, True, (50, 50, 50))
-        screen.blit(txt_line1, (12, 8))
-        screen.blit(txt_line2, (12, 24))
+        # Blit telemetry with highlighted status
+        cur_x = 22
+        screen.blit(txt_prefix, (cur_x, 10))
+        cur_x += txt_prefix.get_width()
+        screen.blit(txt_status, (cur_x, 10))
+        cur_x += txt_status.get_width()
+        screen.blit(txt_suffix, (cur_x, 10))
+
+        screen.blit(txt_line2, (22, 28))
 
         if paused:
             pause_surface = font.render("-- PAUSED --", True, (200, 0, 0))

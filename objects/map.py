@@ -15,12 +15,14 @@ import numpy as np
 from objects.items import Tree, Target
 
 
-# Default Color Palette (RGB)
-COLOR_LAND = (170, 220, 150)        # Light green plain
-COLOR_MOUNTAIN = (120, 120, 120)    # Gray rock
-COLOR_TREE_LEAVES = (34, 139, 34)   # Dark green
-COLOR_TREE_TRUNK = (139, 69, 19)    # Brown
-COLOR_TARGET = (220, 20, 60)        # Red 'X'
+# Enhanced Classic Color Palette (RGB) - Optimized for Contrast & Visibility
+COLOR_LAND = (195, 230, 185)         # Soft pastel meadow
+COLOR_MOUNTAIN = (65, 75, 85)        # Deep slate rock
+COLOR_MOUNTAIN_RIM = (35, 42, 50)    # Dark slate contour rim
+COLOR_TREE_LEAVES = (20, 120, 45)    # Crisp forest green
+COLOR_TREE_RIM = (10, 60, 25)        # Dark canopy outline
+COLOR_TREE_TRUNK = (130, 60, 20)     # Rich cedar core
+COLOR_TARGET = (255, 30, 60)         # High-visibility vibrant scarlet
 
 
 @dataclass

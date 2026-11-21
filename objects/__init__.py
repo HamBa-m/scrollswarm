@@ -3,7 +3,9 @@ from objects.map import (
     MapConfig,
     COLOR_LAND,
     COLOR_MOUNTAIN,
+    COLOR_MOUNTAIN_RIM,
     COLOR_TREE_LEAVES,
+    COLOR_TREE_RIM,
     COLOR_TREE_TRUNK,
     COLOR_TARGET,
 )
@@ -33,7 +35,9 @@ __all__ = [
     "RayHit",
     "COLOR_LAND",
     "COLOR_MOUNTAIN",
+    "COLOR_MOUNTAIN_RIM",
     "COLOR_TREE_LEAVES",
+    "COLOR_TREE_RIM",
     "COLOR_TREE_TRUNK",
     "COLOR_TARGET",
 ]

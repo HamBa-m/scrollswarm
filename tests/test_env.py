@@ -1,0 +1,91 @@
+"""
+Unit tests and PettingZoo API compliance tests for ScrollSwarmEnv.
+"""
+
+import numpy as np
+import pytest
+from pettingzoo.test import parallel_api_test
+from objects.env import ScrollSwarmEnv
+from objects.map import MapConfig
+
+
+def test_env_initialization():
+    env = ScrollSwarmEnv(num_agents=5, max_cycles=1000)
+    assert len(env.possible_agents) == 5
+    assert env.possible_agents == ["agent_0", "agent_1", "agent_2", "agent_3", "agent_4"]
+    assert env.max_cycles == 1000
+
+    # Test observation and action spaces
+    for a in env.possible_agents:
+        obs_space = env.observation_space(a)
+        act_space = env.action_space(a)
+        assert obs_space.shape == (15,)
+        assert obs_space.low[0] == 0.0
+        assert obs_space.high[0] == 1.0
+        assert act_space.n == 3
+
+
+def test_env_reset():
+    env = ScrollSwarmEnv(num_agents=3, max_cycles=500)
+    obs, infos = env.reset(seed=42)
+
+    assert len(obs) == 3
+    assert len(infos) == 3
+    for a in env.agents:
+        assert obs[a].shape == (15,)
+        assert np.all(obs[a] >= 0.0)
+        assert np.all(obs[a] <= 1.0)
+        assert infos[a]["targets_collected"] == 0
+        assert infos[a]["collision"] is None
+
+
+def test_env_step_random_actions():
+    env = ScrollSwarmEnv(num_agents=4, max_cycles=100)
+    obs, infos = env.reset(seed=123)
+
+    for _ in range(20):
+        if not env.agents:
+            break
+        actions = {a: env.action_space(a).sample() for a in env.agents}
+        obs, rewards, terminations, truncations, infos = env.step(actions)
+
+        # Check types and keys
+        for a in actions:
+            assert isinstance(rewards[a], float)
+            assert isinstance(terminations[a], bool)
+            assert isinstance(truncations[a], bool)
+            assert isinstance(infos[a], dict)
+
+
+def test_env_truncation_at_max_cycles():
+    env = ScrollSwarmEnv(num_agents=2, max_cycles=15)
+    env.reset(seed=999)
+
+    for step_i in range(15):
+        actions = {a: 1 for a in env.agents}  # Action.STAY
+        obs, rewards, terminations, truncations, infos = env.step(actions)
+        if step_i < 14:
+            for a in actions:
+                assert truncations[a] is False
+        else:
+            for a in actions:
+                assert truncations[a] is True
+            # All agents should be removed on truncation
+            assert len(env.agents) == 0
+
+
+def test_env_rgb_array_render():
+    env = ScrollSwarmEnv(num_agents=3, max_cycles=50, render_mode="rgb_array")
+    env.reset(seed=42)
+    img = env.render()
+    assert isinstance(img, np.ndarray)
+    assert img.shape == (400, 800, 3)
+    assert img.dtype == np.uint8
+    env.close()
+
+
+def test_pettingzoo_parallel_api_compliance():
+    """Runs the official PettingZoo parallel API test suite."""
+    env = ScrollSwarmEnv(num_agents=3, max_cycles=50)
+    parallel_api_test(env, num_cycles=50)
+    env.close()

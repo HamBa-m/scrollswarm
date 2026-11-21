@@ -19,6 +19,7 @@ from objects.agent import (
     create_agents,
 )
 from objects.sensors import RaySensor, RayHit
+from objects.env import ScrollSwarmEnv
 
 __all__ = [
     "ScrollingMap",
@@ -33,6 +34,7 @@ __all__ = [
     "create_agents",
     "RaySensor",
     "RayHit",
+    "ScrollSwarmEnv",
     "COLOR_LAND",
     "COLOR_MOUNTAIN",
     "COLOR_MOUNTAIN_RIM",

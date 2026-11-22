@@ -108,7 +108,7 @@ Rather than flat borders, ScrollSwarm features procedural, multi-scale undulatin
 
 ## Graph Communication & Topologies
 
-ScrollSwarm provides a formal graph layer for Graph Neural Networks (GNNs) and multi-agent communication (`objects/comm.py`):
+ScrollSwarm provides a formal graph layer for Graph Neural Networks (GNNs) and multi-agent communication (`scrollswarm/comm.py`):
 
 - **Supported Topologies:**
   - `chain` (Default): Path graph $P_N$ along column indices ($A_{ij} = 1 \iff |i - j| = 1$). Ideal for downstream predictive signaling.
@@ -131,18 +131,21 @@ scrollswarm/
 ├── README.md              # Project documentation
 ├── main.py                # Interactive 2D Pygame visualizer & demo runner
 ├── assets/
+│   ├── quadrocopte.svg    # Vector quadcopter agent model
 │   └── screenshot.png     # Gameplay preview render
 ├── scrollswarm/
 │   ├── __init__.py        # Public package exports
 │   ├── env.py             # PettingZoo ParallelEnv standard environment wrapper
 │   ├── map.py             # Multi-scale topography, scrolling engine, and clearance invariant
-│   ├── agent.py           # Agent entity, triangle geometry, and vertical dynamics (k = 5px)
+│   ├── agent.py           # Agent entity and vertical dynamics (k = 5px)
+│   ├── sprites.py         # Vector quadcopter sprite loading, recoloring, and caching
 │   ├── sensors.py         # 7-ray forward LiDAR rangefinder & observation vector
 │   ├── comm.py            # Graph communication topologies & message routing engine
 │   └── items.py           # Tree obstacles and collection target dataclasses
 └── tests/
     ├── test_map.py        # Topography, 1px scrolling, culling, and clearance invariant tests
     ├── test_agent.py      # Movement (k=5px), collisions, clamping, and team creation tests
+    ├── test_sprites.py    # Sprite loading, recoloring, and cache verification tests
     ├── test_sensors.py    # Raycasting math, boundary hits, entity detection, and vector shape tests
     ├── test_env.py        # PettingZoo ParallelEnv compliance & truncation tests
     └── test_comm.py       # Graph topology, dead-agent pruning, and message routing tests

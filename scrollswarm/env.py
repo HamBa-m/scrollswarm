@@ -32,6 +32,7 @@ from scrollswarm.map import (
 from scrollswarm.agent import Agent, Action, create_agents, COLOR_AGENT_DEAD
 from scrollswarm.sensors import RaySensor
 from scrollswarm.comm import CommunicationGraph, TopologyType
+from scrollswarm.sprites import get_quadcopter_sprite
 
 
 class ScrollSwarmEnv(ParallelEnv):
@@ -305,16 +306,21 @@ class ScrollSwarmEnv(ParallelEnv):
                 pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy + s), (cx + s, cy - s), 3)
                 pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
 
-        # 4. Agents (pointing right)
+        # 4. Agents (quadcopter sprites)
         all_agents = list(self._agent_map.values())
         for agent in all_agents:
-            pts = [(int(vx), int(vy)) for vx, vy in agent.vertices]
             color = agent.color if agent.alive else COLOR_AGENT_DEAD
-            pygame.draw.polygon(surface, color, pts)
-            pygame.draw.polygon(surface, (255, 255, 255) if agent.alive else (40, 40, 40), pts, 1)
+            sprite = get_quadcopter_sprite(color, size=(24, 24))
+            sw, sh = sprite.get_size()
+            surface.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
+            # Status ring around quadcopter (white when alive, subtle dark when dead)
+            ring_col = (255, 255, 255) if agent.alive else (70, 70, 70)
+            pygame.draw.circle(surface, ring_col, (int(agent.x), int(agent.y)), 13, width=1)
+
+            # ID label above quadcopter
             lbl = self._id_font.render(str(agent.agent_id), True, (20, 20, 20))
-            surface.blit(lbl, (int(agent.x - 3), int(agent.y - agent.height - 4)))
+            surface.blit(lbl, (int(agent.x - 3), int(agent.y - sh // 2 - 12)))
 
         # 5. Telemetry HUD
         hud_bg = pygame.Surface((w - 24, 46), pygame.SRCALPHA)

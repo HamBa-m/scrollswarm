@@ -26,6 +26,7 @@ from scrollswarm.agent import (
 from scrollswarm.sensors import RaySensor, RayHit
 from scrollswarm.items import Tree, Target
 from scrollswarm.comm import CommunicationGraph, TopologyType
+from scrollswarm.sprites import get_quadcopter_sprite
 
 __all__ = [
     "ScrollSwarmEnv",
@@ -44,6 +45,7 @@ __all__ = [
     "Target",
     "CommunicationGraph",
     "TopologyType",
+    "get_quadcopter_sprite",
     "COLOR_LAND",
     "COLOR_MOUNTAIN",
     "COLOR_MOUNTAIN_RIM",

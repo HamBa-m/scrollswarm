@@ -43,6 +43,7 @@ from scrollswarm.agent import (
 )
 from scrollswarm.sensors import RaySensor
 from scrollswarm.comm import CommunicationGraph, TopologyType
+from scrollswarm.sprites import get_quadcopter_sprite
 
 
 def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
@@ -137,20 +138,24 @@ def draw_comm_links(surface: pygame.Surface, comm_graph: CommunicationGraph, age
 
 
 def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int, font: pygame.font.Font) -> None:
-    """Renders all agents (pointing RIGHT) with outline and ID tags."""
+    """Renders all agents with quadcopter sprites, focus ring, and ID tags."""
     for idx, agent in enumerate(agents):
-        pts = [(int(vx), int(vy)) for vx, vy in agent.vertices]
         color = agent.color if agent.alive else COLOR_AGENT_DEAD
-        pygame.draw.polygon(surface, color, pts)
+        sprite = get_quadcopter_sprite(color, size=(24, 24))
+        sw, sh = sprite.get_size()
+        surface.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
-        # Highlight currently selected agent with a white outline
-        outline_color = (255, 255, 255) if idx == selected_idx else (40, 40, 40)
-        outline_width = 2 if idx == selected_idx else 1
-        pygame.draw.polygon(surface, outline_color, pts, width=outline_width)
+        # Highlight currently selected agent with high-contrast dual focus rings
+        if idx == selected_idx:
+            pygame.draw.circle(surface, (255, 255, 255), (int(agent.x), int(agent.y)), 15, width=2)
+            pygame.draw.circle(surface, (30, 144, 255), (int(agent.x), int(agent.y)), 17, width=1)
+        else:
+            ring_col = (220, 220, 220) if agent.alive else (70, 70, 70)
+            pygame.draw.circle(surface, ring_col, (int(agent.x), int(agent.y)), 13, width=1)
 
-        # Small ID label above agent
+        # ID label above agent
         lbl = font.render(str(agent.agent_id), True, (20, 20, 20))
-        surface.blit(lbl, (int(agent.x - 3), int(agent.y - agent.height - 4)))
+        surface.blit(lbl, (int(agent.x - 3), int(agent.y - sh // 2 - 12)))
 
 
 def main() -> None:

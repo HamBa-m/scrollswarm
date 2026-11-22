@@ -132,8 +132,8 @@ scrollswarm/
 ├── main.py                # Interactive 2D Pygame visualizer & demo runner
 ├── assets/
 │   └── screenshot.png     # Gameplay preview render
-├── objects/
-│   ├── __init__.py        # Public module exports
+├── scrollswarm/
+│   ├── __init__.py        # Public package exports
 │   ├── env.py             # PettingZoo ParallelEnv standard environment wrapper
 │   ├── map.py             # Multi-scale topography, scrolling engine, and clearance invariant
 │   ├── agent.py           # Agent entity, triangle geometry, and vertical dynamics (k = 5px)

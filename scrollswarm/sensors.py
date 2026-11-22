@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 import numpy as np
 
-from objects.map import ScrollingMap
-from objects.items import Tree, Target
+from scrollswarm.map import ScrollingMap
+from scrollswarm.items import Tree, Target
 
 
 @dataclass

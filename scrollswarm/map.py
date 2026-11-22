@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 import numpy as np
 
-from objects.items import Tree, Target
+from scrollswarm.items import Tree, Target
 
 
 # Enhanced Classic Color Palette (RGB) - Optimized for Contrast & Visibility

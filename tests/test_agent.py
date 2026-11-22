@@ -3,9 +3,9 @@ Unit tests for the Agent entity, direction, collision math, and team creation.
 """
 
 import pytest
-from objects.agent import Agent, Action, create_agents, AGENT_PALETTE
-from objects.items import Tree, Target
-from objects.map import ScrollingMap, MapConfig
+from scrollswarm.agent import Agent, Action, create_agents, AGENT_PALETTE
+from scrollswarm.items import Tree, Target
+from scrollswarm.map import ScrollingMap, MapConfig
 
 
 def test_agent_initialization():

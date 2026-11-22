@@ -4,10 +4,10 @@ Unit tests for the RaySensor module and 7-ray forward observation vector.
 
 import numpy as np
 import pytest
-from objects.sensors import RaySensor, RayHit
-from objects.map import ScrollingMap, MapConfig
-from objects.items import Tree, Target
-from objects.agent import Agent
+from scrollswarm.sensors import RaySensor, RayHit
+from scrollswarm.map import ScrollingMap, MapConfig
+from scrollswarm.items import Tree, Target
+from scrollswarm.agent import Agent
 
 
 def test_raysensor_initialization():

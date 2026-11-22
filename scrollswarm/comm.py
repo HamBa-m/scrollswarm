@@ -17,7 +17,7 @@ from enum import Enum
 from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
-from objects.agent import Agent
+from scrollswarm.agent import Agent
 
 
 class TopologyType(str, Enum):

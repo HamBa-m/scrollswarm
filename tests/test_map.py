@@ -4,8 +4,8 @@ Unit tests for ScrollingMap, multi-scale topography math, and guaranteed clearan
 
 import numpy as np
 import pytest
-from objects.map import ScrollingMap, MapConfig
-from objects.items import Tree, Target
+from scrollswarm.map import ScrollingMap, MapConfig
+from scrollswarm.items import Tree, Target
 
 
 def test_map_initialization():

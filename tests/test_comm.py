@@ -5,8 +5,8 @@ Tests topology generation, edge pruning on death, PyG conversion, and message ro
 
 import numpy as np
 import pytest
-from objects.comm import CommunicationGraph, TopologyType
-from objects.agent import create_agents
+from scrollswarm.comm import CommunicationGraph, TopologyType
+from scrollswarm.agent import create_agents
 
 
 def test_chain_topology():

@@ -24,7 +24,7 @@ import sys
 from typing import List
 import pygame
 
-from objects.map import (
+from scrollswarm.map import (
     ScrollingMap,
     MapConfig,
     COLOR_LAND,
@@ -35,14 +35,14 @@ from objects.map import (
     COLOR_TREE_TRUNK,
     COLOR_TARGET,
 )
-from objects.agent import (
+from scrollswarm.agent import (
     Agent,
     Action,
     COLOR_AGENT_DEAD,
     create_agents,
 )
-from objects.sensors import RaySensor
-from objects.comm import CommunicationGraph, TopologyType
+from scrollswarm.sensors import RaySensor
+from scrollswarm.comm import CommunicationGraph, TopologyType
 
 
 def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:

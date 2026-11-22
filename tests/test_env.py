@@ -5,8 +5,8 @@ Unit tests and PettingZoo API compliance tests for ScrollSwarmEnv.
 import numpy as np
 import pytest
 from pettingzoo.test import parallel_api_test
-from objects.env import ScrollSwarmEnv
-from objects.map import MapConfig
+from scrollswarm.env import ScrollSwarmEnv
+from scrollswarm.map import MapConfig
 
 
 def test_env_initialization():

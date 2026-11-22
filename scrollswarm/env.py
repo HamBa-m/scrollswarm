@@ -18,7 +18,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from pettingzoo import ParallelEnv
 
-from objects.map import (
+from scrollswarm.map import (
     ScrollingMap,
     MapConfig,
     COLOR_LAND,
@@ -29,9 +29,9 @@ from objects.map import (
     COLOR_TREE_TRUNK,
     COLOR_TARGET,
 )
-from objects.agent import Agent, Action, create_agents, COLOR_AGENT_DEAD
-from objects.sensors import RaySensor
-from objects.comm import CommunicationGraph, TopologyType
+from scrollswarm.agent import Agent, Action, create_agents, COLOR_AGENT_DEAD
+from scrollswarm.sensors import RaySensor
+from scrollswarm.comm import CommunicationGraph, TopologyType
 
 
 class ScrollSwarmEnv(ParallelEnv):

@@ -10,9 +10,9 @@ from enum import IntEnum
 from typing import List, Optional, Tuple
 import numpy as np
 
-from objects.items import Tree, Target
-from objects.map import ScrollingMap
-from objects.sensors import RaySensor
+from scrollswarm.items import Tree, Target
+from scrollswarm.map import ScrollingMap
+from scrollswarm.sensors import RaySensor
 
 
 class Action(IntEnum):

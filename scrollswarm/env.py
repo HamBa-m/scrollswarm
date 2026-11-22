@@ -240,9 +240,9 @@ class ScrollSwarmEnv(ParallelEnv):
                 # Check mountain collision
                 if agent.check_collision_mountain(self.scrolling_map):
                     collision_type = "mountain"
-                # Check tree collision
-                elif agent.check_collision_trees(self.scrolling_map.trees):
-                    collision_type = "tree"
+                # Check asteroid obstacle collision
+                elif agent.check_collision_obstacles(self.scrolling_map.asteroids):
+                    collision_type = "asteroid"
 
                 # Check target collection
                 collected = agent.check_target_collection(self.scrolling_map.targets)
@@ -375,27 +375,27 @@ class ScrollSwarmEnv(ParallelEnv):
             sw, sh = sprite.get_size()
             surface.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
-            # Status ring around probe (white when alive, subtle dark when dead)
-            ring_col = (255, 255, 255) if agent.alive else (70, 70, 70)
-            pygame.draw.circle(surface, ring_col, (int(agent.x), int(agent.y)), 13, width=1)
+            # Draw indicator only when dead
+            if not agent.alive:
+                pygame.draw.circle(surface, (180, 50, 50), (int(agent.x), int(agent.y)), 13, width=1)
 
             # ID label above probe
             lbl = self._id_font.render(str(agent.agent_id), True, (220, 225, 235))
             surface.blit(lbl, (int(agent.x - 3), int(agent.y - sh // 2 - 12)))
 
         # 5. Telemetry HUD
-        hud_bg = pygame.Surface((w - 24, 46), pygame.SRCALPHA)
-        pygame.draw.rect(hud_bg, (22, 28, 36, 215), (0, 0, w - 24, 46), border_radius=6)
-        surface.blit(hud_bg, (12, 6))
+        hud_bg = pygame.Surface((w - 24, 28), pygame.SRCALPHA)
+        pygame.draw.rect(hud_bg, (16, 22, 32, 185), (0, 0, w - 24, 28), border_radius=4)
+        surface.blit(hud_bg, (12, 18))
 
         alive_count = sum(1 for a in all_agents if a.alive)
         team_score = sum(a.score for a in all_agents)
         txt1 = self._font.render(
-            f"Step: {self.step_count}/{self.max_cycles} | Alive: {alive_count}/{self._num_agents} | Team Score: {team_score}",
+            f"Step: {self.step_count}/{self.max_cycles} | Probes Active: {alive_count}/{self._num_agents} | Team Telemetry: {team_score}",
             True,
             (240, 245, 250),
         )
-        surface.blit(txt1, (22, 10))
+        surface.blit(txt1, (22, 23))
 
         if self.render_mode == "human":
             pygame.display.flip()

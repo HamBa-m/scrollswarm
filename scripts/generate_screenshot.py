@@ -11,11 +11,12 @@ def main():
     # Step forward a few frames so agents and obstacles are in dynamic flow
     for step_i in range(35):
         actions = {a: 1 for a in env.agents}  # Action.STAY
-        # Jitter a few agents up and down for visual appeal
-        if "agent_1" in actions:
-            actions["agent_1"] = 0  # UP
-        if "agent_3" in actions:
-            actions["agent_3"] = 2  # DOWN
+        # Gentle vertical spreading
+        if step_i < 14:
+            if "agent_1" in actions:
+                actions["agent_1"] = 0  # UP
+            if "agent_3" in actions:
+                actions["agent_3"] = 2  # DOWN
         env.step(actions)
 
     env.render()

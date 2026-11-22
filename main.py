@@ -1,19 +1,22 @@
 """
-ScrollSwarm - 2D Interactive Multi-Agent Side-Scroller
+ScrollSwarm - 2D Interactive Multi-Agent Saturn Ring Surfing Simulation
 
 Features:
-  - 1 to 10 agents (default 5, configurable via --num-agents / -n)
-  - Triangle agents pointing RIGHT
-  - 1 px/step scrolling, 30 FPS, light green plain land, boundary mountain ridges
-  - Collision causes instant termination
-  - Interactive selection (TAB or keys 1-9 to switch focused agent)
+  - 1 to 10 rocket probes (default 5, configurable via --num-agents / -n)
+  - SVG vector rocket probe sprites with per-agent team colors
+  - 1 px/step scrolling, 30 FPS, cosmic void, radiation sheath boundaries
+  - Dynamic polygon asteroids executing Keplerian drift and Hill's epicyclic vertical oscillations
+  - Collision causes instant structural termination
+  - Interactive selection (TAB or keys 1-9 to switch focused probe)
 
 Controls:
-  - UP Arrow / W   : Move focused agent up (k = 5 px)
-  - DOWN Arrow / S : Move focused agent down (k = 5 px)
-  - TAB            : Cycle active focused agent
-  - 1-9            : Directly select Agent #1 to #9
-  - A              : Step all alive agents synchronously
+  - UP Arrow / W   : Move focused probe up (thrust k = 5 px)
+  - DOWN Arrow / S : Move focused probe down (thrust k = 5 px)
+  - TAB            : Cycle active focused probe
+  - 1-9            : Directly select Probe #1 to #9
+  - A              : Step all alive probes synchronously
+  - V              : Toggle 7-ray LiDAR rangefinder visualization
+  - C              : Toggle communication graph links
   - R              : Restart simulation
   - SPACE          : Pause / Resume
   - ESC            : Quit
@@ -141,21 +144,21 @@ def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int,
         sw, sh = sprite.get_size()
         surface.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
-        # Highlight currently selected agent with high-contrast dual focus rings
-        if idx == selected_idx:
-            pygame.draw.circle(surface, (255, 255, 255), (int(agent.x), int(agent.y)), 15, width=2)
-            pygame.draw.circle(surface, (30, 144, 255), (int(agent.x), int(agent.y)), 17, width=1)
-        else:
-            ring_col = (200, 210, 225) if agent.alive else (70, 70, 70)
-            pygame.draw.circle(surface, ring_col, (int(agent.x), int(agent.y)), 13, width=1)
+        # Highlight currently selected probe with distinct dual focus rings
+        if idx == selected_idx and agent.alive:
+            pygame.draw.circle(surface, (255, 255, 255), (int(agent.x), int(agent.y)), 16, width=2)
+            pygame.draw.circle(surface, (30, 144, 255), (int(agent.x), int(agent.y)), 18, width=1)
+        elif not agent.alive:
+            # Subtle red indicator for terminated probes
+            pygame.draw.circle(surface, (180, 50, 50), (int(agent.x), int(agent.y)), 13, width=1)
 
-        # ID label above agent
+        # ID label above probe
         lbl = font.render(str(agent.agent_id), True, (220, 225, 235))
         surface.blit(lbl, (int(agent.x - 3), int(agent.y - sh // 2 - 12)))
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ScrollSwarm 2D Simulation")
+    parser = argparse.ArgumentParser(description="ScrollSwarm 2D Simulation (Saturn Ring Surfing)")
     parser.add_argument(
         "-n", "--num-agents",
         type=int,
@@ -179,7 +182,7 @@ def main() -> None:
 
     config = MapConfig(width=800, height=400, fps=30)
     screen = pygame.display.set_mode((config.width, config.height))
-    pygame.display.set_caption(f"ScrollSwarm - Swarm Size: {num_agents}")
+    pygame.display.set_caption(f"ScrollSwarm - Saturn Ring Surfing ({num_agents} Probes)")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("Consolas", 13)
     id_font = pygame.font.SysFont("Consolas", 10, bold=True)
@@ -223,6 +226,7 @@ def main() -> None:
                         scrolling_map=scrolling_map,
                         step_size=5,
                     )
+                    selected_idx = min(selected_idx, len(agents) - 1)
 
         # Simulation step
         if not paused:
@@ -248,13 +252,13 @@ def main() -> None:
             for agent in agents:
                 if agent.alive:
                     agent.check_collision_mountain(scrolling_map)
-                    agent.check_collision_trees(scrolling_map.trees)
+                    agent.check_collision_obstacles(scrolling_map.asteroids)
                     agent.check_target_collection(scrolling_map.targets)
 
         # Rendering
-        screen.fill(COLOR_LAND)
+        screen.fill(COLOR_SPACE_VOID)
         draw_topography(screen, scrolling_map)
-        draw_trees(screen, scrolling_map)
+        draw_asteroids(screen, scrolling_map)
         draw_targets(screen, scrolling_map)
 
         if show_sensors and agents[selected_idx].alive:
@@ -266,9 +270,9 @@ def main() -> None:
         draw_agents(screen, agents, selected_idx, id_font)
 
         # HUD Overlay with translucent dark backdrop for maximum legibility
-        hud_bg = pygame.Surface((config.width - 24, 46), pygame.SRCALPHA)
-        pygame.draw.rect(hud_bg, (22, 28, 36, 215), (0, 0, config.width - 24, 46), border_radius=6)
-        screen.blit(hud_bg, (12, 6))
+        hud_bg = pygame.Surface((config.width - 24, 42), pygame.SRCALPHA)
+        pygame.draw.rect(hud_bg, (16, 22, 32, 190), (0, 0, config.width - 24, 42), border_radius=5)
+        screen.blit(hud_bg, (12, 18))
 
         alive_count = sum(1 for a in agents if a.alive)
         team_score = sum(a.score for a in agents)
@@ -277,30 +281,30 @@ def main() -> None:
         status_color = (80, 230, 130) if focused_agent.alive else (255, 90, 90)
 
         # Line 1: Swarm & Focused Agent Telemetry
-        hud_prefix = f"Agents Alive: {alive_count}/{num_agents} | Team Score: {team_score} | Focused: Agent #{focused_agent.agent_id} ("
+        hud_prefix = f"Probes Active: {alive_count}/{num_agents} | Team Telemetry: {team_score} | Focused: Probe #{focused_agent.agent_id} ("
         txt_prefix = font.render(hud_prefix, True, (240, 245, 250))
         txt_status = font.render(status_str, True, status_color)
         hud_suffix = f", Score: {focused_agent.score})"
         txt_suffix = font.render(hud_suffix, True, (240, 245, 250))
 
         hud_line2 = (
-            f"[W/S] Move | [TAB/1-9] Select | [A] All | [V] Rays | [C] Comm ({args.comm_topology}) | [R] Reset"
+            f"[W/S] Thrust | [TAB/1-9] Focus | [A] All | [V] LiDAR | [C] Comm ({args.comm_topology}) | [R] Restart"
         )
         txt_line2 = font.render(hud_line2, True, (175, 185, 200))
 
         # Blit telemetry with highlighted status
         cur_x = 22
-        screen.blit(txt_prefix, (cur_x, 10))
+        screen.blit(txt_prefix, (cur_x, 22))
         cur_x += txt_prefix.get_width()
-        screen.blit(txt_status, (cur_x, 10))
+        screen.blit(txt_status, (cur_x, 22))
         cur_x += txt_status.get_width()
-        screen.blit(txt_suffix, (cur_x, 10))
+        screen.blit(txt_suffix, (cur_x, 22))
 
-        screen.blit(txt_line2, (22, 28))
+        screen.blit(txt_line2, (22, 38))
 
         if paused:
-            pause_surface = font.render("-- PAUSED --", True, (200, 0, 0))
-            screen.blit(pause_surface, (config.width // 2 - 40, 8))
+            pause_surface = font.render("-- PAUSED --", True, (220, 50, 50))
+            screen.blit(pause_surface, (config.width // 2 - 40, 68))
 
         pygame.display.flip()
         clock.tick(config.fps)

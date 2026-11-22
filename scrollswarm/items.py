@@ -1,6 +1,6 @@
 """
 Entity definitions for ScrollSwarm (Saturn Ring Surfing).
-Data structures for dynamic asteroids, ring debris, and telemetry target beacons.
+Data structures for dynamic asteroids, ring debris, and collection targets.
 """
 
 from dataclasses import dataclass, field
@@ -136,7 +136,7 @@ class Tree(Asteroid):
 
 @dataclass
 class Target:
-    """A collection target: scientific telemetry beacon or volatile ice sample."""
+    """A collection target entity (radius = 8 px, yields +1.0 score)."""
     x: float
     y: float
     size: int = 8

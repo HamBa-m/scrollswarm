@@ -359,7 +359,7 @@ class ScrollSwarmEnv(ParallelEnv):
                 # Frosted ice specular facet line
                 pygame.draw.line(surface, COLOR_ASTEROID_SPECULAR, verts[0], verts[2], 1)
 
-        # 3. Targets (golden Cassini telemetry canisters)
+        # 3. Targets
         for tgt in self.scrolling_map.targets:
             if not tgt.collected:
                 cx, cy, s = int(tgt.x), int(tgt.y), tgt.size
@@ -391,7 +391,7 @@ class ScrollSwarmEnv(ParallelEnv):
         alive_count = sum(1 for a in all_agents if a.alive)
         team_score = sum(a.score for a in all_agents)
         txt1 = self._font.render(
-            f"Step: {self.step_count}/{self.max_cycles} | Probes Active: {alive_count}/{self._num_agents} | Team Telemetry: {team_score}",
+            f"Step: {self.step_count}/{self.max_cycles} | Probes Active: {alive_count}/{self._num_agents} | Team Score: {team_score}",
             True,
             (240, 245, 250),
         )

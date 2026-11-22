@@ -9,7 +9,7 @@ Models an exploration corridor through Saturn's icy ring system:
       x(t) = x_0 - v_x * t
       y(t) = y_base + A * sin(omega * t + phase)
 - Guaranteed minimal navigable passage (>= 110 px) at all times.
-- Stochastic telemetry beacon targets spawned in open navigation lanes.
+- Stochastic collection targets spawned in open navigation lanes.
 """
 
 from dataclasses import dataclass
@@ -27,7 +27,7 @@ COLOR_RING_RIM = (70, 95, 125)            # Boundary luminous cyan/slate rim
 COLOR_ASTEROID_FILL = (75, 95, 120)       # Faceted icy silicate rock
 COLOR_ASTEROID_OUTLINE = (30, 42, 58)     # Dark silhouette edge
 COLOR_ASTEROID_SPECULAR = (150, 185, 215) # Frosted ice specular highlight
-COLOR_TARGET = (255, 195, 30)             # Golden Cassini telemetry beacon
+COLOR_TARGET = (255, 195, 30)             # Golden target objective
 
 # Backward compatibility color aliases
 COLOR_LAND = COLOR_SPACE_VOID

@@ -66,9 +66,9 @@ $$d_{\text{obs}, k} = \frac{\min(t_{\text{boundary}}, t_{\text{asteroid}}, R_{\m
 
 A value of $1.0$ indicates an entirely clear path ahead; values close to $0.0$ indicate imminent collision hazard.
 
-### 4. Telemetry Beacon Detection Channel
+### 4. Target Detection Channel
 
-Cassini telemetry beacons are circular targets of radius $r_{\text{tgt}} = 8\text{ px}$. If ray $k$ intersects an active target canister, its normalized distance is recorded:
+Collection targets are circular objects of radius $r_{\text{tgt}} = 8\text{ px}$. If ray $k$ intersects an uncollected target, its normalized distance is recorded:
 
 $$d_{\text{tgt}, k} = \frac{\min(t_{\text{target}}, R_{\max})}{R_{\max}} \in [0.0, 1.0]$$
 
@@ -86,4 +86,4 @@ $$\mathbf{o}_i = \left[ \frac{y_i}{H}, \; d_{\text{obs}, 0}, \dots, d_{\text{obs
 | :---: | :--- | :---: | :--- |
 | `0` | Normalized Elevation | $[0.0, 1.0]$ | Vertical position $y_i / H$ ($0.0 = \text{top}, 1.0 = \text{bottom}$) |
 | `1`–`7` | Obstacle Distances ($d_{\text{obs}, 0..6}$) | $[0.0, 1.0]$ | Normalized distance to nearest ceiling, floor, or asteroid along rays $-60^\circ$ to $+60^\circ$ |
-| `8`–`14` | Target Distances ($d_{\text{tgt}, 0..6}$) | $[0.0, 1.0]$ | Normalized distance to nearest telemetry beacon along rays $-60^\circ$ to $+60^\circ$ |
+| `8`–`14` | Target Distances ($d_{\text{tgt}, 0..6}$) | $[0.0, 1.0]$ | Normalized distance to nearest target along rays $-60^\circ$ to $+60^\circ$ |

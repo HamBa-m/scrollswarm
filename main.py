@@ -91,12 +91,12 @@ draw_trees = draw_asteroids
 
 
 def draw_targets(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
-    """Renders all uncollected targets as golden Cassini telemetry beacons."""
+    """Renders all uncollected collection targets."""
     for target in scrolling_map.targets:
         if target.collected:
             continue
         cx, cy, s = int(target.x), int(target.y), target.size
-        # Golden beacon with outer glow and white core
+        # Golden target with outer glow and white core
         pygame.draw.circle(surface, COLOR_TARGET, (cx, cy), s)
         pygame.draw.circle(surface, (255, 235, 120), (cx, cy), s + 3, width=1)
         pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
@@ -285,7 +285,7 @@ def main() -> None:
         status_color = (80, 230, 130) if focused_agent.alive else (255, 90, 90)
 
         # Line 1: Swarm & Focused Agent Telemetry
-        hud_prefix = f"Probes Active: {alive_count}/{num_agents} | Team Telemetry: {team_score} | Focused: Probe #{focused_agent.agent_id} ("
+        hud_prefix = f"Probes Active: {alive_count}/{num_agents} | Team Score: {team_score} | Focused: Probe #{focused_agent.agent_id} ("
         txt_prefix = font.render(hud_prefix, True, (240, 245, 250))
         txt_status = font.render(status_str, True, status_color)
         hud_suffix = f", Score: {focused_agent.score})"

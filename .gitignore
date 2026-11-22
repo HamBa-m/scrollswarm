@@ -20,3 +20,6 @@ htmlcov/
 .vscode/
 *.swp
 *.swo
+
+# Documentation builds
+site/

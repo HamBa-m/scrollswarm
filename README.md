@@ -2,8 +2,9 @@
 
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
-[![Renderer](https://img.shields.io/badge/renderer-pygame--2.6-green.svg?logo=python&logoColor=white)](https://www.pygame.org/)
-[![Tests](https://img.shields.io/badge/tests-36%20passed-brightgreen.svg)](tests/)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs--material-blue.svg)](https://hamba-m.github.io/scrollswarm/)
+[![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)
+[![Tests](https://img.shields.io/badge/tests-42%20passed-brightgreen.svg)](tests/)
 [![Status](https://img.shields.io/badge/status-active%20research-informational.svg)](README.md)
 
 **A side-scrolling environment for cooperative multi-agent navigation, communication, and collection.**
@@ -46,6 +47,16 @@ uv run python main.py -n 8 -c ring
 ### Run Tests
 ```bash
 uv run pytest
+```
+
+### Documentation Site
+Build and view the documentation and tutorials locally:
+```bash
+# Serve live-reloading documentation in your browser
+uv run mkdocs serve
+
+# Build static production HTML (strict mode)
+uv run mkdocs build --strict
 ```
 
 ---

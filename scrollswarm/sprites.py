@@ -19,9 +19,10 @@ _SVG_TEMPLATE: Optional[str] = None
 def _get_svg_template() -> str:
     global _SVG_TEMPLATE
     if _SVG_TEMPLATE is None:
-        # Search package directory and workspace assets
+        # Search package directory first, then workspace root
         pkg_dir = Path(__file__).resolve().parent
         asset_candidates = [
+            pkg_dir / "assets" / "quadrocopte.svg",
             pkg_dir.parent / "assets" / "quadrocopte.svg",
             Path("assets/quadrocopte.svg"),
         ]

@@ -64,9 +64,9 @@ Agent [>] ======= Ray 3:   0° (Horizontal Corridor) ===> (Oncoming Trees & Targ
                /   Ray 6: +60° (Floor / Bottom Boundary)
 ```
 
-### Observation Vector
+### Observation Vector & Global Critic State
 
-At every timestep $t$, each agent receives a continuous 15-dimensional observation vector:
+At every timestep $t$, each agent receives a continuous 15-dimensional ego-centric observation vector:
 
 $$
 \mathbf{o}_i = \left[ \frac{y_i}{H}, d_{\text{obs}, 0}, \dots, d_{\text{obs}, 6}, d_{\text{tgt}, 0}, \dots, d_{\text{tgt}, 6} \right] \in [0, 1]^{15}
@@ -75,6 +75,23 @@ $$
 - **Self-State:** Normalized vertical coordinate $y_i / H \in [0, 1]$.
 - **Obstacle Distances ($d_{\text{obs}, k}$):** Normalized distance to the nearest mountain boundary surface or circular tree canopy along ray $k$ ($1.0$ = clear path). Boundary clearances and obstacle warnings are unified into this single continuous channel.
 - **Target Distances ($d_{\text{tgt}, k}$):** Normalized distance to the nearest collection target along ray $k$ ($1.0$ = no target).
+
+For Centralized Training with Decentralized Execution (CTDE) algorithms (e.g., MAPPO, QMIX), `env.state()` returns the global state vector:
+
+$$
+\mathbf{s} = \big[ \mathbf{o}_0^\top, \mathbf{o}_1^\top, \dots, \mathbf{o}_{N-1}^\top \big]^\top \in [0, 1]^{15 \cdot N}
+$$
+
+Dead agents contribute a zero vector of dimension 15, preserving fixed tensor dimensionality for centralized critics.
+
+### Reward Formulation
+
+Rewards are computed at the environment level with configurable parameters (`ScrollSwarmEnv`):
+
+- **Target Acquisition:** $+1.0$ per target collected.
+- **Collision Penalty:** $-10.0$ upon crashing into a mountain ridge or tree obstacle (triggers instant termination).
+- **Survival Bonus:** $+0.01$ for every active step alive.
+- **Cooperative Team Reward:** When `team_reward=True`, each agent receives the swarm-averaged reward $\bar{r} = \frac{1}{N} \sum_{i=1}^N r_i^{\text{indiv}}$, maintaining invariant reward scale as swarm size $N$ varies.
 
 ---
 
@@ -134,6 +151,8 @@ scrollswarm/
 │   ├── quadrocopte.svg    # Vector quadcopter agent model
 │   └── screenshot.png     # Gameplay preview render
 ├── scrollswarm/
+│   ├── assets/
+│   │   └── quadrocopte.svg# Bundled vector quadcopter sprite (package data)
 │   ├── __init__.py        # Public package exports
 │   ├── env.py             # PettingZoo ParallelEnv standard environment wrapper
 │   ├── map.py             # Multi-scale topography, scrolling engine, and clearance invariant

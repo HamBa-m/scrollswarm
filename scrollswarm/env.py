@@ -52,6 +52,10 @@ class ScrollSwarmEnv(ParallelEnv):
         max_cycles: int = 1000,
         map_config: Optional[MapConfig] = None,
         comm_topology: Union[TopologyType, str] = TopologyType.CHAIN,
+        target_reward: float = 1.0,
+        crash_penalty: float = 10.0,
+        step_reward: float = 0.01,
+        team_reward: bool = False,
         render_mode: Optional[str] = None,
     ):
         super().__init__()
@@ -63,6 +67,10 @@ class ScrollSwarmEnv(ParallelEnv):
         self.map_config = map_config or MapConfig(width=800, height=400, fps=30)
         self.comm_topology = comm_topology
         self.comm_graph = CommunicationGraph(topology=comm_topology)
+        self.target_reward = float(target_reward)
+        self.crash_penalty = float(crash_penalty)
+        self.step_reward = float(step_reward)
+        self.team_reward = bool(team_reward)
         self.render_mode = render_mode
 
         # Agent IDs conforming to PettingZoo standards
@@ -110,6 +118,37 @@ class ScrollSwarmEnv(ParallelEnv):
     def action_space(self, agent: str) -> gym.Space:
         """Discrete(3): {0: UP (-5px), 1: STAY (0px), 2: DOWN (+5px)}."""
         return spaces.Discrete(3)
+
+    @property
+    def state_space(self) -> gym.Space:
+        """
+        Centralized state space for CTDE algorithms (MAPPO, QMIX, MADDPG).
+        Concatenation of 15-dimensional observation vectors across all possible agents.
+        Shape: (15 * num_agents,)
+        """
+        total_dim = 15 * self._num_agents
+        return spaces.Box(
+            low=0.0,
+            high=1.0,
+            shape=(total_dim,),
+            dtype=np.float32,
+        )
+
+    def state(self) -> np.ndarray:
+        """
+        Returns the centralized global state vector for CTDE (e.g. MAPPO, QMIX).
+        Formed by concatenating the 15-dimensional observation vectors across all possible agents.
+        Dead agents contribute a zero vector of shape (15,).
+        """
+        parts = []
+        for agent_id in self.possible_agents:
+            agent = self._agent_map.get(agent_id)
+            if agent is not None and agent.alive:
+                obs = agent.get_observation(self.scrolling_map)
+            else:
+                obs = np.zeros(15, dtype=np.float32)
+            parts.append(obs)
+        return np.concatenate(parts, dtype=np.float32)
 
     def reset(
         self,
@@ -190,7 +229,8 @@ class ScrollSwarmEnv(ParallelEnv):
         # 2. Advance scrolling world by 1 pixel
         self.scrolling_map.step()
 
-        # 3. Check collisions, target collections, and calculate transitions
+        # 3. Check collisions, target collections, and calculate individual transitions
+        indiv_rewards: Dict[str, float] = {}
         for agent_id in self.agents:
             agent = self._agent_map[agent_id]
             collision_type = None
@@ -203,23 +243,38 @@ class ScrollSwarmEnv(ParallelEnv):
                 elif agent.check_collision_trees(self.scrolling_map.trees):
                     collision_type = "tree"
 
-                # Check target collection (pure unshaped ground-truth reward)
+                # Check target collection
                 collected = agent.check_target_collection(self.scrolling_map.targets)
-                reward = float(collected)  # +1.0 per collected target
-            else:
-                reward = 0.0
 
-            # Terminate on collision (alive is set to False by collision checks)
+                # Reward formulation: penalty on crash (-10), survival bonus (+0.01), target collection (+1.0)
+                if collision_type is not None:
+                    r = -self.crash_penalty
+                else:
+                    r = self.step_reward + (self.target_reward * float(collected))
+            else:
+                r = 0.0
+
+            indiv_rewards[agent_id] = r
             is_terminated = not agent.alive
 
-            rewards[agent_id] = reward
             terminations[agent_id] = is_terminated
             truncations[agent_id] = is_truncated
             infos[agent_id] = {
                 "targets_collected": agent.score,
                 "collision": collision_type,
                 "steps_survived": agent.steps_alive,
+                "individual_reward": r,
             }
+
+        # Scaled cooperative team reward (mean across total swarm size)
+        team_reward_val = sum(indiv_rewards.values()) / float(self._num_agents)
+
+        for agent_id in self.agents:
+            infos[agent_id]["team_reward"] = team_reward_val
+            if self.team_reward:
+                rewards[agent_id] = team_reward_val
+            else:
+                rewards[agent_id] = indiv_rewards[agent_id]
 
         # 4. Generate observations for agents that are still active
         observations = {

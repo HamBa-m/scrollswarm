@@ -105,3 +105,52 @@ def test_env_communication_graph_integration():
     assert edge_index.shape[0] == 2
     assert edge_attr.shape[1] == 3
     env.close()
+
+
+def test_env_centralized_state_space():
+    """Verifies centralized state() for CTDE algorithms (MAPPO / QMIX)."""
+    env = ScrollSwarmEnv(num_agents=3)
+    env.reset(seed=42)
+
+    assert env.state_space.shape == (45,)
+    s = env.state()
+    assert s.shape == (45,)
+    assert s.dtype == np.float32
+
+    # Manually terminate agent 1 and verify its slice in state() is zero
+    env._agent_map["agent_1"].alive = False
+    s_dead = env.state()
+    assert np.all(s_dead[15:30] == 0.0)
+    assert not np.all(s_dead[0:15] == 0.0)
+    env.close()
+
+
+def test_env_rewards_and_team_averaging():
+    """Verifies reward terms (+0.01 step, -10 crash, team averaging)."""
+    # 1. Individual rewards
+    env = ScrollSwarmEnv(num_agents=2, target_reward=1.0, crash_penalty=10.0, step_reward=0.01, team_reward=False)
+    env.reset(seed=42)
+
+    # Both agents stay alive in step 1
+    obs, rewards, terms, truncs, infos = env.step({"agent_0": 1, "agent_1": 1})
+    assert rewards["agent_0"] == 0.01
+    assert rewards["agent_1"] == 0.01
+
+    # Force agent_0 to crash into ceiling by setting y = 0
+    env._agent_map["agent_0"].y = 0.0
+    obs, rewards, terms, truncs, infos = env.step({"agent_0": 0, "agent_1": 1})
+    assert rewards["agent_0"] == -10.0
+    assert terms["agent_0"] is True
+    env.close()
+
+    # 2. Team reward averaging
+    env_team = ScrollSwarmEnv(num_agents=2, target_reward=1.0, crash_penalty=10.0, step_reward=0.01, team_reward=True)
+    env_team.reset(seed=42)
+
+    # Force agent_0 to crash: indiv_0 = -10, indiv_1 = +0.01 -> mean = (-10 + 0.01) / 2 = -4.995
+    env_team._agent_map["agent_0"].y = 0.0
+    obs, rewards, terms, truncs, infos = env_team.step({"agent_0": 0, "agent_1": 1})
+    expected_team = (-10.0 + 0.01) / 2.0
+    assert np.isclose(rewards["agent_0"], expected_team)
+    assert np.isclose(rewards["agent_1"], expected_team)
+    env_team.close()

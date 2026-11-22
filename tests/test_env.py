@@ -89,3 +89,19 @@ def test_pettingzoo_parallel_api_compliance():
     env = ScrollSwarmEnv(num_agents=3, max_cycles=50)
     parallel_api_test(env, num_cycles=50)
     env.close()
+
+
+def test_env_communication_graph_integration():
+    """Verifies that the environment exposes the dynamic communication graph."""
+    env = ScrollSwarmEnv(num_agents=4, comm_topology="chain")
+    env.reset(seed=42)
+
+    adj = env.get_adjacency_matrix()
+    assert adj.shape == (4, 4)
+    assert adj[0, 1] == 1.0
+    assert adj[1, 0] == 1.0
+
+    edge_index, edge_attr = env.get_edge_index_and_attributes()
+    assert edge_index.shape[0] == 2
+    assert edge_attr.shape[1] == 3
+    env.close()

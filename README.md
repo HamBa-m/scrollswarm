@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![Renderer](https://img.shields.io/badge/renderer-pygame--2.6-green.svg?logo=python&logoColor=white)](https://www.pygame.org/)
-[![Tests](https://img.shields.io/badge/tests-26%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-36%20passed-brightgreen.svg)](tests/)
 [![Status](https://img.shields.io/badge/status-active%20research-informational.svg)](README.md)
 
 **A side-scrolling environment for cooperative multi-agent navigation, communication, and collection.**
@@ -25,9 +25,9 @@ ScrollSwarm uses [uv](https://github.com/astral-sh/uv) for fast, reproducible de
 # Launch with default swarm (5 agents)
 uv run python main.py
 
-# Launch with custom swarm size (1 to 10 agents)
-uv run python main.py -n 3
-uv run python main.py -n 8
+# Launch with custom swarm size and communication topology
+uv run python main.py -n 5 -c chain
+uv run python main.py -n 8 -c ring
 ```
 
 ### Controls
@@ -38,6 +38,7 @@ uv run python main.py -n 8
 | **`TAB`** / **`1`–`9`** | Switch active focused agent (white outline) |
 | **`A`** | Move all alive agents synchronously |
 | **`V`** | Toggle 7-ray LiDAR beam visualization |
+| **`C`** | Toggle graph communication data links |
 | **`R`** | Restart simulation & reseed corridor |
 | **`SPACE`** | Pause / Resume |
 | **`ESC`** | Exit |
@@ -105,6 +106,22 @@ Rather than flat borders, ScrollSwarm features procedural, multi-scale undulatin
 
 ---
 
+## Graph Communication & Topologies
+
+ScrollSwarm provides a formal graph layer for Graph Neural Networks (GNNs) and multi-agent communication (`objects/comm.py`):
+
+- **Supported Topologies:**
+  - `chain` (Default): Path graph $P_N$ along column indices ($A_{ij} = 1 \iff |i - j| = 1$). Ideal for downstream predictive signaling.
+  - `ring`: Cycle graph $C_N$ with wrap-around between agent 0 and agent $N-1$.
+  - `full`: Complete graph $K_N$ (all-to-all broadcast baseline).
+  - `radius`: Dynamic spatial $\epsilon$-disk graph based on Euclidean distance ($\|p_i - p_j\| \le R_{\text{comm}}$).
+  - `capped`: Degree-capped $k$-nearest spatial neighbors.
+- **Dynamic Edge Pruning:** When an agent dies, all incident edges are pruned immediately to prevent ghost messages.
+- **PyTorch Geometric (PyG) Compatibility:** Directly extracts standard `(2, E)` `edge_index` and `(E, 3)` relative coordinate `edge_attr` tensors.
+- **Message Router:** Routes message vectors across active edges with `mean`, `max`, `sum`, or `concat` neighbor aggregation.
+
+---
+
 ## Project Structure
 
 ```text
@@ -117,14 +134,18 @@ scrollswarm/
 │   └── screenshot.png     # Gameplay preview render
 ├── objects/
 │   ├── __init__.py        # Public module exports
+│   ├── env.py             # PettingZoo ParallelEnv standard environment wrapper
 │   ├── map.py             # Multi-scale topography, scrolling engine, and clearance invariant
 │   ├── agent.py           # Agent entity, triangle geometry, and vertical dynamics (k = 5px)
 │   ├── sensors.py         # 7-ray forward LiDAR rangefinder & observation vector
+│   ├── comm.py            # Graph communication topologies & message routing engine
 │   └── items.py           # Tree obstacles and collection target dataclasses
 └── tests/
     ├── test_map.py        # Topography, 1px scrolling, culling, and clearance invariant tests
     ├── test_agent.py      # Movement (k=5px), collisions, clamping, and team creation tests
-    └── test_sensors.py    # Raycasting math, boundary hits, entity detection, and vector shape tests
+    ├── test_sensors.py    # Raycasting math, boundary hits, entity detection, and vector shape tests
+    ├── test_env.py        # PettingZoo ParallelEnv compliance & truncation tests
+    └── test_comm.py       # Graph topology, dead-agent pruning, and message routing tests
 ```
 
 ---

@@ -42,6 +42,7 @@ from objects.agent import (
     create_agents,
 )
 from objects.sensors import RaySensor
+from objects.comm import CommunicationGraph, TopologyType
 
 
 def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
@@ -127,6 +128,14 @@ def draw_sensor_rays(surface: pygame.Surface, agent: Agent, scrolling_map: Scrol
             pygame.draw.circle(surface, (0, 180, 60), end_pt, 6, width=2)
 
 
+def draw_comm_links(surface: pygame.Surface, comm_graph: CommunicationGraph, agents: List[Agent]) -> None:
+    """Renders active graph communication links between living agents."""
+    edges = comm_graph.get_communication_edges(agents)
+    for p1, p2 in edges:
+        # Faint cyan/blue communication data link
+        pygame.draw.line(surface, (70, 140, 230), (int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1])), 1)
+
+
 def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int, font: pygame.font.Font) -> None:
     """Renders all agents (pointing RIGHT) with outline and ID tags."""
     for idx, agent in enumerate(agents):
@@ -152,9 +161,17 @@ def main() -> None:
         default=5,
         help="Number of agents in the swarm (1 to 10, default: 5)"
     )
+    parser.add_argument(
+        "-c", "--comm-topology",
+        type=str,
+        default="chain",
+        choices=["chain", "ring", "full", "radius", "capped"],
+        help="Graph communication topology (default: chain)"
+    )
     args = parser.parse_args()
 
     num_agents = max(1, min(10, args.num_agents))
+    comm_graph = CommunicationGraph(topology=args.comm_topology)
 
     pygame.init()
     pygame.font.init()
@@ -171,6 +188,7 @@ def main() -> None:
 
     selected_idx = 0
     show_sensors = True
+    show_comm = True
     running = True
     paused = False
 
@@ -186,6 +204,8 @@ def main() -> None:
                     paused = not paused
                 elif event.key == pygame.K_v:
                     show_sensors = not show_sensors
+                elif event.key == pygame.K_c:
+                    show_comm = not show_comm
                 elif event.key == pygame.K_TAB:
                     # Cycle through agents
                     selected_idx = (selected_idx + 1) % len(agents)
@@ -239,6 +259,9 @@ def main() -> None:
         if show_sensors and agents[selected_idx].alive:
             draw_sensor_rays(screen, agents[selected_idx], scrolling_map)
 
+        if show_comm:
+            draw_comm_links(screen, comm_graph, agents)
+
         draw_agents(screen, agents, selected_idx, id_font)
 
         # HUD Overlay with translucent dark backdrop for maximum legibility
@@ -260,7 +283,7 @@ def main() -> None:
         txt_suffix = font.render(hud_suffix, True, (240, 245, 250))
 
         hud_line2 = (
-            "[W/UP, S/DOWN] Move Focused | [TAB / 1-9] Select | [A] Move All | [V] Toggle Rays | [R] Reset | [SPACE] Pause"
+            f"[W/S] Move | [TAB/1-9] Select | [A] All | [V] Rays | [C] Comm ({args.comm_topology}) | [R] Reset"
         )
         txt_line2 = font.render(hud_line2, True, (175, 185, 200))
 

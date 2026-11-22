@@ -20,6 +20,7 @@ from objects.agent import (
 )
 from objects.sensors import RaySensor, RayHit
 from objects.env import ScrollSwarmEnv
+from objects.comm import CommunicationGraph, TopologyType
 
 __all__ = [
     "ScrollingMap",
@@ -35,6 +36,8 @@ __all__ = [
     "RaySensor",
     "RayHit",
     "ScrollSwarmEnv",
+    "CommunicationGraph",
+    "TopologyType",
     "COLOR_LAND",
     "COLOR_MOUNTAIN",
     "COLOR_MOUNTAIN_RIM",

@@ -11,7 +11,7 @@ Provides a standard Multi-Agent Reinforcement Learning (MARL) interface:
 - Rendering: Supports both "human" (Pygame window) and "rgb_array" (NumPy image tensor).
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 import functools
 import numpy as np
 import gymnasium as gym
@@ -31,6 +31,7 @@ from objects.map import (
 )
 from objects.agent import Agent, Action, create_agents, COLOR_AGENT_DEAD
 from objects.sensors import RaySensor
+from objects.comm import CommunicationGraph, TopologyType
 
 
 class ScrollSwarmEnv(ParallelEnv):
@@ -49,6 +50,7 @@ class ScrollSwarmEnv(ParallelEnv):
         num_agents: int = 5,
         max_cycles: int = 1000,
         map_config: Optional[MapConfig] = None,
+        comm_topology: Union[TopologyType, str] = TopologyType.CHAIN,
         render_mode: Optional[str] = None,
     ):
         super().__init__()
@@ -58,6 +60,8 @@ class ScrollSwarmEnv(ParallelEnv):
         self._num_agents = num_agents
         self.max_cycles = max_cycles
         self.map_config = map_config or MapConfig(width=800, height=400, fps=30)
+        self.comm_topology = comm_topology
+        self.comm_graph = CommunicationGraph(topology=comm_topology)
         self.render_mode = render_mode
 
         # Agent IDs conforming to PettingZoo standards
@@ -231,6 +235,22 @@ class ScrollSwarmEnv(ParallelEnv):
             self.render()
 
         return observations, rewards, terminations, truncations, infos
+
+    def get_adjacency_matrix(self) -> np.ndarray:
+        """Returns the current (N, N) binary adjacency matrix for alive agents."""
+        return self.comm_graph.get_adjacency_matrix(list(self._agent_map.values()))
+
+    def get_edge_index_and_attributes(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Returns PyG-compatible graph representations for active agents:
+            edge_index: (2, E)
+            edge_attr:  (E, 3) relative [dx, dy, normalized_dist]
+        """
+        return self.comm_graph.get_edge_index_and_attributes(
+            list(self._agent_map.values()),
+            map_width=float(self.scrolling_map.width),
+            map_height=float(self.scrolling_map.height),
+        )
 
     def render(self) -> Optional[np.ndarray]:
         """Renders the environment in 'human' (window) or 'rgb_array' mode."""

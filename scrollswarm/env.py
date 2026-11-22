@@ -237,9 +237,9 @@ class ScrollSwarmEnv(ParallelEnv):
             collision_type = None
 
             if agent.alive:
-                # Check mountain collision
-                if agent.check_collision_mountain(self.scrolling_map):
-                    collision_type = "mountain"
+                # Check sheath boundary collision
+                if agent.check_collision_boundary(self.scrolling_map):
+                    collision_type = "boundary"
                 # Check asteroid obstacle collision
                 elif agent.check_collision_obstacles(self.scrolling_map.asteroids):
                     collision_type = "asteroid"

@@ -1,5 +1,5 @@
 """
-Unit tests for ScrollingMap, multi-scale topography math, and guaranteed clearance.
+Unit tests for ScrollingMap, planetary ring sheath boundaries, and guaranteed clearance.
 """
 
 import numpy as np
@@ -29,7 +29,7 @@ def test_map_scrolling_shifts_one_pixel():
     config = MapConfig(width=200, height=100, seed=123, preseed=False)
     m = ScrollingMap(config)
 
-    # Save topography before step
+    # Save boundary heights before step
     initial_top = m.top_heights.copy()
     initial_bot = m.bot_heights.copy()
 
@@ -39,7 +39,7 @@ def test_map_scrolling_shifts_one_pixel():
 
     m.step()
 
-    # The topography from x=1..W should now be at x=0..W-1
+    # The boundaries from x=1..W should now be at x=0..W-1
     np.testing.assert_allclose(m.top_heights[:-1], initial_top[1:])
     np.testing.assert_allclose(m.bot_heights[:-1], initial_bot[1:])
 

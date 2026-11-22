@@ -50,7 +50,7 @@ from scrollswarm.comm import CommunicationGraph, TopologyType
 from scrollswarm.sprites import get_rocket_sprite
 
 
-def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
+def draw_cosmic_boundaries(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
     """Renders the Saturnian cosmic void, ring dust lanes, and sheath boundary planes."""
     w = scrolling_map.width
     h = scrolling_map.height
@@ -69,6 +69,10 @@ def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> Non
     pygame.draw.rect(surface, COLOR_RING_SHEATH, (0, floor_y, w, h - floor_y))
     pygame.draw.line(surface, COLOR_RING_RIM, (0, ceil_y), (w, ceil_y), 2)
     pygame.draw.line(surface, COLOR_RING_RIM, (0, floor_y), (w, floor_y), 2)
+
+
+# Backward compatibility alias
+draw_topography = draw_cosmic_boundaries
 
 
 def draw_asteroids(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
@@ -257,7 +261,7 @@ def main() -> None:
 
         # Rendering
         screen.fill(COLOR_SPACE_VOID)
-        draw_topography(screen, scrolling_map)
+        draw_cosmic_boundaries(screen, scrolling_map)
         draw_asteroids(screen, scrolling_map)
         draw_targets(screen, scrolling_map)
 

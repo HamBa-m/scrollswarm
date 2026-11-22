@@ -10,7 +10,7 @@ This guide walks through creating an environment instance, stepping random actio
 import numpy as np
 from scrollswarm import ScrollSwarmEnv
 
-# 1. Initialize environment with 5 quadcopter agents
+# 1. Initialize environment with 5 rocket probe agents
 env = ScrollSwarmEnv(
     num_agents=5,
     max_cycles=1000,
@@ -21,7 +21,7 @@ env = ScrollSwarmEnv(
     render_mode=None,  # Headless mode for maximum speed
 )
 
-# 2. Reset the environment (seed for reproducible terrain)
+# 2. Reset the environment (seed for reproducible corridor)
 observations, infos = env.reset(seed=42)
 
 print(f"Possible Agents: {env.possible_agents}")
@@ -63,9 +63,9 @@ uv run python main.py -n 5 -c chain
 | :--- | :--- |
 | **`W` / `UP`** | Climb focused agent up ($k = 5\text{ px}$) |
 | **`S` / `DOWN`** | Dive focused agent down ($k = 5\text{ px}$) |
-| **`TAB`** / **`1`–`9`** | Switch active focused quadcopter |
+| **`TAB`** / **`1`–`9`** | Switch active focused probe |
 | **`A`** | Move all alive agents synchronously |
 | **`V`** | Toggle 7-ray LiDAR beam visualization |
 | **`C`** | Toggle graph communication data links |
-| **`R`** | Restart simulation & reseed cavern |
+| **`R`** | Restart simulation & reseed corridor |
 | **`SPACE`** | Pause / Resume |

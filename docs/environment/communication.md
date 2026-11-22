@@ -8,7 +8,7 @@ ScrollSwarm includes an integrated communication layer (`scrollswarm.Communicati
 
 | Topology | Key | Graph Definition | Research Utility |
 | :--- | :---: | :--- | :--- |
-| **Chain** (Default) | `chain` | Path graph $P_N$: $A_{ij} = 1 \iff |i - j| = 1$ | Tests predictive communication from upstream scout quadcopters to downstream followers. |
+| **Chain** (Default) | `chain` | Path graph $P_N$: $A_{ij} = 1 \iff |i - j| = 1$ | Tests predictive communication from upstream scout probes to downstream followers. |
 | **Ring** | `ring` | Cycle graph $C_N$: Chain plus wrap-around link $(0 \leftrightarrow N-1)$ | Symmetric circulating message passing benchmark. |
 | **Full** | `full` | Complete graph $K_N$: $A_{ij} = 1, \; \forall i \neq j$ | All-to-all broadcast upper bound. |
 | **Radius** | `radius` | Spatial $\epsilon$-ball: $A_{ij} = 1 \iff \|\mathbf{p}_i - \mathbf{p}_j\| \le R_{\text{comm}}$ | Distance-limited local ad-hoc wireless mesh. |

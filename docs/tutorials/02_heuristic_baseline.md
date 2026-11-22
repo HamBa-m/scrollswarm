@@ -13,8 +13,8 @@ The 15-dimensional vector $\mathbf{o}_i$ provides:
 
 ### Rule Strategy:
 1. **Target Seeking (Opportunistic):** If an upper target ray detects a target ($d_{\text{tgt}} < 1.0$), prioritize climbing (`UP`). If a lower target ray detects a target, prioritize diving (`DOWN`).
-2. **Obstacle Avoidance (Defensive):** If upper rays ($d_{\text{obs}, 0..2}$) detect an oncoming ceiling or rock crag below a safety threshold ($\tau_{\text{safe}} = 0.45$), force diving (`DOWN`).
-3. **Ground Avoidance (Defensive):** If lower rays ($d_{\text{obs}, 4..6}$) detect an oncoming floor or crag below $\tau_{\text{safe}}$, force climbing (`UP`).
+2. **Obstacle Avoidance (Defensive):** If upper rays ($d_{\text{obs}, 0..2}$) detect an oncoming ceiling sheath or asteroid below a safety threshold ($\tau_{\text{safe}} = 0.45$), force diving (`DOWN`).
+3. **Ground Avoidance (Defensive):** If lower rays ($d_{\text{obs}, 4..6}$) detect an oncoming floor sheath or asteroid below $\tau_{\text{safe}}$, force climbing (`UP`).
 4. **Safety Override:** Obstacle avoidance strictly supersedes target tracking.
 
 ---
@@ -24,7 +24,7 @@ The 15-dimensional vector $\mathbf{o}_i$ provides:
 ```python
 """
 Tutorial 02: Heuristic Reactive Policy.
-Navigates the cavern and collects targets using deterministic LiDAR thresholding.
+Navigates the planetary ring corridor and collects targets using deterministic LiDAR thresholding.
 """
 
 from typing import Dict

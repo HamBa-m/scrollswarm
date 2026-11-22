@@ -1,5 +1,5 @@
 site_name: ScrollSwarm
-site_description: "A side-scrolling multi-agent reinforcement learning (MARL) testbed with procedural topography and dynamic graph communication."
+site_description: "A side-scrolling multi-agent reinforcement learning (MARL) testbed with dynamic planetary ring kinematics and graph communication."
 site_author: "Hamza Ba-mohammed"
 repo_url: "https://github.com/HamBa-m/scrollswarm"
 repo_name: "HamBa-m/scrollswarm"
@@ -74,7 +74,7 @@ nav:
       - Formal Model: environment/overview.md
       - Observation & LiDAR: environment/observation.md
       - Action Space & Dynamics: environment/action_space.md
-      - Cavern Topography: environment/topography.md
+      - Ring Dynamics & Asteroids: environment/ring_dynamics.md
       - Rewards & CTDE State: environment/rewards_and_state.md
       - Graph Communication: environment/communication.md
   - Tutorials:
@@ -86,5 +86,5 @@ nav:
       - Agent & Dynamics: api/agent.md
       - Sensors & Raycasting: api/sensors.md
       - Communication Graph: api/comm.md
-      - Map & Topography: api/map.md
+      - Map & Ring Environment: api/map.md
       - Sprites & Rendering: api/sprites.md

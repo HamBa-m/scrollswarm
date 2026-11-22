@@ -70,4 +70,4 @@ With `edge_index` and `edge_attr` available at every step, standard graph messag
 
 $$\mathbf{h}_i^{(l+1)} = \sigma\left( \mathbf{W}_0 \mathbf{h}_i^{(l)} + \sum_{j \in \mathcal{N}_i} \alpha_{ij} \mathbf{W}_1 \mathbf{h}_j^{(l)} \right)$$
 
-Upstream scout quadcopters passing high obstacle hazards along chain edges allow trailing quadcopters to begin pre-emptive climbing maneuvers before obstacles enter their personal LiDAR range.
+Upstream scout probes passing obstacle hazards along chain edges allow trailing probes to begin pre-emptive avoidance maneuvers before obstacles enter their personal LiDAR range.

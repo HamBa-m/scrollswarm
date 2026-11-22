@@ -111,9 +111,9 @@ class Agent:
         half_h = self.height / 2.0
         self.y = float(np.clip(self.y, half_h, map_height - half_h))
 
-    def check_collision_mountain(self, scrolling_map: ScrollingMap) -> bool:
+    def check_collision_boundary(self, scrolling_map: ScrollingMap) -> bool:
         """
-        Checks if any vertex of the agent penetrates the top or bottom mountain ridges.
+        Checks if any vertex of the agent penetrates the upper or lower radiation sheath boundaries.
         Instant termination occurs on collision.
         """
         if not self.alive:
@@ -124,12 +124,16 @@ class Agent:
             top_bound = scrolling_map.top_heights[col]
             bot_bound = scrolling_map.height - scrolling_map.bot_heights[col]
 
-            # Inside top mountain or inside bottom mountain
+            # Inside top sheath or inside bottom sheath
             if vy <= top_bound or vy >= bot_bound:
                 self.alive = False
                 return True
 
         return False
+
+    def check_collision_mountain(self, scrolling_map: ScrollingMap) -> bool:
+        """Backward compatibility alias for check_collision_boundary."""
+        return self.check_collision_boundary(scrolling_map)
 
     def check_collision_obstacles(self, obstacles: List[Any]) -> bool:
         """

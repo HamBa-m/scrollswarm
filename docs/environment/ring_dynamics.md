@@ -1,4 +1,4 @@
-# Saturn Ring Topography & Dynamic Asteroid Kinematics
+# Saturn Ring Dynamics & Asteroid Kinematics
 
 Rather than static or sinusoidal terrain, ScrollSwarm models an active exploration corridor within a planetary ring system (such as Saturn's main rings). The corridor is bounded by upper and lower radiation sheath planes and populated by dynamic, multi-scale polygon asteroids exhibiting realistic orbital-plane perturbations.
 

@@ -55,19 +55,20 @@ def test_agent_clamping_at_boundaries():
     assert agent.y == 393.0  # Clamped to 400 - 7.0 = 393.0
 
 
-def test_mountain_collision_terminates_agent():
+def test_boundary_collision_terminates_agent():
     config = MapConfig(width=400, height=200, seed=42)
     m = ScrollingMap(config)
 
     # Place agent safely in the middle of corridor
     mid_y = (m.top_heights[100] + (m.height - m.bot_heights[100])) / 2.0
     agent = Agent(agent_id=0, x=100.0, y=mid_y)
+    assert agent.check_collision_boundary(m) is False
     assert agent.check_collision_mountain(m) is False
     assert agent.alive is True
 
-    # Move agent directly into the top mountain ridge
+    # Move agent directly into the top sheath boundary
     agent.y = m.top_heights[100] - 2.0
-    assert agent.check_collision_mountain(m) is True
+    assert agent.check_collision_boundary(m) is True
     assert agent.alive is False
 
 

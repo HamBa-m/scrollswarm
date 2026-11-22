@@ -21,18 +21,19 @@ from pettingzoo import ParallelEnv
 from scrollswarm.map import (
     ScrollingMap,
     MapConfig,
-    COLOR_LAND,
-    COLOR_MOUNTAIN,
-    COLOR_MOUNTAIN_RIM,
-    COLOR_TREE_LEAVES,
-    COLOR_TREE_RIM,
-    COLOR_TREE_TRUNK,
+    COLOR_SPACE_VOID,
+    COLOR_RING_HAZE,
+    COLOR_RING_SHEATH,
+    COLOR_RING_RIM,
+    COLOR_ASTEROID_FILL,
+    COLOR_ASTEROID_OUTLINE,
+    COLOR_ASTEROID_SPECULAR,
     COLOR_TARGET,
 )
 from scrollswarm.agent import Agent, Action, create_agents, COLOR_AGENT_DEAD
 from scrollswarm.sensors import RaySensor
 from scrollswarm.comm import CommunicationGraph, TopologyType
-from scrollswarm.sprites import get_quadcopter_sprite
+from scrollswarm.sprites import get_rocket_sprite
 
 
 class ScrollSwarmEnv(ParallelEnv):
@@ -335,46 +336,51 @@ class ScrollSwarmEnv(ParallelEnv):
 
         surface = self._screen
 
-        # Background
-        surface.fill(COLOR_LAND)
+        # 0. Cosmic void background & subtle Saturnian ring dust streams
+        surface.fill(COLOR_SPACE_VOID)
+        for offset_lane in (80, 150, 220, 290):
+            dust_y = offset_lane
+            pygame.draw.line(surface, (20, 26, 40), (0, dust_y), (w, dust_y), 1)
 
-        # 1. Mountains with dark rims
-        top_points = [(0, 0)] + [(x, int(self.scrolling_map.top_heights[x])) for x in range(w)] + [(w - 1, 0)]
-        bot_points = [(0, h)] + [(x, int(h - self.scrolling_map.bot_heights[x])) for x in range(w)] + [(w - 1, h)]
-        pygame.draw.polygon(surface, COLOR_MOUNTAIN, top_points)
-        pygame.draw.polygon(surface, COLOR_MOUNTAIN, bot_points)
-        pygame.draw.lines(surface, COLOR_MOUNTAIN_RIM, False, [(x, int(self.scrolling_map.top_heights[x])) for x in range(w)], 2)
-        pygame.draw.lines(surface, COLOR_MOUNTAIN_RIM, False, [(x, int(h - self.scrolling_map.bot_heights[x])) for x in range(w)], 2)
+        # 1. Ring sheath boundary planes (flat boundaries with luminous rims)
+        ceil_y = int(self.scrolling_map.ceiling_y)
+        floor_y = int(self.scrolling_map.floor_y)
+        pygame.draw.rect(surface, COLOR_RING_SHEATH, (0, 0, w, ceil_y))
+        pygame.draw.rect(surface, COLOR_RING_SHEATH, (0, floor_y, w, h - floor_y))
+        pygame.draw.line(surface, COLOR_RING_RIM, (0, ceil_y), (w, ceil_y), 2)
+        pygame.draw.line(surface, COLOR_RING_RIM, (0, floor_y), (w, floor_y), 2)
 
-        # 2. Trees
-        for tree in self.scrolling_map.trees:
-            pos = (int(tree.x), int(tree.y))
-            pygame.draw.circle(surface, COLOR_TREE_RIM, pos, tree.outer_radius + 1)
-            pygame.draw.circle(surface, COLOR_TREE_LEAVES, pos, tree.outer_radius)
-            pygame.draw.circle(surface, COLOR_TREE_TRUNK, pos, tree.inner_radius)
+        # 2. Dynamic polygon asteroids & icy moonlets
+        for ast in getattr(self.scrolling_map, "asteroids", []):
+            verts = [(int(vx), int(vy)) for vx, vy in ast.vertices]
+            if len(verts) >= 3:
+                pygame.draw.polygon(surface, COLOR_ASTEROID_FILL, verts)
+                pygame.draw.polygon(surface, COLOR_ASTEROID_OUTLINE, verts, width=2)
+                # Frosted ice specular facet line
+                pygame.draw.line(surface, COLOR_ASTEROID_SPECULAR, verts[0], verts[2], 1)
 
-        # 3. Targets
+        # 3. Targets (golden Cassini telemetry canisters)
         for tgt in self.scrolling_map.targets:
             if not tgt.collected:
                 cx, cy, s = int(tgt.x), int(tgt.y), tgt.size
-                pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy - s), (cx + s, cy + s), 3)
-                pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy + s), (cx + s, cy - s), 3)
+                pygame.draw.circle(surface, COLOR_TARGET, (cx, cy), s)
+                pygame.draw.circle(surface, (255, 235, 120), (cx, cy), s + 3, width=1)
                 pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
 
-        # 4. Agents (quadcopter sprites)
+        # 4. Agents (rocket probe sprites)
         all_agents = list(self._agent_map.values())
         for agent in all_agents:
             color = agent.color if agent.alive else COLOR_AGENT_DEAD
-            sprite = get_quadcopter_sprite(color, size=(24, 24))
+            sprite = get_rocket_sprite(color, size=(24, 24))
             sw, sh = sprite.get_size()
             surface.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
-            # Status ring around quadcopter (white when alive, subtle dark when dead)
+            # Status ring around probe (white when alive, subtle dark when dead)
             ring_col = (255, 255, 255) if agent.alive else (70, 70, 70)
             pygame.draw.circle(surface, ring_col, (int(agent.x), int(agent.y)), 13, width=1)
 
-            # ID label above quadcopter
-            lbl = self._id_font.render(str(agent.agent_id), True, (20, 20, 20))
+            # ID label above probe
+            lbl = self._id_font.render(str(agent.agent_id), True, (220, 225, 235))
             surface.blit(lbl, (int(agent.x - 3), int(agent.y - sh // 2 - 12)))
 
         # 5. Telemetry HUD

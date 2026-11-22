@@ -7,10 +7,10 @@ instant termination (alive = False).
 """
 
 from enum import IntEnum
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 import numpy as np
 
-from scrollswarm.items import Tree, Target
+from scrollswarm.items import Asteroid, Tree, Target
 from scrollswarm.map import ScrollingMap
 from scrollswarm.sensors import RaySensor
 
@@ -131,24 +131,33 @@ class Agent:
 
         return False
 
-    def check_collision_trees(self, trees: List[Tree]) -> bool:
+    def check_collision_obstacles(self, obstacles: List[Any]) -> bool:
         """
-        Checks collision with circular tree obstacles.
+        Checks collision with dynamic polygon asteroids (or circular obstacles).
         Instant termination occurs on contact.
         """
         if not self.alive:
             return False
 
-        for tree in trees:
-            dx = self.x - tree.x
-            dy = self.y - tree.y
-            dist_sq = dx * dx + dy * dy
-            threshold = self.collision_radius + tree.outer_radius
-            if dist_sq <= threshold * threshold:
-                self.alive = False
-                return True
+        for obs in obstacles:
+            if hasattr(obs, "distance_to_point"):
+                dist = obs.distance_to_point(self.x, self.y)
+                if dist <= self.collision_radius or obs.contains_point(self.x, self.y):
+                    self.alive = False
+                    return True
+            elif hasattr(obs, "outer_radius"):
+                dx = self.x - obs.x
+                dy = self.y - obs.y
+                threshold = self.collision_radius + obs.outer_radius
+                if dx * dx + dy * dy <= threshold * threshold:
+                    self.alive = False
+                    return True
 
         return False
+
+    def check_collision_trees(self, trees: List[Any]) -> bool:
+        """Backward compatibility alias for check_collision_obstacles."""
+        return self.check_collision_obstacles(trees)
 
     def check_target_collection(self, targets: List[Target]) -> int:
         """

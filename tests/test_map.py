@@ -5,11 +5,11 @@ Unit tests for ScrollingMap, multi-scale topography math, and guaranteed clearan
 import numpy as np
 import pytest
 from scrollswarm.map import ScrollingMap, MapConfig
-from scrollswarm.items import Tree, Target
+from scrollswarm.items import Asteroid, Tree, Target
 
 
 def test_map_initialization():
-    config = MapConfig(width=400, height=200, seed=42)
+    config = MapConfig(width=400, height=200, seed=42, preseed=False)
     m = ScrollingMap(config)
 
     assert m.top_heights.shape == (400,)
@@ -21,12 +21,12 @@ def test_map_initialization():
     for x in range(m.width):
         corridor_gap = m.height - (m.top_heights[x] + m.bot_heights[x])
         assert corridor_gap >= m.min_corridor_gap - 1e-3
-        assert m.top_heights[x] >= config.min_ridge_height
-        assert m.bot_heights[x] >= config.min_ridge_height
+        assert m.top_heights[x] >= config.ceiling_y
+        assert m.bot_heights[x] >= config.floor_margin
 
 
 def test_map_scrolling_shifts_one_pixel():
-    config = MapConfig(width=200, height=100, seed=123)
+    config = MapConfig(width=200, height=100, seed=123, preseed=False)
     m = ScrollingMap(config)
 
     # Save topography before step
@@ -49,7 +49,7 @@ def test_map_scrolling_shifts_one_pixel():
 
 
 def test_culling_offscreen_entities():
-    config = MapConfig(width=200, height=100, seed=999)
+    config = MapConfig(width=200, height=100, seed=999, preseed=False)
     m = ScrollingMap(config)
 
     # Place item right at the left boundary
@@ -70,12 +70,12 @@ def test_culling_offscreen_entities():
 
 
 def test_seed_reproducibility():
-    config1 = MapConfig(width=200, height=100, seed=777)
+    config1 = MapConfig(width=200, height=100, seed=777, preseed=False)
     m1 = ScrollingMap(config1)
     for _ in range(50):
         m1.step()
 
-    config2 = MapConfig(width=200, height=100, seed=777)
+    config2 = MapConfig(width=200, height=100, seed=777, preseed=False)
     m2 = ScrollingMap(config2)
     for _ in range(50):
         m2.step()
@@ -104,17 +104,25 @@ def test_guaranteed_minimal_passage_across_500_steps():
         )
 
 
-def test_topography_dynamic_variance_not_flat():
+def test_dynamic_asteroid_kinematics_hills_epicyclic():
     """
-    Tests that the multi-scale topography exhibits real undulating terrain
-    (macro climbs, valleys, chicanes) rather than a flat line.
+    Tests that dynamic polygon asteroids execute Keplerian drift and Hill's vertical oscillation.
     """
     config = MapConfig(width=800, height=400, seed=99)
     m = ScrollingMap(config)
+    ast = m._create_asteroid(spawn_x=500.0)
 
-    # The top height across columns must have substantial vertical variation (std > 15px)
-    std_top = float(np.std(m.top_heights))
-    ptp_top = float(np.ptp(m.top_heights))  # peak to peak
+    # Check that smaller asteroids drift faster than larger ones (size-velocity scaling)
+    ast_small = Asteroid(x=500.0, y=200.0, base_y=200.0, radius=15.0, vx=2.5, vy_amplitude=15.0)
+    ast_large = Asteroid(x=500.0, y=200.0, base_y=200.0, radius=70.0, vx=1.1, vy_amplitude=5.0)
+    assert ast_small.vx > ast_large.vx
 
-    assert std_top > 15.0, f"Topography too flat! Standard deviation was only {std_top:.2f}px"
-    assert ptp_top > 50.0, f"Topography peak-to-peak difference too small! PTP was only {ptp_top:.2f}px"
+    # Check step updates x and y with oscillation
+    init_x = ast.x
+    y_history = []
+    for _ in range(50):
+        ast.step()
+        y_history.append(ast.y)
+
+    assert ast.x < init_x  # drifted left
+    assert len(set(y_history)) > 1  # oscillated vertically

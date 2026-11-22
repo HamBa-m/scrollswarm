@@ -6,7 +6,13 @@ from scrollswarm.env import ScrollSwarmEnv
 from scrollswarm.map import (
     ScrollingMap,
     MapConfig,
-    RockCrag,
+    COLOR_SPACE_VOID,
+    COLOR_RING_HAZE,
+    COLOR_RING_SHEATH,
+    COLOR_RING_RIM,
+    COLOR_ASTEROID_FILL,
+    COLOR_ASTEROID_OUTLINE,
+    COLOR_ASTEROID_SPECULAR,
     COLOR_LAND,
     COLOR_MOUNTAIN,
     COLOR_MOUNTAIN_RIM,
@@ -24,15 +30,14 @@ from scrollswarm.agent import (
     create_agents,
 )
 from scrollswarm.sensors import RaySensor, RayHit
-from scrollswarm.items import Tree, Target
+from scrollswarm.items import Asteroid, Tree, Target
 from scrollswarm.comm import CommunicationGraph, TopologyType
-from scrollswarm.sprites import get_quadcopter_sprite
+from scrollswarm.sprites import get_rocket_sprite, get_quadcopter_sprite
 
 __all__ = [
     "ScrollSwarmEnv",
     "ScrollingMap",
     "MapConfig",
-    "RockCrag",
     "Agent",
     "Action",
     "create_agents",
@@ -41,11 +46,20 @@ __all__ = [
     "COLOR_AGENT_DEAD",
     "RaySensor",
     "RayHit",
+    "Asteroid",
     "Tree",
     "Target",
     "CommunicationGraph",
     "TopologyType",
+    "get_rocket_sprite",
     "get_quadcopter_sprite",
+    "COLOR_SPACE_VOID",
+    "COLOR_RING_HAZE",
+    "COLOR_RING_SHEATH",
+    "COLOR_RING_RIM",
+    "COLOR_ASTEROID_FILL",
+    "COLOR_ASTEROID_OUTLINE",
+    "COLOR_ASTEROID_SPECULAR",
     "COLOR_LAND",
     "COLOR_MOUNTAIN",
     "COLOR_MOUNTAIN_RIM",

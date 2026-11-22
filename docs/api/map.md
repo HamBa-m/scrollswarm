@@ -4,4 +4,4 @@
 
 ::: scrollswarm.map.MapConfig
 
-::: scrollswarm.map.RockCrag
+::: scrollswarm.items.Asteroid

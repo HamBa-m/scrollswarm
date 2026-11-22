@@ -27,12 +27,13 @@ import pygame
 from scrollswarm.map import (
     ScrollingMap,
     MapConfig,
-    COLOR_LAND,
-    COLOR_MOUNTAIN,
-    COLOR_MOUNTAIN_RIM,
-    COLOR_TREE_LEAVES,
-    COLOR_TREE_RIM,
-    COLOR_TREE_TRUNK,
+    COLOR_SPACE_VOID,
+    COLOR_RING_HAZE,
+    COLOR_RING_SHEATH,
+    COLOR_RING_RIM,
+    COLOR_ASTEROID_FILL,
+    COLOR_ASTEROID_OUTLINE,
+    COLOR_ASTEROID_SPECULAR,
     COLOR_TARGET,
 )
 from scrollswarm.agent import (
@@ -43,59 +44,54 @@ from scrollswarm.agent import (
 )
 from scrollswarm.sensors import RaySensor
 from scrollswarm.comm import CommunicationGraph, TopologyType
-from scrollswarm.sprites import get_quadcopter_sprite
+from scrollswarm.sprites import get_rocket_sprite
 
 
 def draw_topography(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
-    """Renders the top and bottom mountain boundary polygons with dark rim contours."""
+    """Renders the Saturnian cosmic void, ring dust lanes, and sheath boundary planes."""
     w = scrolling_map.width
     h = scrolling_map.height
 
-    # Top mountain polygon: (0,0) -> (x, top_heights[x]) -> (w-1, 0)
-    top_points = [(0, 0)]
-    for x in range(w):
-        top_points.append((x, int(scrolling_map.top_heights[x])))
-    top_points.append((w - 1, 0))
-    pygame.draw.polygon(surface, COLOR_MOUNTAIN, top_points)
+    # Deep space cosmic void
+    surface.fill(COLOR_SPACE_VOID)
 
-    # Top rim line
-    top_rim = [(x, int(scrolling_map.top_heights[x])) for x in range(w)]
-    pygame.draw.lines(surface, COLOR_MOUNTAIN_RIM, False, top_rim, width=2)
+    # Saturnian champagne ring dust streams
+    for offset_lane in (75, 140, 205, 270, 335):
+        pygame.draw.line(surface, (18, 24, 38), (0, offset_lane), (w, offset_lane), width=1)
 
-    # Bottom mountain polygon: (0, h) -> (x, h - bot_heights[x]) -> (w-1, h)
-    bot_points = [(0, h)]
-    for x in range(w):
-        bot_points.append((x, int(h - scrolling_map.bot_heights[x])))
-    bot_points.append((w - 1, h))
-    pygame.draw.polygon(surface, COLOR_MOUNTAIN, bot_points)
-
-    # Bottom rim line
-    bot_rim = [(x, int(h - scrolling_map.bot_heights[x])) for x in range(w)]
-    pygame.draw.lines(surface, COLOR_MOUNTAIN_RIM, False, bot_rim, width=2)
+    # Sheath boundary planes (flat limits with luminous rims)
+    ceil_y = int(scrolling_map.ceiling_y)
+    floor_y = int(scrolling_map.floor_y)
+    pygame.draw.rect(surface, COLOR_RING_SHEATH, (0, 0, w, ceil_y))
+    pygame.draw.rect(surface, COLOR_RING_SHEATH, (0, floor_y, w, h - floor_y))
+    pygame.draw.line(surface, COLOR_RING_RIM, (0, ceil_y), (w, ceil_y), 2)
+    pygame.draw.line(surface, COLOR_RING_RIM, (0, floor_y), (w, floor_y), 2)
 
 
-def draw_trees(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
-    """Renders all active trees with dark outline, vibrant canopy, and cedar trunk."""
-    for tree in scrolling_map.trees:
-        pos = (int(tree.x), int(tree.y))
-        # Dark canopy rim for sharp contrast against land
-        pygame.draw.circle(surface, COLOR_TREE_RIM, pos, tree.outer_radius + 1)
-        # Outer vibrant canopy
-        pygame.draw.circle(surface, COLOR_TREE_LEAVES, pos, tree.outer_radius)
-        # Inner trunk
-        pygame.draw.circle(surface, COLOR_TREE_TRUNK, pos, tree.inner_radius)
+def draw_asteroids(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
+    """Renders dynamic polygon asteroids and icy moonlets with rock-ice facets."""
+    for ast in getattr(scrolling_map, "asteroids", []):
+        verts = [(int(vx), int(vy)) for vx, vy in ast.vertices]
+        if len(verts) >= 3:
+            pygame.draw.polygon(surface, COLOR_ASTEROID_FILL, verts)
+            pygame.draw.polygon(surface, COLOR_ASTEROID_OUTLINE, verts, width=2)
+            # Frosted ice specular facet line
+            pygame.draw.line(surface, COLOR_ASTEROID_SPECULAR, verts[0], verts[2], 1)
+
+
+# Backward compatibility alias
+draw_trees = draw_asteroids
 
 
 def draw_targets(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
-    """Renders all uncollected targets as bold scarlet X marks with center dot."""
+    """Renders all uncollected targets as golden Cassini telemetry beacons."""
     for target in scrolling_map.targets:
         if target.collected:
             continue
         cx, cy, s = int(target.x), int(target.y), target.size
-        # Bold 3px scarlet cross
-        pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy - s), (cx + s, cy + s), width=3)
-        pygame.draw.line(surface, COLOR_TARGET, (cx - s, cy + s), (cx + s, cy - s), width=3)
-        # Center anchor dot
+        # Golden beacon with outer glow and white core
+        pygame.draw.circle(surface, COLOR_TARGET, (cx, cy), s)
+        pygame.draw.circle(surface, (255, 235, 120), (cx, cy), s + 3, width=1)
         pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
 
 
@@ -114,19 +110,19 @@ def draw_sensor_rays(surface: pygame.Surface, agent: Agent, scrolling_map: Scrol
         end_pt = (int(hit.endpoint[0]), int(hit.endpoint[1]))
 
         if hit.hit_type != "none":
-            # High-alert orange-red beam striking an obstacle
+            # High-alert orange-red beam striking an asteroid or boundary
             pygame.draw.line(surface, (255, 70, 0), start_pt, end_pt, 2)
             pygame.draw.circle(surface, (255, 40, 20), end_pt, 4)
         else:
-            # High-contrast deep navy beam when path is clear
-            pygame.draw.line(surface, (50, 100, 160), start_pt, end_pt, 1)
+            # Subtle cyan beam when path is clear
+            pygame.draw.line(surface, (30, 80, 130), start_pt, end_pt, 1)
 
     # Highlight detected targets along rays
     for hit in tgt_hits:
         if hit.hit_type == "target":
             end_pt = (int(hit.endpoint[0]), int(hit.endpoint[1]))
             # Vivid emerald ring
-            pygame.draw.circle(surface, (0, 180, 60), end_pt, 6, width=2)
+            pygame.draw.circle(surface, (0, 220, 100), end_pt, 6, width=2)
 
 
 def draw_comm_links(surface: pygame.Surface, comm_graph: CommunicationGraph, agents: List[Agent]) -> None:
@@ -138,10 +134,10 @@ def draw_comm_links(surface: pygame.Surface, comm_graph: CommunicationGraph, age
 
 
 def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int, font: pygame.font.Font) -> None:
-    """Renders all agents with quadcopter sprites, focus ring, and ID tags."""
+    """Renders all agents with rocket probe sprites, focus ring, and ID tags."""
     for idx, agent in enumerate(agents):
         color = agent.color if agent.alive else COLOR_AGENT_DEAD
-        sprite = get_quadcopter_sprite(color, size=(24, 24))
+        sprite = get_rocket_sprite(color, size=(24, 24))
         sw, sh = sprite.get_size()
         surface.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
@@ -150,11 +146,11 @@ def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int,
             pygame.draw.circle(surface, (255, 255, 255), (int(agent.x), int(agent.y)), 15, width=2)
             pygame.draw.circle(surface, (30, 144, 255), (int(agent.x), int(agent.y)), 17, width=1)
         else:
-            ring_col = (220, 220, 220) if agent.alive else (70, 70, 70)
+            ring_col = (200, 210, 225) if agent.alive else (70, 70, 70)
             pygame.draw.circle(surface, ring_col, (int(agent.x), int(agent.y)), 13, width=1)
 
         # ID label above agent
-        lbl = font.render(str(agent.agent_id), True, (20, 20, 20))
+        lbl = font.render(str(agent.agent_id), True, (220, 225, 235))
         surface.blit(lbl, (int(agent.x - 3), int(agent.y - sh // 2 - 12)))
 
 

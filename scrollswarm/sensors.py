@@ -1,20 +1,21 @@
 """
-Raycasting sensor module for ScrollSwarm agents.
+Raycasting sensor module for ScrollSwarm (Saturn Ring Surfing).
 
 Implements a 7-ray forward rangefinder:
 - 7 rays spanning the upcoming half of the screen upfront (angles in [-60°, +60°]).
-- Rays naturally intersect boundary mountain ridges (top and bottom), circular trees,
+- Intersects ring sheath boundaries (ceiling and floor), dynamic polygon asteroids,
   and collection targets.
-- Merges boundary clearance and obstacle detection into a continuous, fixed-size vector.
+- Merges boundary clearance and asteroid warnings into a continuous, fixed-size vector.
 - Vector shape: [y_norm, 7 obstacle ray distances, 7 target ray distances] (15 floats).
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
-from scrollswarm.map import ScrollingMap
-from scrollswarm.items import Tree, Target
+if TYPE_CHECKING:
+    from scrollswarm.map import ScrollingMap
+from scrollswarm.items import Asteroid, Target
 
 
 @dataclass
@@ -22,7 +23,7 @@ class RayHit:
     """Stores the result of a single ray cast."""
     distance: float            # In pixels [0, max_range]
     norm_distance: float       # Normalized [0.0, 1.0]
-    hit_type: str              # "mountain", "tree", "target", or "none"
+    hit_type: str              # "boundary", "asteroid", "target", or "none"
     endpoint: Tuple[float, float]
 
 
@@ -49,76 +50,91 @@ class RaySensor:
         self,
         origin_x: float,
         origin_y: float,
-        scrolling_map: ScrollingMap,
+        scrolling_map: "ScrollingMap",
     ) -> Tuple[List[RayHit], List[RayHit]]:
         """
         Casts 7 rays from (origin_x, origin_y):
         - Returns (obstacle_hits, target_hits).
-        - Obstacle hits check mountain boundaries and trees.
+        - Obstacle hits check ring sheath boundaries and dynamic polygon asteroids.
         - Target hits check collection targets.
         """
         obs_hits: List[RayHit] = []
         tgt_hits: List[RayHit] = []
 
-        w = scrolling_map.width
-        h = scrolling_map.height
+        h = float(scrolling_map.height)
+        ceil_y = float(scrolling_map.config.ceiling_y)
+        floor_y = h - float(scrolling_map.config.floor_margin)
+
+        # Retrieve asteroids (or legacy trees)
+        asteroids: List[Asteroid] = getattr(scrolling_map, "asteroids", [])
+        if not asteroids and hasattr(scrolling_map, "trees"):
+            asteroids = scrolling_map.trees
 
         for angle in self.angles:
             cos_a = float(np.cos(angle))
             sin_a = float(np.sin(angle))
 
             # -------------------------------------------------------------
-            # 1. OBSTACLE INTERSECTIONS (Mountain Ridges & Trees)
+            # 1. OBSTACLE INTERSECTIONS (Ring Boundaries & Polygon Asteroids)
             # -------------------------------------------------------------
             closest_obs_dist = self.max_range
             obs_hit_type = "none"
 
-            # A. Check mountain boundaries along the ray
-            # Column-by-column marching forward
-            start_col = max(0, int(origin_x))
-            max_col = min(w - 1, int(origin_x + self.max_range * cos_a))
+            # A. Analytical ceiling and floor intersections
+            if sin_a < -1e-5:
+                # Pointing upwards: intersects ceiling y = ceil_y
+                t_ceil = (ceil_y - origin_y) / sin_a
+                if 0.0 <= t_ceil < closest_obs_dist:
+                    closest_obs_dist = t_ceil
+                    obs_hit_type = "boundary"
+            elif sin_a > 1e-5:
+                # Pointing downwards: intersects floor y = floor_y
+                t_floor = (floor_y - origin_y) / sin_a
+                if 0.0 <= t_floor < closest_obs_dist:
+                    closest_obs_dist = t_floor
+                    obs_hit_type = "boundary"
 
-            if cos_a > 1e-5:
-                # March through columns x in [start_col, max_col]
-                for col in range(start_col, max_col + 1):
-                    # Ray distance s at this column
-                    s = (col - origin_x) / cos_a
-                    if s > closest_obs_dist:
-                        break
-
-                    y_ray = origin_y + s * sin_a
-
-                    # Check collision with top or bottom mountain
-                    top_bound = scrolling_map.top_heights[col]
-                    bot_bound = h - scrolling_map.bot_heights[col]
-
-                    if y_ray <= top_bound or y_ray >= bot_bound or y_ray <= 0 or y_ray >= h:
-                        closest_obs_dist = s
-                        obs_hit_type = "mountain"
-                        break
-
-            # B. Check trees (analytical ray-circle intersection)
-            for tree in scrolling_map.trees:
-                # Vector from ray origin to tree center
-                vx = tree.x - origin_x
-                vy = tree.y - origin_y
-
-                # Projection along ray
+            # B. Check dynamic polygon asteroids
+            for ast in asteroids:
+                vx = ast.x - origin_x
+                vy = ast.y - origin_y
                 t_proj = vx * cos_a + vy * sin_a
-                if t_proj <= 0 or t_proj >= closest_obs_dist + tree.outer_radius:
+
+                # Bounding sphere rejection test
+                if t_proj < -ast.radius or t_proj > closest_obs_dist + ast.radius:
+                    continue
+                perp_sq = (vx * vx + vy * vy) - (t_proj * t_proj)
+                if perp_sq > ast.radius * ast.radius:
                     continue
 
-                # Perpendicular distance squared
-                perp_sq = (vx * vx + vy * vy) - (t_proj * t_proj)
-                r_sq = tree.outer_radius * tree.outer_radius
+                # Exact 2D ray-segment determinant checks against polygon edges
+                edges = ast.edges if hasattr(ast, "edges") else []
+                if not edges and hasattr(ast, "outer_radius"):
+                    # Fallback for circular entities
+                    r_sq = ast.outer_radius * ast.outer_radius
+                    if perp_sq < r_sq:
+                        half_chord = np.sqrt(max(0.0, r_sq - perp_sq))
+                        entry_dist = t_proj - half_chord
+                        if 0.0 <= entry_dist < closest_obs_dist:
+                            closest_obs_dist = entry_dist
+                            obs_hit_type = "asteroid"
+                    continue
 
-                if perp_sq < r_sq:
-                    # Ray intersects the circle
-                    half_chord = np.sqrt(max(0.0, r_sq - perp_sq))
-                    entry_dist = t_proj - half_chord
-                    if 0 <= entry_dist < closest_obs_dist:
-                        closest_obs_dist = entry_dist
-                        obs_hit_type = "tree"
+                for (ax, ay), (bx, by) in edges:
+                    ex = bx - ax
+                    ey = by - ay
+                    denom = cos_a * ey - sin_a * ex
+                    if abs(denom) < 1e-6:
+                        continue  # Ray and edge are parallel
+
+                    dx = ax - origin_x
+                    dy = ay - origin_y
+                    t = (dx * ey - dy * ex) / denom
+                    u = (dx * sin_a - dy * cos_a) / denom
+
+                    if 0.0 <= t < closest_obs_dist and 0.0 <= u <= 1.0:
+                        closest_obs_dist = t
+                        obs_hit_type = "asteroid"
 
             # Clamp obstacle hit
             closest_obs_dist = float(np.clip(closest_obs_dist, 0.0, self.max_range))
@@ -133,7 +149,7 @@ class RaySensor:
             ))
 
             # -------------------------------------------------------------
-            # 2. TARGET INTERSECTIONS
+            # 2. TARGET INTERSECTIONS (Analytical Ray-Circle)
             # -------------------------------------------------------------
             closest_tgt_dist = self.max_range
             tgt_hit_type = "none"
@@ -144,8 +160,8 @@ class RaySensor:
 
                 vx = target.x - origin_x
                 vy = target.y - origin_y
-
                 t_proj = vx * cos_a + vy * sin_a
+
                 if t_proj <= 0 or t_proj >= closest_tgt_dist + target.size:
                     continue
 
@@ -155,7 +171,7 @@ class RaySensor:
                 if perp_sq < r_sq:
                     half_chord = np.sqrt(max(0.0, r_sq - perp_sq))
                     entry_dist = t_proj - half_chord
-                    if 0 <= entry_dist < closest_tgt_dist:
+                    if 0.0 <= entry_dist < closest_tgt_dist:
                         closest_tgt_dist = entry_dist
                         tgt_hit_type = "target"
 
@@ -176,21 +192,18 @@ class RaySensor:
         self,
         origin_x: float,
         origin_y: float,
-        scrolling_map: ScrollingMap,
+        scrolling_map: "ScrollingMap",
     ) -> np.ndarray:
         """
-        Returns a compact 1D observation vector of shape (15,):
-        [
-          self_y / H,
-          7 normalized obstacle ray distances (0.0=contact, 1.0=clear),
-          7 normalized target ray distances (0.0=contact, 1.0=no target)
-        ]
+        Generates the 15-dimensional observation vector:
+        [normalized_y, 7 obstacle ray distances, 7 target ray distances].
         """
         obs_hits, tgt_hits = self.cast_rays(origin_x, origin_y, scrolling_map)
+        h = float(scrolling_map.height)
+        y_norm = float(np.clip(origin_y / h, 0.0, 1.0))
 
-        y_norm = origin_y / float(scrolling_map.height)
-        obs_dists = [h.norm_distance for h in obs_hits]
-        tgt_dists = [h.norm_distance for h in tgt_hits]
+        obs_dists = [hit.norm_distance for hit in obs_hits]
+        tgt_dists = [hit.norm_distance for hit in tgt_hits]
 
-        obs_vector = np.array([y_norm] + obs_dists + tgt_dists, dtype=np.float32)
-        return obs_vector
+        vec = np.array([y_norm] + obs_dists + tgt_dists, dtype=np.float32)
+        return np.clip(vec, 0.0, 1.0)

@@ -4,7 +4,7 @@ Unit tests for the Agent entity, direction, collision math, and team creation.
 
 import pytest
 from scrollswarm.agent import Agent, Action, create_agents, AGENT_PALETTE
-from scrollswarm.items import Tree, Target
+from scrollswarm.items import Asteroid, Tree, Target
 from scrollswarm.map import ScrollingMap, MapConfig
 
 
@@ -80,6 +80,18 @@ def test_tree_collision_terminates_agent():
     assert agent.alive is True
 
     assert agent.check_collision_trees([tree_close]) is True
+    assert agent.alive is False
+
+
+def test_asteroid_collision_terminates_agent():
+    agent = Agent(agent_id=0, x=100.0, y=200.0)
+    ast_far = Asteroid(x=300.0, y=200.0, radius=20.0)
+    ast_close = Asteroid(x=105.0, y=200.0, radius=20.0)
+
+    assert agent.check_collision_obstacles([ast_far]) is False
+    assert agent.alive is True
+
+    assert agent.check_collision_obstacles([ast_close]) is True
     assert agent.alive is False
 
 

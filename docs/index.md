@@ -74,8 +74,8 @@ flowchart TD
 | **PettingZoo Standard** | Natively implements Farama's `ParallelEnv` for seamless integration with modern MARL libraries. |
 | **CTDE Ready** | Exposes centralized state vectors ($\mathbb{R}^{16N}$) for centralized training with decentralized execution (MAPPO, QMIX, MADDPG). |
 | **Graph Neural Networks** | Exports PyTorch Geometric compatible `edge_index` $(2, E)$ and `edge_attr` $(E, 3)$ tensors for relational GNN learning. |
-| **High Throughput** | Exceeds **800+ environment steps/sec** per CPU core, scaling to over **12,000 steps/sec** in vectorized parallel runners. |
-| **Pure Python & Zero Bloat** | Built with NumPy and Pygame—no heavy rendering engines or external simulator setups required. |
+| **High Throughput** | Multi-backend compute engine (NumPy, Numba LLVM JIT, native C++20) delivering up to **$50\times$ isolated raycasting speedup** and **1,700+ environment steps/sec** per CPU core. |
+| **Zero Bloat & Pluggable** | Pure NumPy baseline by default, with optional C++20 and Numba acceleration selectable via `backend="auto"`. |
 
 ---
 

@@ -34,53 +34,33 @@ ScrollSwarm is a lightweight, high-throughput multi-agent simulation where a tea
 
 ```mermaid
 flowchart TD
-    subgraph S1 ["1. Aerial Corridor & Swarm State"]
-        direction LR
-        CORRIDOR["Corridor Airspace<br/>• Ceiling, Floor & Safe Passage<br/>• Procedural Hazards & Targets"]
-        SWARM["UAV Swarm Fleet<br/>• Active Drone Coordinates (x, y)<br/>• Altitude Clamping & Life State"]
-    end
+    ENV["<b>1. Aerial Corridor & Swarm State</b><br/>• Procedural Ceiling, Floor & Safe Passage<br/>• Static/Dynamic Hazards & Recon Targets<br/>• Active UAV Fleet Coordinates (x, y)<br/>• Altitude Clamping & Life State"]
 
-    subgraph S2 ["2. Perception & Relational Graph"]
-        direction LR
-        OBS["Multi-Modal Observation (16D)<br/>• 7-Ray Forward LiDAR Beams<br/>• Relative Target Bearing & Dist"]
-        GRAPH["Dynamic Communication Graph<br/>• Topologies (Chain, Ring, Radius)<br/>• PyG edge_index & edge_attr"]
-        CTDE["Centralized State (16N)<br/>• Concatenated Swarm Vectors<br/>• Dead-Agent Zero-Masking"]
-    end
+    PERCEPTION["<b>2. Perception & Relational Graph</b><br/>• 7-Ray Forward LiDAR Depth Beams<br/>• Relative Target Bearing & Speed Vectors<br/>• Dynamic Graph: PyG edge_index & edge_attr<br/>• Centralized Global State Vector (16N)"]
 
-    subgraph S3 ["3. Decentralized Decision Layer"]
-        direction LR
-        POLICY["Decentralized Policy / GNN<br/>• Local Feature Processing<br/>• Relational Message Passing"]
-        ACTIONS["Action Dispatch<br/>• Discrete: UP (-5px), STAY, DOWN (+5px)"]
-    end
+    POLICY["<b>3. Decentralized Decision Layer</b><br/>• Local Policy / Relational GNN Actor<br/>• Inter-Drone Relational Message Passing<br/>• Action Dispatch: UP (-5px), STAY, DOWN (+5px)"]
 
-    subgraph S4 ["4. Kinematics, Dynamics & Feedback"]
-        direction LR
-        KINEMATICS["Kinematic Update<br/>• Altitude Update (Delta y)<br/>• Airspace Scroll Drift"]
-        FEEDBACK["Environment Feedback<br/>• Individual Fatal Collision Culling<br/>• Stochastic Bernoulli Photo Inspection<br/>• Step & Target Rewards"]
-    end
+    KINEMATICS["<b>4. Kinematics & Airspace Drift</b><br/>• Discrete Vertical Altitude Integration<br/>• Uniform Airspace Scroll Drift (Delta x)<br/>• Multi-Backend Accelerated Geometry Kernel"]
 
-    CORRIDOR --> OBS
-    SWARM --> OBS
-    SWARM --> GRAPH
-    OBS --> CTDE
+    FEEDBACK["<b>5. Dynamics, Rewards & Feedback</b><br/>• Fatal Boundary & Hazard Collision Culling<br/>• Bernoulli Target Coverage Inspection<br/>• Step Penalty, Survival & Mission Rewards"]
 
-    OBS --> POLICY
-    GRAPH -.->|Inter-Drone Comms| POLICY
-    POLICY --> ACTIONS
-
-    ACTIONS --> KINEMATICS
-    KINEMATICS --> FEEDBACK
-    FEEDBACK ==>|Next Step State & Telemetry| S1
+    ENV -->|Airspace Geometry & UAV Poses| PERCEPTION
+    PERCEPTION -->|Local Obs 16D & Relational Graph| POLICY
+    POLICY -->|Discrete Action Commands| KINEMATICS
+    KINEMATICS -->|Updated Drone Poses & Drift| FEEDBACK
+    FEEDBACK ==>|Next Step State, Rewards & Dones| ENV
 
     classDef stage1 fill:#1a2332,stroke:#38bdf8,stroke-width:1.5px,color:#f1f5f9;
     classDef stage2 fill:#1a2332,stroke:#818cf8,stroke-width:1.5px,color:#f1f5f9;
     classDef stage3 fill:#1a2332,stroke:#c084fc,stroke-width:1.5px,color:#f1f5f9;
     classDef stage4 fill:#1a2332,stroke:#34d399,stroke-width:1.5px,color:#f1f5f9;
+    classDef stage5 fill:#1a2332,stroke:#f59e0b,stroke-width:1.5px,color:#f1f5f9;
 
-    class CORRIDOR,SWARM stage1;
-    class OBS,GRAPH,CTDE stage2;
-    class POLICY,ACTIONS stage3;
-    class KINEMATICS,FEEDBACK stage4;
+    class ENV stage1;
+    class PERCEPTION stage2;
+    class POLICY stage3;
+    class KINEMATICS stage4;
+    class FEEDBACK stage5;
 ```
 
 ---

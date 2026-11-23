@@ -1,10 +1,14 @@
 # ScrollSwarm
 
+[![Release](https://img.shields.io/badge/release-v0.1.0-blue.svg?logo=github)](https://github.com/HamBa-m/scrollswarm/releases)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C.svg?logo=c%2B%2B&logoColor=white)](scrollswarm/geometry/cpp/)
+[![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)
+[![PyG](https://img.shields.io/badge/PyG-Compatible-EE4C2C.svg?logo=pytorch&logoColor=white)](https://hambam.top/scrollswarm/tutorials/03_gnn_pyg/)
+[![Acceleration](https://img.shields.io/badge/acceleration-Numba%20%7C%20C%2B%2B20-orange.svg)](https://hambam.top/scrollswarm/api/geometry/)
+[![Tests](https://img.shields.io/badge/tests-52%20passed-brightgreen.svg)](tests/)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs--material-blue.svg)](https://hambam.top/scrollswarm/)
-[![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)
-[![Tests](https://img.shields.io/badge/tests-45%20passed-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.**
@@ -65,7 +69,7 @@ uv run python main.py -n 8 -c ring
 
 ### Testing & Docs
 ```bash
-# Run full unit test suite (45 tests)
+# Run full unit test suite (52 tests)
 uv run pytest
 
 # Build documentation strictly
@@ -105,6 +109,34 @@ uv run python scripts/benchmark_backends.py --steps 500 --num-agents 4
 | **Drone Crash Rate** | $84.0\%$ ($21/25$ dead) | **$60.0\%$** ($15/25$ dead) | $24.0\text{ percentage point}$ reduction |
 | **Inference Latency** | $\sim 0.002\text{ ms}$ | $\sim 0.013\text{ ms}$ | Negligible CPU overhead |
 
+### Multi-Backend Computational Acceleration (NumPy vs. C++ vs. Numba)
+
+Profiling revealed that **79.3%** of raw Python stepping is consumed by 2D LiDAR raycasting and polygon intersection math. ScrollSwarm provides a zero-overhead hardware abstraction layer with three interchangeable backends:
+
+- **`numpy` (Baseline):** 100% portable pure Python reference (zero external compiler or build dependencies).
+- **`numba` (LLVM CPU JIT):** Runtime JIT compilation via `@njit(fastmath=True, nogil=True)` for $50\times$ faster raycasting.
+- **`cpp` (Native C++20 Kernel):** Pre-compiled header-only C++20 geometry engine via `pybind11` with static runtime linkage and zero JIT warmup lag.
+- **`auto` (Default):** Dynamically detects and dispatches to the highest-performing available backend (`cpp` $\to$ `numba` $\to$ `numpy`).
+
+#### Head-to-Head Performance (4 UAVs, 500 Steps, Seed 42)
+
+| Metric / Characteristic | 1. NumPy Baseline | 2. Native C++20 Kernel | 3. Numba LLVM JIT |
+| :--- | :---: | :---: | :---: |
+| **LiDAR Raycasting Latency** | $214.24\,\mu\text{s}$ / call | **$6.41\,\mu\text{s}$ / call** | **$4.28\,\mu\text{s}$ / call** |
+| **Isolated Raycasting Speedup** | $1.00\times$ (reference) | **$33.44\times$ faster** | **$50.08\times$ faster** |
+| **End-to-End Stepping Throughput** | $691.4\text{ steps/s}$ ($1.446\text{ ms}$) | **$1,652.3\text{ steps/s}$ ($0.605\text{ ms}$)** | **$1,740.2\text{ steps/s}$ ($0.575\text{ ms}$)** |
+| **Full Environment Speedup** | $1.00\times$ | **$2.39\times$ faster** | **$2.52\times$ faster** |
+| **First-Step JIT Compilation Lag** | $0.0\text{ s}$ | **$0.0\text{ s}$ (instant)** | $\approx 1.5\text{ s}$ (LLVM compile) |
+| **Build / Tool Requirements** | None | GCC / Clang / MSVC | `uv sync --extra numba` |
+
+```bash
+# Compile native C++ geometry kernel locally (one-time build)
+uv run python scripts/build_geometry_cpp.py
+
+# Run head-to-head acceleration benchmark
+uv run python scripts/benchmark_backends.py --steps 500 --num-agents 4
+```
+
 ---
 
 ## Tutorials & Walkthroughs
@@ -126,7 +158,7 @@ Step-by-step guides are hosted on the [Documentation Site](https://hambam.top/sc
 | **Centralized State** | $\mathbf{s} \in [-1.0, 1.0]^{16N}$ | `Box(-1.0, 1.0, (16*N,), float32)`: Concatenated observations (zero-masked on crash) |
 | **Graph Topology** | $\mathcal{G}(t) = (\mathcal{V}(t), \mathcal{E}(t))$ | PyG COO `edge_index` $(2, E)$ & spatial `edge_attr` $(E, 3)$ with dead-agent pruning |
 | **Rewards** | $r_i \in \mathbb{R}$ | Photo ($+1.0$), Step survival ($+0.01$), Collision crash ($-10.0$) |
-| **Compute Backends** | Pluggable Strategy | `backend="auto" | "numba" | "numpy"`: $52\times$ isolated raycasting speedup |
+| **Compute Backends** | Pluggable Strategy | `backend="auto" | "cpp" | "numba" | "numpy"`: $33\times\text{--}50\times$ isolated raycasting speedup |
 
 ---
 

@@ -34,25 +34,29 @@ ScrollSwarm is a lightweight, high-throughput multi-agent simulation where a tea
 
 ```mermaid
 flowchart TD
-    subgraph ENV ["1. Aerial Corridor Environment"]
-        CORRIDOR["Aerial Corridor<br/>(Terrain, Hazards & Targets)"]
-        SWARM["UAV Swarm<br/>(Living Fleet Status)"]
+    subgraph S1 ["1. Aerial Corridor & Swarm State"]
+        direction LR
+        CORRIDOR["Corridor Airspace<br/>• Ceiling, Floor & Safe Passage<br/>• Procedural Hazards & Targets"]
+        SWARM["UAV Swarm Fleet<br/>• Active Drone Coordinates (x, y)<br/>• Altitude Clamping & Life State"]
     end
 
-    subgraph PERCEPTION ["2. Perception & Relational Graph"]
-        OBS["Multi-Modal Observation<br/>(Altitude, LiDAR Rays, Target Vector)"]
-        GRAPH["Dynamic Communication Graph<br/>(PyG edge_index & edge_attr)"]
-        CTDE["Centralized Global State<br/>(Concatenated Swarm State)"]
+    subgraph S2 ["2. Perception & Relational Graph"]
+        direction LR
+        OBS["Multi-Modal Observation (16D)<br/>• 7-Ray Forward LiDAR Beams<br/>• Relative Target Bearing & Dist"]
+        GRAPH["Dynamic Communication Graph<br/>• Topologies (Chain, Ring, Radius)<br/>• PyG edge_index & edge_attr"]
+        CTDE["Centralized State (16N)<br/>• Concatenated Swarm Vectors<br/>• Dead-Agent Zero-Masking"]
     end
 
-    subgraph DECISION ["3. Multi-Agent Decision Layer"]
-        POLICY["Decentralized Policy / GNN<br/>(Local Observations & Relational Messages)"]
-        ACTIONS["Discrete Action Dispatch<br/>(UP, STAY, DOWN)"]
+    subgraph S3 ["3. Decentralized Decision Layer"]
+        direction LR
+        POLICY["Decentralized Policy / GNN<br/>• Local Feature Processing<br/>• Relational Message Passing"]
+        ACTIONS["Action Dispatch<br/>• Discrete: UP (-5px), STAY, DOWN (+5px)"]
     end
 
-    subgraph DYNAMICS ["4. Transition Dynamics & Feedback"]
-        KINEMATICS["Kinematic Step<br/>(Vertical Update & Airspace Drift)"]
-        FEEDBACK["Environment Feedback<br/>(Collisions, Photos & Step Rewards)"]
+    subgraph S4 ["4. Kinematics, Dynamics & Feedback"]
+        direction LR
+        KINEMATICS["Kinematic Update<br/>• Altitude Update (Delta y)<br/>• Airspace Scroll Drift"]
+        FEEDBACK["Environment Feedback<br/>• Individual Fatal Collision Culling<br/>• Stochastic Bernoulli Photo Inspection<br/>• Step & Target Rewards"]
     end
 
     CORRIDOR --> OBS
@@ -61,13 +65,22 @@ flowchart TD
     OBS --> CTDE
 
     OBS --> POLICY
-    GRAPH -.->|Message Passing| POLICY
+    GRAPH -.->|Inter-Drone Comms| POLICY
     POLICY --> ACTIONS
 
     ACTIONS --> KINEMATICS
     KINEMATICS --> FEEDBACK
-    FEEDBACK -->|Next Observations & Rewards| OBS
-    FEEDBACK -->|Fleet Status Update| SWARM
+    FEEDBACK ==>|Next Step State & Telemetry| S1
+
+    classDef stage1 fill:#1a2332,stroke:#38bdf8,stroke-width:1.5px,color:#f1f5f9;
+    classDef stage2 fill:#1a2332,stroke:#818cf8,stroke-width:1.5px,color:#f1f5f9;
+    classDef stage3 fill:#1a2332,stroke:#c084fc,stroke-width:1.5px,color:#f1f5f9;
+    classDef stage4 fill:#1a2332,stroke:#34d399,stroke-width:1.5px,color:#f1f5f9;
+
+    class CORRIDOR,SWARM stage1;
+    class OBS,GRAPH,CTDE stage2;
+    class POLICY,ACTIONS stage3;
+    class KINEMATICS,FEEDBACK stage4;
 ```
 
 ---

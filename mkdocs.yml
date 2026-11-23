@@ -71,14 +71,14 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Quickstart: getting-started/quickstart.md
+      - Configuration & Telemetry: getting-started/config.md
   - Environment Specification:
-      - Formal Model: environment/overview.md
-      - Environment Dynamics: environment/corridor_and_dynamics.md
-      - Action Space & Kinematics: environment/action_space.md
-      - Observation Space: environment/observation.md
-      - Rewards & Episode Horizon: environment/rewards_and_state.md
-      - Communication Graph: environment/communication.md
-      - Configuration & Telemetry: environment/configuration_and_telemetry.md
+      - Overview: environment/overview.md
+      - Dynamics: environment/dynamics.md
+      - Communication: environment/communication.md
+      - Observation: environment/observation.md
+      - Action: environment/actions.md
+      - Reward: environment/reward.md
   - Tutorials:
       - "01: PettingZoo ParallelEnv Loop": tutorials/01_parallel_env.md
       - "02: Heuristic Reactive Policy": tutorials/02_heuristic_baseline.md

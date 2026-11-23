@@ -106,6 +106,7 @@ env.close()
 
 ## Next Steps
 
+- Review the **[Configuration & Telemetry Reference](config.md)** for environment constructor arguments and runtime telemetry dictionaries.
 - Explore the **[Formal Environment Model](../environment/overview.md)** for mathematical Dec-POMDP definitions.
 - Inspect the **[Observation & LiDAR Specification](../environment/observation.md)** to understand the 16-dimensional observation vector.
 - Check out **[Tutorial 01](../tutorials/01_parallel_env.md)** for training baseline policies.

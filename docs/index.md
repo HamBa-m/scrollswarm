@@ -35,24 +35,24 @@ ScrollSwarm is a lightweight, high-throughput multi-agent simulation where a tea
 ```mermaid
 flowchart TD
     subgraph ENV ["1. Aerial Corridor Environment"]
-        CORRIDOR
-        SWARM
+        CORRIDOR["Aerial Corridor<br/>(Terrain, Hazards & Targets)"]
+        SWARM["UAV Swarm<br/>(Living Fleet Status)"]
     end
 
-    subgraph PERCEPTION ["2. Perception & Relational Representation"]
-        OBSERVATION
-        STATE
-        COMM. GRAPH
+    subgraph PERCEPTION ["2. Perception & Relational Graph"]
+        OBS["Multi-Modal Observation<br/>(Altitude, LiDAR Rays, Target Vector)"]
+        GRAPH["Dynamic Communication Graph<br/>(PyG edge_index & edge_attr)"]
+        CTDE["Centralized Global State<br/>(Concatenated Swarm State)"]
     end
 
     subgraph DECISION ["3. Multi-Agent Decision Layer"]
-        POLICY
-        ACTIONS
+        POLICY["Decentralized Policy / GNN<br/>(Local Observations & Relational Messages)"]
+        ACTIONS["Discrete Action Dispatch<br/>(UP, STAY, DOWN)"]
     end
 
     subgraph DYNAMICS ["4. Transition Dynamics & Feedback"]
-        KINEMATICS
-        FEEDBACK
+        KINEMATICS["Kinematic Step<br/>(Vertical Update & Airspace Drift)"]
+        FEEDBACK["Environment Feedback<br/>(Collisions, Photos & Step Rewards)"]
     end
 
     CORRIDOR --> OBS
@@ -66,7 +66,8 @@ flowchart TD
 
     ACTIONS --> KINEMATICS
     KINEMATICS --> FEEDBACK
-    FEEDBACK -->|Next Observations, Rewards, Terminations| ENV
+    FEEDBACK -->|Next Observations & Rewards| OBS
+    FEEDBACK -->|Fleet Status Update| SWARM
 ```
 
 ---

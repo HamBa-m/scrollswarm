@@ -33,11 +33,18 @@ To build the documentation site locally with Material for MkDocs:
 uv sync --extra docs
 ```
 
-### 4. Install JIT Acceleration (Optional)
-To accelerate raycasting and collision detection via Numba LLVM machine code ($5\times\text{--}15\times$ speedup on geometry):
-```bash
-uv sync --extra numba
-```
+### 4. Computational Acceleration (Optional)
+
+ScrollSwarm supports two acceleration paths:
+
+- **Numba CPU JIT:**
+  ```bash
+  uv sync --extra numba
+  ```
+- **Native C++20 Geometry Extension:**
+  ```bash
+  uv run python scripts/build_geometry_cpp.py
+  ```
 Or to install all optional dependencies at once:
 ```bash
 uv sync --extra all

@@ -22,9 +22,11 @@ from scrollswarm.items import Obstacle, Target
 from scrollswarm.geometry import (
     cast_rays_numpy,
     cast_rays_numba,
+    cast_rays_cpp,
     extract_geometry_buffers,
     resolve_backend,
     is_numba_available,
+    is_cpp_available,
 )
 
 
@@ -136,7 +138,12 @@ class RaySensor:
             obs_meta, obs_edges, obs_edge_ranges, target_data = extract_geometry_buffers(obstacles, targets)
 
         backend_name = resolve_backend(self.backend)
-        if backend_name == "numba" and is_numba_available():
+        if backend_name == "cpp" and is_cpp_available():
+            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = cast_rays_cpp(
+                origin_x, origin_y, self.angles, self.max_range,
+                ceil_y, floor_y, obs_meta, obs_edges, obs_edge_ranges, target_data
+            )
+        elif backend_name == "numba" and is_numba_available():
             obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = cast_rays_numba(
                 origin_x, origin_y, self.angles, self.max_range,
                 ceil_y, floor_y, obs_meta, obs_edges, obs_edge_ranges, target_data

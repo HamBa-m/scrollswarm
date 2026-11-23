@@ -33,13 +33,33 @@ except ImportError:
     point_in_polygon_numba = None
     distance_to_polygon_numba = None
 
-# Optional C++ backend (future extension)
+import os
+import sys
+
+# Optional C++20 native extension
 try:
-    import scrollswarm._geometry_cpp as _geometry_cpp
+    if os.name == "nt" and hasattr(os, "add_dll_directory"):
+        base_prefix = getattr(sys, "base_prefix", sys.prefix)
+        if os.path.exists(base_prefix):
+            try:
+                os.add_dll_directory(base_prefix)
+            except Exception:
+                pass
+    try:
+        from scrollswarm.geometry import _geometry_cpp
+    except ImportError:
+        import _geometry_cpp
+
+    cast_rays_cpp = _geometry_cpp.cast_rays_cpp
+    point_in_polygon_cpp = _geometry_cpp.point_in_polygon_cpp
+    distance_to_polygon_cpp = _geometry_cpp.distance_to_polygon_cpp
     HAS_CPP = True
-except ImportError:
+except (ImportError, AttributeError):
     HAS_CPP = False
     _geometry_cpp = None
+    cast_rays_cpp = None
+    point_in_polygon_cpp = None
+    distance_to_polygon_cpp = None
 
 
 def is_numba_available() -> bool:

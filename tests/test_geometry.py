@@ -175,15 +175,64 @@ def test_numba_parity_when_available():
     np.testing.assert_array_equal(tt_np, tt_nb, err_msg="Target ray hit type parity failed")
 
 
+def test_cpp_parity_when_available():
+    """
+    If C++20 geometry kernel is compiled, verifies strict numerical parity
+    between NumPy, Numba, and C++ implementations down to 1e-3 tolerance.
+    """
+    if not is_cpp_available():
+        pytest.skip("C++ kernel is not compiled; skipping parity test.")
+
+    from scrollswarm.geometry import (
+        cast_rays_cpp,
+        point_in_polygon_cpp,
+        distance_to_polygon_cpp,
+    )
+
+    angles = np.linspace(-np.pi / 3, np.pi / 3, 7, dtype=np.float32)
+    max_range = 400.0
+    ceil_y = 15.0
+    floor_y = 385.0
+
+    cfg = MapConfig(seed=42)
+    scrolling_map = ScrollingMap(cfg)
+    obs_meta, obs_edges, obs_ranges, target_data = extract_geometry_buffers(
+        scrolling_map.obstacles, scrolling_map.targets
+    )
+
+    origin_x = 120.0
+    origin_y = 210.0
+
+    # Run NumPy
+    d_np, t_np, e_np, td_np, tt_np, te_np = cast_rays_numpy(
+        origin_x, origin_y, angles, max_range,
+        ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data
+    )
+
+    # Run C++
+    d_cpp, t_cpp, e_cpp, td_cpp, tt_cpp, te_cpp = cast_rays_cpp(
+        origin_x, origin_y, angles, max_range,
+        ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data
+    )
+
+    np.testing.assert_allclose(d_np, d_cpp, atol=1e-3, err_msg="C++ obstacle ray distance parity failed")
+    np.testing.assert_array_equal(t_np, t_cpp, err_msg="C++ obstacle ray hit type parity failed")
+    np.testing.assert_allclose(e_np, e_cpp, atol=1e-3, err_msg="C++ obstacle endpoint parity failed")
+
+    np.testing.assert_allclose(td_np, td_cpp, atol=1e-3, err_msg="C++ target ray distance parity failed")
+    np.testing.assert_array_equal(tt_np, tt_cpp, err_msg="C++ target ray hit type parity failed")
+
+
 def test_env_backend_configuration():
     """Verifies ScrollSwarmEnv accepts backend argument and steps correctly."""
-    env = ScrollSwarmEnv(num_agents=3, max_cycles=10, backend="numpy")
-    assert env.backend == "numpy"
-    obs, info = env.reset(seed=123)
-    assert len(obs) == 3
-    for a in env.agents:
-        assert obs[a].shape == (16,)
+    for b in get_available_backends():
+        env = ScrollSwarmEnv(num_agents=3, max_cycles=10, backend=b)
+        assert env.backend == b
+        obs, info = env.reset(seed=123)
+        assert len(obs) == 3
+        for a in env.agents:
+            assert obs[a].shape == (16,)
 
-    actions = {a: 0 for a in env.agents}
-    next_obs, rewards, terms, truncs, infos = env.step(actions)
-    assert len(next_obs) == 3
+        actions = {a: 0 for a in env.agents}
+        next_obs, rewards, terms, truncs, infos = env.step(actions)
+        assert len(next_obs) == 3

@@ -89,7 +89,10 @@ def benchmark_raycasting_kernel(
     ceil_y = float(scrolling_map.ceiling_y)
     floor_y = float(scrolling_map.floor_y)
 
-    if backend == "numba":
+    if backend == "cpp":
+        from scrollswarm.geometry import cast_rays_cpp
+        fn = cast_rays_cpp
+    elif backend == "numba":
         from scrollswarm.geometry.numba_backend import cast_rays_numba
         fn = cast_rays_numba
         # Warmup JIT

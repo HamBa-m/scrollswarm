@@ -90,6 +90,7 @@ nav:
       - ScrollSwarmEnv: api/env.md
       - Agent & Dynamics: api/agent.md
       - Sensors & Raycasting: api/sensors.md
+      - Geometry Backends: api/geometry.md
       - Communication Graph: api/comm.md
       - Map & Entities: api/map.md
       - Sprites & Rendering: api/sprites.md

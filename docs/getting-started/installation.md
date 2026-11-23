@@ -33,6 +33,16 @@ To build the documentation site locally with Material for MkDocs:
 uv sync --extra docs
 ```
 
+### 4. Install JIT Acceleration (Optional)
+To accelerate raycasting and collision detection via Numba LLVM machine code ($5\times\text{--}15\times$ speedup on geometry):
+```bash
+uv sync --extra numba
+```
+Or to install all optional dependencies at once:
+```bash
+uv sync --extra all
+```
+
 ---
 
 ## Option 2: Installation with `pip`
@@ -57,9 +67,12 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-To include documentation dependencies:
+To include documentation or JIT acceleration dependencies:
 ```bash
 pip install -e ".[docs]"
+pip install -e ".[numba]"
+# Or all optional extras:
+pip install -e ".[all]"
 ```
 
 ---

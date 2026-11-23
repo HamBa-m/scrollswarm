@@ -90,6 +90,9 @@ uv run python scripts/run_heuristic_policy.py --episodes 1 --max-cycles 300 --re
 
 # 3. Multi-seed comparative benchmarking (5 episodes, no recording)
 uv run python scripts/run_heuristic_policy.py --episodes 5 --max-cycles 500 --no-record-gif
+
+# 4. Multi-backend computational acceleration benchmark
+uv run python scripts/benchmark_backends.py --steps 500 --num-agents 4
 ```
 
 ### Empirical Benchmark Baseline (500 Steps, 5 Seeds)
@@ -123,6 +126,7 @@ Step-by-step guides are hosted on the [Documentation Site](https://hambam.top/sc
 | **Centralized State** | $\mathbf{s} \in [-1.0, 1.0]^{16N}$ | `Box(-1.0, 1.0, (16*N,), float32)`: Concatenated observations (zero-masked on crash) |
 | **Graph Topology** | $\mathcal{G}(t) = (\mathcal{V}(t), \mathcal{E}(t))$ | PyG COO `edge_index` $(2, E)$ & spatial `edge_attr` $(E, 3)$ with dead-agent pruning |
 | **Rewards** | $r_i \in \mathbb{R}$ | Photo ($+1.0$), Step survival ($+0.01$), Collision crash ($-10.0$) |
+| **Compute Backends** | Pluggable Strategy | `backend="auto" | "numba" | "numpy"`: $52\times$ isolated raycasting speedup |
 
 ---
 

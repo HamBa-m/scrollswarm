@@ -29,14 +29,40 @@ ScrollSwarm is a lightweight, high-throughput multi-agent simulation where a tea
 ## Core Architecture
 
 ```mermaid
-flowchart LR
-    A["Scrolling Airspace (Obstacles & Targets)"] --> B["7-Ray LiDAR Sensor"]
-    B --> C["16-Dim Observation Vector"]
-    C --> D["Multi-Agent Policy (MAPPO / QMIX / GNN)"]
-    D --> E["Discrete Actions {Climb, Stay, Dive}"]
-    E --> F["Kinematics & Step Update"]
-    F --> G["Stochastic Target Photo Sampling"]
-    F --> H["Inter-Drone Graph Communication"]
+flowchart TD
+    subgraph ENV ["1. Aerial Corridor Environment"]
+        CORRIDOR["Scrolling Airspace<br/>• Procedural Obstacles (Ground, Overhead, Floating)<br/>• Guaranteed Navigable Passage<br/>• Stochastic Inspection Targets"]
+        SWARM["Autonomous UAV Swarm<br/>• Station-Keeping Horizontal Columns<br/>• Dynamic Vertical Altitude"]
+    end
+
+    subgraph PERCEPTION ["2. Perception & Relational Representation"]
+        OBS["16-Dimensional Local Observation Vector<br/>• Normalized Altitude State<br/>• Forward 7-Ray LiDAR Rangefinder<br/>• Nearest Target Bearing & Proximity<br/>• Nearest Teammate Spatial Offset"]
+        GRAPH["Dynamic Communication Graph<br/>• Relational Topologies (Chain, Ring, Radius, Capped)<br/>• PyTorch Geometric Tensors (edge_index, edge_attr)<br/>• Automatic Dead-Agent Edge Pruning"]
+        CTDE["Centralized Global State<br/>• Concatenated Swarm Observations<br/>• Zero-Masked for Terminated Drones"]
+    end
+
+    subgraph DECISION ["3. Multi-Agent Decision Layer"]
+        POLICY["Decentralized Policy / GNN<br/>• Local Observation Processing<br/>• Inter-Drone Message Aggregation"]
+        ACTIONS["Discrete Action Dispatch<br/>• UP (Ascend), STAY (Level), DOWN (Descend)"]
+    end
+
+    subgraph DYNAMICS ["4. Transition Dynamics & Feedback"]
+        KINEMATICS["Kinematic Step & Boundary Clamping<br/>• Vertical Position Update<br/>• Leftward Airspace Drift"]
+        FEEDBACK["Environment Feedback & Evaluation<br/>• Collision Detection (Individual Fatal Termination)<br/>• Stochastic Bernoulli Photo Acquisition<br/>• Step Rewards & Telemetry"]
+    end
+
+    CORRIDOR --> OBS
+    SWARM --> OBS
+    SWARM --> GRAPH
+    OBS --> CTDE
+
+    OBS --> POLICY
+    GRAPH -.->|Message Passing| POLICY
+    POLICY --> ACTIONS
+
+    ACTIONS --> KINEMATICS
+    KINEMATICS --> FEEDBACK
+    FEEDBACK -->|Next Observations, Rewards, Terminations| ENV
 ```
 
 ---

@@ -1,4 +1,4 @@
-# Mathematical Frameworks & Decision-Theoretic Formulations
+# Decision-Theoretic Formulations
 
 ScrollSwarm is designed as a foundational benchmark for research at the intersection of Multi-Agent Reinforcement Learning (MARL), networked robotics, and sequential decision-making under uncertainty. Depending on the agent configuration, observability assumptions, and communication constraints, ScrollSwarm can be instantiated across multiple formal mathematical frameworks.
 
@@ -60,7 +60,7 @@ $$\mathcal{M}_{\text{Dec-POMDP}} = \langle \mathcal{I}, \mathcal{S}, \{\mathcal{
 - $\mathcal{O}(o_1, \dots, o_N \mid s', \mathbf{a})$: The joint observation emission probability function $P(\mathbf{o} \mid s', \mathbf{a})$.
 - Each agent $i$ executes a decentralized policy $\pi_i(a_i \mid \tau_i)$, where $\tau_i = (o_i^0, a_i^0, \dots, o_i^t) \in (\Omega_i \times \mathcal{A}_i)^* \times \Omega_i$ is the agent's private history.
 - The collective objective is to find a joint policy $\pi^* = \langle \pi_1^*, \dots, \pi_N^* \rangle$ that maximizes expected discounted cumulative team return:
-  $$J(\pi) = \mathbb{E}\left[ \sum_{t=0}^{\infty} \gamma^t \mathcal{R}(s_t, \mathbf{a}_t) \;\Bigg|\; \mathbf{a}_t \sim \pi(\cdot \mid \boldsymbol{\tau}_t) \right]$$
+  $$J(\pi) = \mathbb{E}\left[ \sum_{t=0}^{\infty} \gamma^t \mathcal{R}(s_t, \mathbf{a}_t) \;\Bigg|\; \mathbf{a}_t \sim \pi(\cdot \mid \pmb{\tau}_t) \right]$$
 
 ### 2.5 Decentralized POMDP with Communication (Dec-POMDP-Comm)
 The canonical formulation of ScrollSwarm incorporates explicit inter-agent communication channels over a dynamic network graph $\mathcal{G} = (\mathcal{V}, \mathcal{E})$ ([Xuan, Lesser, & Zilberstein, 2001](https://doi.org/10.1145/375735.376435); [Goldman & Zilberstein, 2004](https://doi.org/10.5555/1018430.1018453); [Oliehoek & Amato, 2016](https://doi.org/10.1007/978-3-319-28929-8)):
@@ -70,7 +70,9 @@ $$\mathcal{M}_{\text{Dec-POMDP-Comm}} = \langle \mathcal{I}, \mathcal{S}, \{\mat
 - $\Sigma$: The communication message alphabet (or continuous latent vector space $\mathbb{R}^M$).
 - $\mathcal{C}$: Optional communication cost function (in ScrollSwarm, $\mathcal{C} = 0$, modeling free localized broadcast).
 - $\mathcal{G} = (\mathcal{V}, \mathcal{E})$: Dynamic communication topology (Chain, Ring, Radius, Capped, Full) determining allowed communication links between living agents.
-- In each decision epoch, agents execute a two-stage step:
+
+  In each decision epoch, agents execute a two-stage step:
+  
   1. **Communication Phase:** Every agent $i$ broadcasts message $m_i \in \Sigma$ to its graph neighbors $\mathcal{N}(i)$.
   2. **Action Phase:** Agent $i$ receives aggregated neighbor messages $\tilde{m}_i = \bigoplus_{j \in \mathcal{N}(i)} m_j$ and selects physical action $a_i \sim \pi_i(a_i \mid \tau_i, \tilde{m}_i)$.
 
@@ -86,7 +88,7 @@ $$\forall \mathbf{o} \in \Omega_1 \times \dots \times \Omega_N, \quad \exists s 
 
 In ScrollSwarm, the global state vector provided by `env.state()` concatenates individual observations:
 
-$$\mathbf{s} = \big[ \mathbf{o}_1^\top, \;\mathbf{o}_2^\top, \;\dots, \;\mathbf{o}_N^\top \big]^\top \in \mathbb{R}^{16N}$$
+$$\mathbf{s} = \big[ \mathbf{o}_1^\top, \;\mathbf{o}_2^\top, \;\dots, \;\mathbf{o}_N^\top \big]^\top \in \mathbb{R}^{16\times N}$$
 
 This property directly enables **Centralized Training with Decentralized Execution (CTDE)** frameworks such as **MAPPO** ([Yu et al., 2022](https://doi.org/10.1609/aaai.v36i8.20857)), **QMIX** ([Rashid et al., 2018](https://proceedings.mlr.press/v80/rashid18a.html)), and **MADDPG** ([Lowe et al., 2017](https://proceedings.neurips.cc/paper/2017/hash/68a9750337a418a86fe06c1991a1d64c-Abstract.html)), where a centralized value function $V(s)$ or centralized action-value critic $Q_{\text{tot}}(s, \mathbf{a})$ conditions on the joint observation during offline training, while decentralized actors $\pi_i(a_i \mid o_i)$ operate strictly on local observations during execution.
 

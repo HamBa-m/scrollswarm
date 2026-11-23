@@ -68,40 +68,7 @@ This combinatorial growth illustrates why independent decentralized execution or
 
 ---
 
-## 4. Code Implementation & Tuning Parameters
-
-Action mapping and kinematic stepping are implemented in `scrollswarm/agent.py`:
-
-```python
-from scrollswarm.agent import Agent, Action
-
-# Instantiate a single UAV
-drone = Agent(
-    agent_id=0,
-    x=100.0,
-    y=200.0,
-    step_size=5,     # Vertical step k (px)
-    width=20.0,      # Horizontal collision span (px)
-    height=16.0,     # Vertical collision span (px)
-)
-
-# Step UAV with discrete action
-drone.step(Action.UP, map_height=400)
-assert drone.y == 195.0
-```
-
-### Parameter Tuning Table
-
-| Argument | Class / Location | Default | Range | Impact on Dynamics |
-| :--- | :--- | :---: | :---: | :--- |
-| `step_size` | `Agent.__init__` | `5` | $[1, 20]$ | Vertical agility; larger values allow faster obstacle evasion but coarser vertical positioning |
-| `width` | `Agent.__init__` | `20.0` | $[8.0, 40.0]$ | Physical horizontal collision width of the quadcopter |
-| `height` | `Agent.__init__` | `16.0` | $[8.0, 32.0]$ | Physical vertical collision height of the quadcopter |
-| `num_agents` | `ScrollSwarmEnv.__init__` | `5` | $[1, 10]$ | Swarm cardinality $N$, defining joint action space dimension $3^N$ |
-
----
-
-## 5. References
+## 4. References
 
 1. **Boutilier, C. (1996).** *Planning, learning and coordination in multiagent decision processes.* In Proceedings of the 6th Conference on Theoretical Aspects of Rationality and Knowledge (TARK), pp. 195–210. [ACM DL: 237197](https://dl.acm.org/doi/10.5555/237170.237197).
 2. **Sutton, R. S., & Barto, A. G. (2018).** *Reinforcement Learning: An Introduction (2nd Edition).* MIT Press. [Book Link](http://incompleteideas.net/book/the-book-2nd.html).

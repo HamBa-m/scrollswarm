@@ -95,44 +95,7 @@ $$\mathbf{p}_{\text{proj}} = \mathbf{v}_a + \text{clip}\left(\frac{(\mathbf{p} -
 
 ---
 
-## 5. Configuration Arguments & Defaults
-
-The corridor is configured via `MapConfig` in `scrollswarm/map.py`:
-
-| Parameter | Type | Default Value | Description |
-| :--- | :---: | :---: | :--- |
-| `width` | `int` | `800` | Airspace corridor width in pixels |
-| `height` | `int` | `400` | Airspace corridor height in pixels |
-| `fps` | `int` | `30` | Simulation frame rate |
-| `scroll_speed` | `int` | `1` | Leftward drift velocity ($v_{\text{scroll}}$ in px/step) |
-| `ceiling_y` | `int` | `15` | Upper boundary limit in pixels |
-| `floor_margin` | `int` | `15` | Lower boundary margin ($H - 15$ in px) |
-| `min_corridor_gap` | `int` | `110` | Guaranteed minimal navigable passage ($G_{\min}$ in px) |
-| `obstacle_spawn_interval` | `int` | `55` | Minimum simulation steps between obstacle spawns |
-| `target_spawn_interval` | `int` | `75` | Minimum simulation steps between target spawns |
-| `preseed` | `bool` | `True` | Pre-populates the corridor with obstacles at step 0 |
-| `seed` | `Optional[int]` | `None` | Random seed for deterministic reproducibility |
-
-### Modifying Configuration in Code
-
-```python
-from scrollswarm import ScrollSwarmEnv
-from scrollswarm.map import MapConfig
-
-custom_config = MapConfig(
-    width=1000,
-    height=500,
-    min_corridor_gap=130,
-    obstacle_spawn_interval=45,
-    seed=42,
-)
-
-env = ScrollSwarmEnv(num_agents=6, map_config=custom_config)
-```
-
----
-
-## 6. References
+## 5. References
 
 1. **LaValle, S. M. (2006).** *Planning Algorithms.* Cambridge University Press. [Cambridge / Author Link](http://planning.cs.uiuc.edu/) / [DOI: 10.1017/CBO9780511546877](https://doi.org/10.1017/CBO9780511546877).
 2. **Siegwart, R., Nourbakhsh, I. R., & Scaramuzza, D. (2011).** *Introduction to Autonomous Mobile Robots (2nd Edition).* MIT Press. [MIT Press Link](https://mitpress.mit.edu/9780262015356/introduction-to-autonomous-mobile-robots/).

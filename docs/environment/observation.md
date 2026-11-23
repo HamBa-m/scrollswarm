@@ -6,20 +6,22 @@ This section formalizes the multi-modal sensory suite equipped on each UAV: the 
 
 ## 1. Sensory Architecture Overview
 
-Each UAV in ScrollSwarm operates under partial observability, perceiving its environment through two complementary sensor modalities:
+Each UAV in ScrollSwarm operates under partial observability, constructing a local 16-dimensional observation vector $\mathbf{o}_i \in [-1.0, 1.0]^{16}$ from four components:
 
-1. **Forward 7-Ray LiDAR:** Rangefinder beam array measuring distances to approaching obstacles and corridor boundaries.
-2. **Target & Communication Beacons:** Relative bearing and distance sensors tracking unphotographed targets and neighboring teammates.
+1. **Normalized Altitude State ($1$ float):** Normalized vertical flight coordinate $y_i / H \in [0.0, 1.0]$.
+2. **Forward 7-Ray LiDAR ($7$ floats):** Rangefinder beam array measuring normalized intersection distances to approaching obstacles and corridor boundaries ($d_k^* / R_{\max} \in [0.0, 1.0]$).
+3. **Target Tracking Vector ($4$ floats):** Relative horizontal displacement, vertical displacement, Euclidean distance, and photo inspection range indicator to the nearest unphotographed target.
+4. **Neighbor Drone Vector ($4$ floats):** Relative horizontal displacement, vertical displacement, Euclidean distance, and communication connectivity indicator to the nearest living teammate.
 
 ```mermaid
 flowchart TD
-    subgraph UAV Sensory Suite
-        A["Forward 7-Ray LiDAR Rangefinder"] --> D["Observation Encoder"]
-        B["Target Tracking Sensor"] --> D
-        C["Inter-Drone Network Beacon"] --> D
-        E["Altimeter"] --> D
+    subgraph UAV Perception Suite
+        A["Forward 7-Ray LiDAR (Obstacle & Boundary Rays)"] --> E["Observation Vector"]
+        B["Nearest Target Vector (Bearing & Distance)"] --> E
+        C["Nearest Neighbor Vector (Bearing & Link)"] --> E
+        D["Vertical Altitude State (y_i / H)"] --> E
     end
-    D --> F["16-Dimensional Observation Vector o_i in [-1, 1]^16"]
+    E --> F["16-Dimensional Observation Vector o_i in [-1.0, 1.0]^16"]
 ```
 
 ---

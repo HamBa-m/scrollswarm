@@ -1,6 +1,6 @@
 # Rewards & Episode Horizon
 
-This section formalizes the multi-agent reward structure, optimization objectives, discount factor considerations, finite horizon truncation dynamics, and telemetry dictionaries in ScrollSwarm.
+This section formalizes the multi-agent reward structure, optimization objectives, discount factor planning horizon, and finite horizon truncation vs. termination dynamics in ScrollSwarm.
 
 ---
 
@@ -65,13 +65,7 @@ Following the standard Gymnasium / PettingZoo MDP specification, ScrollSwarm str
 
 ---
 
-## 4. Operational Telemetry & Configuration Parameters
-
-For the complete reference of environment constructor arguments, `MapConfig` corridor settings, and the per-step `infos` telemetry dictionary returned by `env.step()`, see the dedicated [Configuration & Telemetry](configuration_and_telemetry.md) specification page.
-
----
-
-## 5. References
+## 4. References
 
 1. **Puterman, M. L. (1994).** *Markov Decision Processes: Discrete Stochastic Dynamic Programming.* John Wiley & Sons. [DOI: 10.1002/9780470316887](https://doi.org/10.1002/9780470316887).
 2. **Sutton, R. S., & Barto, A. G. (2018).** *Reinforcement Learning: An Introduction (2nd Edition).* MIT Press. [Book Link](http://incompleteideas.net/book/the-book-2nd.html).

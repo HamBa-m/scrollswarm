@@ -19,8 +19,8 @@ def test_env_initialization():
     for a in env.possible_agents:
         obs_space = env.observation_space(a)
         act_space = env.action_space(a)
-        assert obs_space.shape == (15,)
-        assert obs_space.low[0] == 0.0
+        assert obs_space.shape == (16,)
+        assert obs_space.low[0] == -1.0
         assert obs_space.high[0] == 1.0
         assert act_space.n == 3
 
@@ -32,10 +32,10 @@ def test_env_reset():
     assert len(obs) == 3
     assert len(infos) == 3
     for a in env.agents:
-        assert obs[a].shape == (15,)
-        assert np.all(obs[a] >= 0.0)
+        assert obs[a].shape == (16,)
+        assert np.all(obs[a] >= -1.0)
         assert np.all(obs[a] <= 1.0)
-        assert infos[a]["targets_collected"] == 0
+        assert infos[a]["targets_photographed"] == 0
         assert infos[a]["collision"] is None
 
 
@@ -49,7 +49,6 @@ def test_env_step_random_actions():
         actions = {a: env.action_space(a).sample() for a in env.agents}
         obs, rewards, terminations, truncations, infos = env.step(actions)
 
-        # Check types and keys
         for a in actions:
             assert isinstance(rewards[a], float)
             assert isinstance(terminations[a], bool)
@@ -70,7 +69,6 @@ def test_env_truncation_at_max_cycles():
         else:
             for a in actions:
                 assert truncations[a] is True
-            # All agents should be removed on truncation
             assert len(env.agents) == 0
 
 
@@ -112,45 +110,33 @@ def test_env_centralized_state_space():
     env = ScrollSwarmEnv(num_agents=3)
     env.reset(seed=42)
 
-    assert env.state_space.shape == (45,)
+    # 16 features per agent * 3 = 48
+    assert env.state_space.shape == (48,)
     s = env.state()
-    assert s.shape == (45,)
+    assert s.shape == (48,)
     assert s.dtype == np.float32
 
     # Manually terminate agent 1 and verify its slice in state() is zero
     env._agent_map["agent_1"].alive = False
     s_dead = env.state()
-    assert np.all(s_dead[15:30] == 0.0)
-    assert not np.all(s_dead[0:15] == 0.0)
+    assert np.all(s_dead[16:32] == 0.0)
+    assert not np.all(s_dead[0:16] == 0.0)
     env.close()
 
 
-def test_env_rewards_and_team_averaging():
-    """Verifies reward terms (+0.01 step, -10 crash, team averaging)."""
-    # 1. Individual rewards
-    env = ScrollSwarmEnv(num_agents=2, target_reward=1.0, crash_penalty=10.0, step_reward=0.01, team_reward=False)
+def test_env_no_proximity_penalty_in_reward():
+    """Verifies that drones flying close incur no proximity penalty in rewards."""
+    env = ScrollSwarmEnv(num_agents=2, step_reward=0.01)
     env.reset(seed=42)
 
-    # Both agents stay alive in step 1
+    # Place agent_0 and agent_1 vertically close
+    env._agent_map["agent_0"].x = 100.0
+    env._agent_map["agent_0"].y = 200.0
+    env._agent_map["agent_1"].x = 100.0
+    env._agent_map["agent_1"].y = 205.0
+
     obs, rewards, terms, truncs, infos = env.step({"agent_0": 1, "agent_1": 1})
-    assert rewards["agent_0"] == 0.01
-    assert rewards["agent_1"] == 0.01
-
-    # Force agent_0 to crash into ceiling by setting y = 0
-    env._agent_map["agent_0"].y = 0.0
-    obs, rewards, terms, truncs, infos = env.step({"agent_0": 0, "agent_1": 1})
-    assert rewards["agent_0"] == -10.0
-    assert terms["agent_0"] is True
+    # Both agents simply receive standard step survival reward (+0.01)
+    assert pytest.approx(rewards["agent_0"], abs=1e-3) == 0.01
+    assert pytest.approx(rewards["agent_1"], abs=1e-3) == 0.01
     env.close()
-
-    # 2. Team reward averaging
-    env_team = ScrollSwarmEnv(num_agents=2, target_reward=1.0, crash_penalty=10.0, step_reward=0.01, team_reward=True)
-    env_team.reset(seed=42)
-
-    # Force agent_0 to crash: indiv_0 = -10, indiv_1 = +0.01 -> mean = (-10 + 0.01) / 2 = -4.995
-    env_team._agent_map["agent_0"].y = 0.0
-    obs, rewards, terms, truncs, infos = env_team.step({"agent_0": 0, "agent_1": 1})
-    expected_team = (-10.0 + 0.01) / 2.0
-    assert np.isclose(rewards["agent_0"], expected_team)
-    assert np.isclose(rewards["agent_1"], expected_team)
-    env_team.close()

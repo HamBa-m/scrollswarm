@@ -7,6 +7,27 @@ name = "scrollswarm"
 version = "0.1.0"
 description = "A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication."
 readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Hamza Ba-mohammed", email = "hamza.bamohammed@um6p.ma" }
+]
+keywords = [
+    "multi-agent",
+    "reinforcement-learning",
+    "marl",
+    "uav-swarm",
+    "pettingzoo",
+    "graph-neural-networks",
+    "pytorch-geometric",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 requires-python = ">=3.12"
 dependencies = [
     "gymnasium>=1.4.0",
@@ -22,6 +43,12 @@ docs = [
     "mkdocstrings[python]>=0.25.0",
     "pillow>=13.0.0",
 ]
+
+[project.urls]
+Homepage = "https://hambam.top/scrollswarm/"
+Documentation = "https://hambam.top/scrollswarm/"
+Repository = "https://github.com/HamBa-m/scrollswarm"
+"Issue Tracker" = "https://github.com/HamBa-m/scrollswarm/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["scrollswarm"]

@@ -24,6 +24,11 @@ htmlcov/
 # Documentation builds
 site/
 
+# Distribution & Packaging
+dist/
+build/
+*.egg-info/
+
 # Private research proposals & untracked concept notes
 *.untracked.md
 MARL_COUPLING_BENCHMARK_PROPOSAL.md

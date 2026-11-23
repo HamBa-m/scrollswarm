@@ -77,6 +77,55 @@ uv run mkdocs serve
 
 ---
 
+## Benchmark Evaluation Scripts
+
+ScrollSwarm provides standalone, CLI-configurable scripts in `scripts/` for evaluating baselines and recording animated GIFs:
+
+```bash
+# 1. Run Random Exploration Baseline (with GIF recording)
+uv run python scripts/run_random_policy.py --episodes 1 --max-cycles 300 --record-gif
+
+# 2. Run Reactive Heuristic Controller (with GIF recording)
+uv run python scripts/run_heuristic_policy.py --episodes 1 --max-cycles 300 --record-gif
+
+# 3. Multi-seed comparative benchmarking (5 episodes, no recording)
+uv run python scripts/run_heuristic_policy.py --episodes 5 --max-cycles 500 --no-record-gif
+```
+
+### Empirical Benchmark Baseline (500 Steps, 5 Seeds)
+
+| Metric | Random Action Baseline | Reactive Swarm Policy | Performance Delta |
+| :--- | :---: | :---: | :--- |
+| **Mean Episodic Return** | $-28.55 \pm 10.50$ | **$-10.39 \pm 18.00$** | $+18.16$ reduction in crash penalties |
+| **Mean Survival Horizon** | $257.9 \pm 66.8\text{ steps}$ | **$356.7 \pm 75.7\text{ steps}$** | $+98.8\text{ steps}$ ($+38.3\%$ longer flight time) |
+| **Mean Targets Photographed** | $0.60 \pm 0.49$ | **$1.80 \pm 0.75$** | $\mathbf{3.0\times}$ increase in mission yield |
+| **Drone Crash Rate** | $84.0\%$ ($21/25$ dead) | **$60.0\%$** ($15/25$ dead) | $24.0\text{ percentage point}$ reduction |
+| **Inference Latency** | $\sim 0.002\text{ ms}$ | $\sim 0.013\text{ ms}$ | Negligible CPU overhead |
+
+---
+
+## Tutorials & Walkthroughs
+
+Step-by-step guides are hosted on the [Documentation Site](https://hambam.top/scrollswarm/):
+
+1. **[Tutorial 01: PettingZoo ParallelEnv Loop](https://hambam.top/scrollswarm/tutorials/01_parallel_env/):** The synchronous Dec-POMDP multi-agent simulation loop, handling agent life/death culling, and CTDE global state extraction (`env.state()`).
+2. **[Tutorial 02: Heuristic Reactive Policy](https://hambam.top/scrollswarm/tutorials/02_heuristic_baseline/):** Designing an explainable 4-tier rule-based baseline using the 7-ray LiDAR rangefinder and target tracking.
+3. **[Tutorial 03: PyG & GNN Integration](https://hambam.top/scrollswarm/tutorials/03_gnn_pyg/):** Extracting graph tensors (`edge_index`, `edge_attr`), packaging into `torch_geometric.data.Data`, and executing native message passing.
+
+---
+
+## Environment Specification Summary
+
+| Component | Formal Representation | Dimensions & Types |
+| :--- | :--- | :--- |
+| **Observation Space** | $\mathbf{o}_i \in [-1.0, 1.0]^{16}$ | `Box(-1.0, 1.0, (16,), float32)`: Altitude ($1$), LiDAR ($7$), Target ($4$), Neighbor ($4$) |
+| **Action Space** | $a_i \in \{0, 1, 2\}$ | `Discrete(3)`: `0: UP (-5px)`, `1: STAY (0px)`, `2: DOWN (+5px)` |
+| **Centralized State** | $\mathbf{s} \in [-1.0, 1.0]^{16N}$ | `Box(-1.0, 1.0, (16*N,), float32)`: Concatenated observations (zero-masked on crash) |
+| **Graph Topology** | $\mathcal{G}(t) = (\mathcal{V}(t), \mathcal{E}(t))$ | PyG COO `edge_index` $(2, E)$ & spatial `edge_attr` $(E, 3)$ with dead-agent pruning |
+| **Rewards** | $r_i \in \mathbb{R}$ | Photo ($+1.0$), Step survival ($+0.01$), Collision crash ($-10.0$) |
+
+---
+
 ## Minimal Stepping Example
 
 ```python
@@ -101,6 +150,25 @@ for step in range(200):
     edge_index, edge_attr = env.get_edge_index_and_attributes()
 
 env.close()
+```
+
+---
+
+## Author & Citation
+
+**Hamza Ba-mohammed**  
+College of Computing (CC), Mohammed VI Polytechnic University (UM6P), Rabat, Morocco  
+Email: [hamza.bamohammed@um6p.ma](mailto:hamza.bamohammed@um6p.ma)
+
+If you use ScrollSwarm in your research, please cite:
+
+```bibtex
+@software{scrollswarm2026,
+  author = {Ba-mohammed, Hamza},
+  title = {ScrollSwarm: A 2D Multi-Agent Reinforcement Learning Testbed for Cooperative UAV Swarm Reconnaissance},
+  url = {https://github.com/HamBa-m/scrollswarm},
+  year = {2026}
+}
 ```
 
 ---

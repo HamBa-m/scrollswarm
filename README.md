@@ -1,10 +1,14 @@
 # ScrollSwarm
 
+[![Release](https://img.shields.io/badge/release-v0.1.0-blue.svg?logo=github)](https://github.com/HamBa-m/scrollswarm/releases)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C.svg?logo=c%2B%2B&logoColor=white)](scrollswarm/geometry/cpp/)
+[![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)
+[![PyG](https://img.shields.io/badge/PyG-Compatible-EE4C2C.svg?logo=pytorch&logoColor=white)](https://hambam.top/scrollswarm/tutorials/03_gnn_pyg/)
+[![Acceleration](https://img.shields.io/badge/acceleration-Numba%20%7C%20C%2B%2B20-orange.svg)](https://hambam.top/scrollswarm/api/geometry/)
+[![Tests](https://img.shields.io/badge/tests-52%20passed-brightgreen.svg)](tests/)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs--material-blue.svg)](https://hambam.top/scrollswarm/)
-[![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)
-[![Tests](https://img.shields.io/badge/tests-45%20passed-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.**
@@ -65,7 +69,7 @@ uv run python main.py -n 8 -c ring
 
 ### Testing & Docs
 ```bash
-# Run full unit test suite (45 tests)
+# Run full unit test suite (52 tests)
 uv run pytest
 
 # Build documentation strictly
@@ -107,7 +111,7 @@ uv run python scripts/benchmark_backends.py --steps 500 --num-agents 4
 
 ### Multi-Backend Computational Acceleration (NumPy vs. C++ vs. Numba)
 
-Profiling revealed that **$79.3\%$** of raw Python stepping is consumed by 2D LiDAR raycasting and polygon intersection math. ScrollSwarm provides a zero-overhead hardware abstraction layer with three interchangeable backends:
+Profiling revealed that **79.3%** of raw Python stepping is consumed by 2D LiDAR raycasting and polygon intersection math. ScrollSwarm provides a zero-overhead hardware abstraction layer with three interchangeable backends:
 
 - **`numpy` (Baseline):** 100% portable pure Python reference (zero external compiler or build dependencies).
 - **`numba` (LLVM CPU JIT):** Runtime JIT compilation via `@njit(fastmath=True, nogil=True)` for $50\times$ faster raycasting.

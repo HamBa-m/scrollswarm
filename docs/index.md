@@ -1,9 +1,13 @@
 # ScrollSwarm
 
+[![Release](https://img.shields.io/badge/release-v0.1.0-blue.svg?logo=github)](https://github.com/HamBa-m/scrollswarm/releases)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C.svg?logo=c%2B%2B&logoColor=white)](https://github.com/HamBa-m/scrollswarm/tree/main/scrollswarm/geometry/cpp)
 [![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)
-[![Tests](https://img.shields.io/badge/tests-45%20passed-brightgreen.svg)](https://github.com/HamBa-m/scrollswarm/tree/main/tests)
+[![PyG](https://img.shields.io/badge/PyG-Compatible-EE4C2C.svg?logo=pytorch&logoColor=white)](tutorials/03_gnn_pyg.md)
+[![Acceleration](https://img.shields.io/badge/acceleration-Numba%20%7C%20C%2B%2B20-orange.svg)](api/geometry.md)
+[![Tests](https://img.shields.io/badge/tests-52%20passed-brightgreen.svg)](https://github.com/HamBa-m/scrollswarm/tree/main/tests)
+[![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.**
@@ -31,24 +35,24 @@ ScrollSwarm is a lightweight, high-throughput multi-agent simulation where a tea
 ```mermaid
 flowchart TD
     subgraph ENV ["1. Aerial Corridor Environment"]
-        CORRIDOR["Scrolling Airspace<br/>• Procedural Obstacles (Ground, Overhead, Floating)<br/>• Guaranteed Navigable Passage<br/>• Stochastic Inspection Targets"]
-        SWARM["Autonomous UAV Swarm<br/>• Station-Keeping Horizontal Columns<br/>• Dynamic Vertical Altitude"]
+        CORRIDOR
+        SWARM
     end
 
     subgraph PERCEPTION ["2. Perception & Relational Representation"]
-        OBS["16-Dimensional Local Observation Vector<br/>• Normalized Altitude State<br/>• Forward 7-Ray LiDAR Rangefinder<br/>• Nearest Target Bearing & Proximity<br/>• Nearest Teammate Spatial Offset"]
-        GRAPH["Dynamic Communication Graph<br/>• Relational Topologies (Chain, Ring, Radius, Capped)<br/>• PyTorch Geometric Tensors (edge_index, edge_attr)<br/>• Automatic Dead-Agent Edge Pruning"]
-        CTDE["Centralized Global State<br/>• Concatenated Swarm Observations<br/>• Zero-Masked for Terminated Drones"]
+        OBSERVATION
+        STATE
+        COMM. GRAPH
     end
 
     subgraph DECISION ["3. Multi-Agent Decision Layer"]
-        POLICY["Decentralized Policy / GNN<br/>• Local Observation Processing<br/>• Inter-Drone Message Aggregation"]
-        ACTIONS["Discrete Action Dispatch<br/>• UP (Ascend), STAY (Level), DOWN (Descend)"]
+        POLICY
+        ACTIONS
     end
 
     subgraph DYNAMICS ["4. Transition Dynamics & Feedback"]
-        KINEMATICS["Kinematic Step & Boundary Clamping<br/>• Vertical Position Update<br/>• Leftward Airspace Drift"]
-        FEEDBACK["Environment Feedback & Evaluation<br/>• Collision Detection (Individual Fatal Termination)<br/>• Stochastic Bernoulli Photo Acquisition<br/>• Step Rewards & Telemetry"]
+        KINEMATICS
+        FEEDBACK
     end
 
     CORRIDOR --> OBS

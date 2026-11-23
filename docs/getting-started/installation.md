@@ -96,7 +96,7 @@ pytest
 
 Expected output:
 ```text
-======================= 45 passed, 2 warnings in 1.30s =======================
+======================= 52 passed, 2 warnings in 1.20s =======================
 ```
 
 ---

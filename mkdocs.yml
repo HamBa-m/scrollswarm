@@ -73,11 +73,12 @@ nav:
       - Quickstart: getting-started/quickstart.md
   - Environment Specification:
       - Formal Model: environment/overview.md
-      - Observation & LiDAR: environment/observation.md
-      - Action Space & Dynamics: environment/action_space.md
-      - Ring Dynamics & Asteroids: environment/ring_dynamics.md
-      - Rewards & CTDE State: environment/rewards_and_state.md
-      - Graph Communication: environment/communication.md
+      - Environment Dynamics: environment/corridor_and_dynamics.md
+      - Action Space & Kinematics: environment/action_space.md
+      - Observation Space: environment/observation.md
+      - Rewards & Episode Horizon: environment/rewards_and_state.md
+      - Communication Graph: environment/communication.md
+      - Configuration & Telemetry: environment/configuration_and_telemetry.md
   - Tutorials:
       - "01: PettingZoo ParallelEnv Loop": tutorials/01_parallel_env.md
       - "02: Heuristic Reactive Policy": tutorials/02_heuristic_baseline.md
@@ -87,5 +88,5 @@ nav:
       - Agent & Dynamics: api/agent.md
       - Sensors & Raycasting: api/sensors.md
       - Communication Graph: api/comm.md
-      - Map & Ring Environment: api/map.md
+      - Map & Entities: api/map.md
       - Sprites & Rendering: api/sprites.md

@@ -33,6 +33,12 @@ from scrollswarm.sensors import RaySensor, RayHit
 from scrollswarm.items import Asteroid, Tree, Target
 from scrollswarm.comm import CommunicationGraph, TopologyType
 from scrollswarm.sprites import get_rocket_sprite, get_quadcopter_sprite
+from scrollswarm.geometry import (
+    get_available_backends,
+    resolve_backend,
+    is_numba_available,
+    is_cpp_available,
+)
 
 __all__ = [
     "ScrollSwarmEnv",
@@ -53,6 +59,10 @@ __all__ = [
     "TopologyType",
     "get_rocket_sprite",
     "get_quadcopter_sprite",
+    "get_available_backends",
+    "resolve_backend",
+    "is_numba_available",
+    "is_cpp_available",
     "COLOR_SPACE_VOID",
     "COLOR_RING_HAZE",
     "COLOR_RING_SHEATH",

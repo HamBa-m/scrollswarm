@@ -80,6 +80,7 @@ class Agent:
         height: float = 16.0,
         color: Optional[Tuple[int, int, int]] = None,
         safe_proximity_dist: float = 28.0,
+        backend: str = "auto",
     ):
         """
         Initializes the UAV agent.
@@ -98,6 +99,8 @@ class Agent:
                 ``agent_id``.
             safe_proximity_dist: Minimum safe separation distance from other
                 drones in pixels (retained for legacy proximity checks).
+            backend: Acceleration backend for geometric raycasting. Options:
+                ``"auto"``, ``"numpy"``, ``"numba"``, or ``"cpp"``.
         """
         self.agent_id = agent_id
         self.x = float(x)
@@ -107,6 +110,7 @@ class Agent:
         self.height = float(height)
         self.color = color if color is not None else AGENT_PALETTE[agent_id % len(AGENT_PALETTE)]
         self.safe_proximity_dist = float(safe_proximity_dist)
+        self.backend = backend
 
         # Operational state
         self.alive: bool = True
@@ -291,6 +295,7 @@ class Agent:
             self.sensor = RaySensor(
                 max_range=float(scrolling_map.width) / 2.0,
                 safe_proximity_dist=self.safe_proximity_dist,
+                backend=self.backend,
             )
         return self.sensor.observe(
             origin_x=self.x,
@@ -306,6 +311,7 @@ def create_agents(
     map_width: int = 800,
     scrolling_map: Optional[ScrollingMap] = None,
     step_size: int = 5,
+    backend: str = "auto",
 ) -> List[Agent]:
     """
     Creates a team of N UAVs (1 <= N <= 10, default 5).
@@ -341,6 +347,7 @@ def create_agents(
                 y=initial_y,
                 step_size=step_size,
                 color=color,
+                backend=backend,
             )
         )
 

@@ -19,6 +19,13 @@ if TYPE_CHECKING:
     from scrollswarm.map import ScrollingMap
     from scrollswarm.agent import Agent
 from scrollswarm.items import Obstacle, Target
+from scrollswarm.geometry import (
+    cast_rays_numpy,
+    cast_rays_numba,
+    extract_geometry_buffers,
+    resolve_backend,
+    is_numba_available,
+)
 
 
 @dataclass
@@ -65,6 +72,7 @@ class RaySensor:
         photo_radius: float = 45.0,
         comm_range: float = 180.0,
         safe_proximity_dist: float = 28.0,
+        backend: str = "auto",
     ):
         """
         Initializes the RaySensor.
@@ -85,6 +93,9 @@ class RaySensor:
                 the ``in_comm`` flag in the observation vector.
             safe_proximity_dist: Legacy parameter retained for backward
                 compatibility with proximity-penalty code paths.
+            backend: Acceleration backend for geometric raycasting. Options:
+                ``"auto"`` (fastest available), ``"numpy"`` (baseline),
+                ``"numba"`` (LLVM JIT), or ``"cpp"`` (native C++20).
         """
         self.num_rays = num_rays
         self.max_range = float(max_range)
@@ -92,6 +103,7 @@ class RaySensor:
         self.photo_radius = float(photo_radius)
         self.comm_range = float(comm_range)
         self.safe_proximity_dist = float(safe_proximity_dist)
+        self.backend = backend
 
         # Compute ray angles (in radians), from top-forward to bottom-forward
         half_fov = np.radians(self.fov_degrees / 2.0)
@@ -104,112 +116,55 @@ class RaySensor:
         scrolling_map: "ScrollingMap",
     ) -> Tuple[List[RayHit], List[RayHit]]:
         """
-        Casts 7 rays from (origin_x, origin_y).
+        Casts LiDAR rays from (origin_x, origin_y) using the configured geometry backend.
         Returns (obstacle_hits, target_hits).
         """
         obs_hits: List[RayHit] = []
         tgt_hits: List[RayHit] = []
 
-        h = float(scrolling_map.height)
         ceil_y = float(scrolling_map.ceiling_y)
         floor_y = float(scrolling_map.floor_y)
 
-        obstacles: List[Obstacle] = getattr(scrolling_map, "obstacles", [])
+        obstacles = getattr(scrolling_map, "obstacles", [])
         if not obstacles and hasattr(scrolling_map, "asteroids"):
             obstacles = scrolling_map.asteroids
+        targets = getattr(scrolling_map, "targets", [])
 
-        for angle in self.angles:
-            cos_a = float(np.cos(angle))
-            sin_a = float(np.sin(angle))
+        if hasattr(scrolling_map, "get_geometry_buffers"):
+            obs_meta, obs_edges, obs_edge_ranges, target_data = scrolling_map.get_geometry_buffers()
+        else:
+            obs_meta, obs_edges, obs_edge_ranges, target_data = extract_geometry_buffers(obstacles, targets)
 
-            closest_obs_dist = self.max_range
-            obs_hit_type = "none"
+        backend_name = resolve_backend(self.backend)
+        if backend_name == "numba" and is_numba_available():
+            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = cast_rays_numba(
+                origin_x, origin_y, self.angles, self.max_range,
+                ceil_y, floor_y, obs_meta, obs_edges, obs_edge_ranges, target_data
+            )
+        else:
+            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = cast_rays_numpy(
+                origin_x, origin_y, self.angles, self.max_range,
+                ceil_y, floor_y, obs_meta, obs_edges, obs_edge_ranges, target_data
+            )
 
-            # 1. Analytical ceiling and floor intersections
-            if sin_a < -1e-5:
-                t_ceil = (ceil_y - origin_y) / sin_a
-                if 0.0 <= t_ceil < closest_obs_dist:
-                    closest_obs_dist = t_ceil
-                    obs_hit_type = "boundary"
-            elif sin_a > 1e-5:
-                t_floor = (floor_y - origin_y) / sin_a
-                if 0.0 <= t_floor < closest_obs_dist:
-                    closest_obs_dist = t_floor
-                    obs_hit_type = "boundary"
+        obs_type_labels = {0: "none", 1: "boundary", 2: "obstacle"}
+        tgt_type_labels = {0: "none", 1: "target"}
 
-            # 2. Polygon and rectangular obstacle intersections
-            for obs in obstacles:
-                vx = obs.x - origin_x
-                vy = obs.y - origin_y
-                t_proj = vx * cos_a + vy * sin_a
-
-                # Bounding sphere rejection
-                max_dim = max(obs.radius, getattr(obs, "width", 40.0), getattr(obs, "height", 60.0))
-                if t_proj < -max_dim or t_proj > closest_obs_dist + max_dim:
-                    continue
-
-                edges = obs.edges if hasattr(obs, "edges") else []
-                for (ax, ay), (bx, by) in edges:
-                    ex = bx - ax
-                    ey = by - ay
-                    denom = cos_a * ey - sin_a * ex
-                    if abs(denom) < 1e-6:
-                        continue
-
-                    dx = ax - origin_x
-                    dy = ay - origin_y
-                    t = (dx * ey - dy * ex) / denom
-                    u = (dx * sin_a - dy * cos_a) / denom
-
-                    if 0.0 <= t < closest_obs_dist and 0.0 <= u <= 1.0:
-                        closest_obs_dist = t
-                        obs_hit_type = "obstacle"
-
-            closest_obs_dist = float(np.clip(closest_obs_dist, 0.0, self.max_range))
-            end_x = origin_x + closest_obs_dist * cos_a
-            end_y = origin_y + closest_obs_dist * sin_a
-
+        for k in range(self.num_rays):
+            d = float(obs_dists[k])
             obs_hits.append(RayHit(
-                distance=closest_obs_dist,
-                norm_distance=closest_obs_dist / self.max_range,
-                hit_type=obs_hit_type,
-                endpoint=(end_x, end_y),
+                distance=d,
+                norm_distance=d / self.max_range,
+                hit_type=obs_type_labels.get(int(obs_types[k]), "none"),
+                endpoint=(float(obs_ends[k, 0]), float(obs_ends[k, 1])),
             ))
 
-            # 3. Ray-target intersections for visual overlay
-            closest_tgt_dist = self.max_range
-            tgt_hit_type = "none"
-
-            for target in scrolling_map.targets:
-                if target.collected:
-                    continue
-
-                vx = target.x - origin_x
-                vy = target.y - origin_y
-                t_proj = vx * cos_a + vy * sin_a
-
-                if t_proj <= 0 or t_proj >= closest_tgt_dist + target.size:
-                    continue
-
-                perp_sq = (vx * vx + vy * vy) - (t_proj * t_proj)
-                r_sq = target.size * target.size
-
-                if perp_sq < r_sq:
-                    half_chord = np.sqrt(max(0.0, r_sq - perp_sq))
-                    entry_dist = t_proj - half_chord
-                    if 0.0 <= entry_dist < closest_tgt_dist:
-                        closest_tgt_dist = entry_dist
-                        tgt_hit_type = "target"
-
-            closest_tgt_dist = float(np.clip(closest_tgt_dist, 0.0, self.max_range))
-            tgt_end_x = origin_x + closest_tgt_dist * cos_a
-            tgt_end_y = origin_y + closest_tgt_dist * sin_a
-
+            td = float(tgt_dists[k])
             tgt_hits.append(RayHit(
-                distance=closest_tgt_dist,
-                norm_distance=closest_tgt_dist / self.max_range,
-                hit_type=tgt_hit_type,
-                endpoint=(tgt_end_x, tgt_end_y),
+                distance=td,
+                norm_distance=td / self.max_range,
+                hit_type=tgt_type_labels.get(int(tgt_types[k]), "none"),
+                endpoint=(float(tgt_ends[k, 0]), float(tgt_ends[k, 1])),
             ))
 
         return obs_hits, tgt_hits

@@ -77,6 +77,7 @@ class ScrollSwarmEnv(ParallelEnv):
         step_reward: float = 0.01,
         team_reward: bool = False,
         render_mode: Optional[str] = None,
+        backend: str = "auto",
     ):
         """
         Initializes the ScrollSwarm environment.
@@ -99,6 +100,9 @@ class ScrollSwarmEnv(ParallelEnv):
             render_mode: ``"human"`` opens a live Pygame window; ``"rgb_array"``
                 returns an ``(H, W, 3)`` uint8 NumPy image on each ``render()``
                 call; ``None`` disables rendering entirely.
+            backend: Geometric acceleration backend. Options: ``"auto"`` (fastest
+                available on host), ``"numpy"`` (baseline), ``"numba"`` (LLVM JIT),
+                or ``"cpp"`` (native C++20).
 
         Raises:
             ValueError: If ``num_agents`` is outside [1, 10].
@@ -117,6 +121,7 @@ class ScrollSwarmEnv(ParallelEnv):
         self.step_reward = float(step_reward)
         self.team_reward = bool(team_reward)
         self.render_mode = render_mode
+        self.backend = backend
 
         # Agent IDs conforming to PettingZoo standards
         self.possible_agents = [f"agent_{i}" for i in range(self._num_agents)]
@@ -262,6 +267,7 @@ class ScrollSwarmEnv(ParallelEnv):
             map_width=self.scrolling_map.width,
             scrolling_map=self.scrolling_map,
             step_size=5,
+            backend=self.backend,
         )
         self._agent_map = {
             f"agent_{i}": agent_list[i] for i in range(self._num_agents)

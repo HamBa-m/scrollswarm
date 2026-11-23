@@ -158,6 +158,9 @@ class ScrollingMap:
         self._steps_since_obstacle = 40
         self._steps_since_target = 30
 
+        # Cached contiguous geometry buffers for current step
+        self._geo_cache: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = None
+
         if getattr(self.config, "preseed", True):
             self._preseed_corridor()
 
@@ -170,6 +173,7 @@ class ScrollingMap:
         self._steps_since_target = 30
         self.obstacles.clear()
         self.targets.clear()
+        self._geo_cache = None
         if getattr(self.config, "preseed", True):
             self._preseed_corridor()
 
@@ -304,6 +308,16 @@ class ScrollingMap:
                 y = float(self.rng.uniform(low_y, high_y))
                 self.targets.append(Target(x=spawn_x, y=y))
                 self._steps_since_target = 0
+
+        # Invalidate geometry buffer cache on step
+        self._geo_cache = None
+
+    def get_geometry_buffers(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Returns cached contiguous NumPy geometry buffers for current map step."""
+        if self._geo_cache is None:
+            from scrollswarm.geometry import extract_geometry_buffers
+            self._geo_cache = extract_geometry_buffers(self.obstacles, self.targets)
+        return self._geo_cache
 
     def update(self) -> None:
         """Alias for step()."""

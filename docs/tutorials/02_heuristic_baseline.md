@@ -35,6 +35,7 @@ Observation Vector: [0: Altitude | 1-7: LiDAR Rays | 8-11: Target | 12-15: Neigh
 
 ### 1. Normalized Flight Altitude (Index `0`)
 $$y_{\text{norm}} = \frac{y_i}{H} \in [0.0, 1.0]$$
+
 - $y_{\text{norm}} \approx 0.0$ indicates dangerous proximity to the upper ceiling ($y_{\text{ceiling}} = 15\text{ px}$).
 - $y_{\text{norm}} \approx 1.0$ indicates dangerous proximity to the ground base plane ($y_{\text{floor}} = 385\text{ px}$).
 - $y_{\text{norm}} \approx 0.5$ represents the vertical median of the corridor.
@@ -58,10 +59,10 @@ The rangefinder casts 7 rays across a $120^\circ$ forward field of view ($-60^\c
   - $\Delta y_{\text{tgt}} > 0 \implies$ Target is **below** the drone $\implies$ descend (`Action.DOWN`).
   - $\Delta y_{\text{tgt}} < 0 \implies$ Target is **above** the drone $\implies$ ascend (`Action.UP`).
 - **`obs[10]` ($d_{\text{tgt}} / \text{diag}$)**: Normalized Euclidean distance to target.
-- **`obs[11]` ($\mathbf{1}_{\text{in\_range}}$)**: Binary flag ($1.0$ if $d_{\text{tgt}} \le 45\text{ px}$, else $0.0$).
+- **`obs[11]` ($\mathbf{1}_{\text{in_range}}$)**: Binary flag ($1.0$ if $d_{\text{tgt}} \le 45\text{ px}$, else $0.0$).
 
 ### 4. Nearest Neighbor Teammate (Indices `12` to `15`)
-- Relative spatial displacement $[\Delta x_{\text{nbr}} / W, \Delta y_{\text{nbr}} / H, d_{\text{nbr}} / \text{diag}]$ and binary communication link flag $\mathbf{1}_{\text{in\_comm}}$ ($1.0$ if $d_{\text{nbr}} \le 180\text{ px}$).
+- Relative spatial displacement $[\Delta x_{\text{nbr}} / W, \Delta y_{\text{nbr}} / H, d_{\text{nbr}} / \text{diag}]$ and binary communication link flag $\mathbf{1}_{\text{in_comm}}$ ($1.0$ if $d_{\text{nbr}} \le 180\text{ px}$).
 
 ---
 
@@ -85,6 +86,7 @@ If the drone penetrates the ceiling buffer zone ($y_{\text{norm}} \le 0.15$), it
 
 ### Tier 2: LiDAR Obstacle Evasion (Dynamic Obstacles)
 If any LiDAR ray detects an obstacle closer than a critical safety distance $d_{\text{crit}} = 0.35$ ($140\text{ px}$):
+
 1. Compute aggregate **upper clearance**: $\bar{d}_{\text{upper}} = \frac{1}{3}(d_0 + d_1 + d_2)$.
 2. Compute aggregate **lower clearance**: $\bar{d}_{\text{lower}} = \frac{1}{3}(d_4 + d_5 + d_6)$.
 3. If $\bar{d}_{\text{upper}} > \bar{d}_{\text{lower}}$, climb (`Action.UP`) toward open airspace.
@@ -92,6 +94,7 @@ If any LiDAR ray detects an obstacle closer than a critical safety distance $d_{
 
 ### Tier 3: Target Interception (Mission Objective)
 When no immediate structural collision threatens the drone, align vertical altitude with the target waypoint:
+
 - If $\Delta y_{\text{tgt}} > +0.03$, target is below: select `Action.DOWN`.
 - If $\Delta y_{\text{tgt}} < -0.03$, target is above: select `Action.UP`.
 - If $|\Delta y_{\text{tgt}}| \le 0.03$, altitude matches: maintain level flight (`Action.STAY`).
@@ -212,6 +215,8 @@ def evaluate_policy(policy_name: str, policy_fn, num_episodes: int = 5, max_cycl
     episode_returns: List[float] = []
     episode_survivals: List[float] = []
     episode_targets: List[int] = []
+    total_crashes = 0
+    total_drones = 0
 
     for seed in range(num_episodes):
         env = ScrollSwarmEnv(
@@ -253,15 +258,19 @@ def evaluate_policy(policy_name: str, policy_fn, num_episodes: int = 5, max_cycl
 
         mean_survival = np.mean([d["steps"] for d in tracker.values()])
         total_targets = sum(d["targets"] for d in tracker.values())
+        crashes = sum(1 for d in tracker.values() if d["crashed"])
 
+        total_crashes += crashes
+        total_drones += len(tracker)
         episode_returns.append(episode_reward)
         episode_survivals.append(mean_survival)
         episode_targets.append(total_targets)
 
     print(f"\n=== Evaluation: {policy_name} ({num_episodes} Episodes) ===")
-    print(f"  Mean Episodic Return:    {np.mean(episode_returns):8.2f} ± {np.std(episode_returns):.2f}")
-    print(f"  Mean Survival Steps:     {np.mean(episode_survivals):8.1f} ± {np.std(episode_survivals):.1f} / {max_cycles}")
-    print(f"  Mean Targets Photographed: {np.mean(episode_targets):6.2f} ± {np.std(episode_targets):.2f}")
+    print(f"  Mean Episodic Return:      {np.mean(episode_returns):8.2f} ± {np.std(episode_returns):.2f}")
+    print(f"  Mean Survival Steps:       {np.mean(episode_survivals):8.1f} ± {np.std(episode_survivals):.1f} / {max_cycles}")
+    print(f"  Mean Targets Photographed: {np.mean(episode_targets):8.2f} ± {np.std(episode_targets):.2f}")
+    print(f"  Overall Drone Crash Rate:  {total_crashes / total_drones * 100:7.1f}% ({total_crashes}/{total_drones})")
 
 
 if __name__ == "__main__":
@@ -277,12 +286,24 @@ if __name__ == "__main__":
 
 ### Empirical Results Summary
 
+Running the evaluation script across 5 independent seeds (seeds 100 to 104) over a 500-step episode horizon yields the following benchmark metrics:
+
 | Metric | Random Action Baseline | Reactive Swarm Policy | Performance Delta |
 | :--- | :---: | :---: | :--- |
-| **Mean Survival Steps** | Variable / Degraded | **500.0 / 500.0** (100% survival) | Complete collision elimination |
-| **Boundary Collisions** | Frequent | **0.0%** | Zero ceiling/floor penetrations |
-| **Mean Cumulative Return** | Negative (penalized) | **Positive ($> +25.0$)** | Steady survival and target rewards |
-| **Observation Latency** | $< 0.05\text{ ms}$ | $< 0.08\text{ ms}$ | Lightweight real-time CPU evaluation |
+| **Mean Episodic Return** | $-28.55 \pm 10.50$ | **$-10.39 \pm 18.00$** | $+18.16$ reduction in net crash penalties |
+| **Mean Survival Horizon** | $257.9 \pm 66.8\text{ steps}$ | **$356.7 \pm 75.7\text{ steps}$** | $+98.8\text{ steps}$ ($+38.3\%$ longer flight time) |
+| **Mean Targets Photographed** | $0.60 \pm 0.49$ | **$1.80 \pm 0.75$** | $\mathbf{3.0\times}$ increase in mission reconnaissance |
+| **Drone Crash Rate** | $84.0\%$ ($21/25$ dead) | **$60.0\%$** ($15/25$ dead) | $24.0\text{ percentage point}$ reduction |
+| **Inference Latency** | $\sim 0.002\text{ ms}$ | $\sim 0.013\text{ ms}$ | Negligible CPU overhead |
+
+### Scientific Analysis of the Results
+
+1. **Survival Gain**: The heuristic's Tier 1 boundary avoidance and Tier 2 LiDAR clearance voting prevent premature collisions against simple barriers, increasing mean survival from 257.9 steps to 356.7 steps.
+2. **Reconnaissance Yield**: Target tracking (Tier 3) successfully aligns vertical altitude with nearby target waypoints, tripling the mean photo acquisition from 0.60 to 1.80 targets per episode.
+3. **The Limits of Memoryless Reactive Control**: Despite outperforming random exploration, the reactive policy still experiences a 60% crash rate over 500 steps. Because it is a memoryless, 1-step reactive heuristic without lookahead planning or inter-agent coordination:
+   - Drones cannot anticipate bottlenecks where procedural obstacles require multi-step coordinated evasive maneuvers.
+   - Without inter-agent communication, drones cannot coordinate spatial dispersion across the corridor gap.
+   - This performance gap establishes a meaningful benchmark lower bound that cooperative multi-agent RL (e.g., MAPPO, QMIX, GNN policies) must learn to surpass.
 
 ---
 

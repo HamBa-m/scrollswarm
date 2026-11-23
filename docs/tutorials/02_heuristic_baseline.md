@@ -284,6 +284,22 @@ if __name__ == "__main__":
     evaluate_policy("Reactive Swarm Policy", lambda obs, space: heuristic.act(obs))
 ```
 
+### Visual Flight Comparison (Seed 101, 300 Steps)
+
+The dynamic execution of both policies can be visually compared below:
+
+=== "Reactive Swarm Policy (LiDAR Evasion & Target Tracking)"
+    ![Reactive Swarm Policy Execution](../assets/heuristic_policy.gif)
+    
+    *Reactive Swarm Policy: All 5 drones survive the full 300-step corridor (0 crashes), dynamically voting on LiDAR ray clearances to evade impending ground/overhead structures and ascending/descending to photograph 2 target waypoints (Return: +17.00).*
+
+=== "Random Action Baseline (Uncoordinated Exploration)"
+    ![Random Action Policy Execution](../assets/random_policy.gif)
+    
+    *Random Action Baseline: Drones oscillate erratically without obstacle awareness. Drones #4 (step 133) and #3 (step 224) collide into procedural structures and suffer instant structural termination (Return: -6.45).*
+
+---
+
 ### Empirical Results Summary
 
 Running the evaluation script across 5 independent seeds (seeds 100 to 104) over a 500-step episode horizon yields the following benchmark metrics:

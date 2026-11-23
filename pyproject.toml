@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "scrollswarm"
 version = "0.1.0"
-description = "A side-scrolling multi-agent reinforcement learning (MARL) testbed with dynamic planetary ring kinematics and graph communication."
+description = "A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

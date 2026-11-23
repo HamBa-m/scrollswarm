@@ -1,5 +1,6 @@
 site_name: ScrollSwarm
-site_description: "A side-scrolling multi-agent reinforcement learning (MARL) testbed with dynamic planetary ring kinematics and graph communication."
+site_url: "https://hambam.top/scrollswarm/"
+site_description: "A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication."
 site_author: "Hamza Ba-mohammed"
 repo_url: "https://github.com/HamBa-m/scrollswarm"
 repo_name: "HamBa-m/scrollswarm"

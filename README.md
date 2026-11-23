@@ -9,7 +9,7 @@
 
 **A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.**
 
-![ScrollSwarm Environment Preview](assets/screenshot.png)
+![ScrollSwarm Environment Simulation](assets/demo.gif)
 
 ScrollSwarm is a 2D multi-agent simulation where a team of drones flies forward through an aerial corridor, dodging obstacles of different shapes and sizes while working together to take photos of targets along the way.
 

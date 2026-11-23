@@ -46,7 +46,18 @@ from scrollswarm.sprites import get_quadcopter_sprite
 
 class ScrollSwarmEnv(ParallelEnv):
     """
-    ScrollSwarm standard PettingZoo Parallel Environment for UAV Swarm Reconnaissance.
+    PettingZoo ``ParallelEnv`` implementation for cooperative UAV swarm reconnaissance.
+
+    Each of the N drones receives a 16-dimensional continuous observation and
+    chooses a discrete vertical action (UP / STAY / DOWN) simultaneously every
+    step.  The environment supports centralized training with decentralized
+    execution (CTDE) via ``state()`` and graph-neural-network (GNN) training
+    via ``get_edge_index_and_attributes()``.
+
+    Attributes:
+        possible_agents: List of agent ID strings ``"agent_0"`` … ``"agent_{N-1}"``.
+        agents: Currently active (non-terminated, non-truncated) agent IDs.
+        metadata: PettingZoo metadata dict (``render_modes``, ``name``, ``render_fps``).
     """
 
     metadata = {
@@ -67,6 +78,31 @@ class ScrollSwarmEnv(ParallelEnv):
         team_reward: bool = False,
         render_mode: Optional[str] = None,
     ):
+        """
+        Initializes the ScrollSwarm environment.
+
+        Args:
+            num_agents: Number of UAVs in the swarm. Must be in [1, 10].
+            max_cycles: Maximum number of steps per episode before truncation.
+            map_config: Corridor geometry and obstacle parameters. Defaults to
+                ``MapConfig(width=800, height=400, fps=30)``.
+            comm_topology: Graph topology for inter-drone message passing.
+                One of ``"chain"``, ``"ring"``, ``"full"``, ``"radius"``,
+                ``"capped"`` (or the equivalent ``TopologyType`` enum value).
+            target_reward: Reward granted to each drone that contributes to a
+                successful target photograph.
+            crash_penalty: Penalty applied on boundary or obstacle collision
+                (causes immediate individual termination).
+            step_reward: Dense per-step survival incentive for living drones.
+            team_reward: When ``True``, target rewards are shared equally among
+                all living drones rather than awarded only to contributors.
+            render_mode: ``"human"`` opens a live Pygame window; ``"rgb_array"``
+                returns an ``(H, W, 3)`` uint8 NumPy image on each ``render()``
+                call; ``None`` disables rendering entirely.
+
+        Raises:
+            ValueError: If ``num_agents`` is outside [1, 10].
+        """
         super().__init__()
         if not (1 <= num_agents <= 10):
             raise ValueError(f"num_agents must be between 1 and 10, got {num_agents}")
@@ -113,8 +149,21 @@ class ScrollSwarmEnv(ParallelEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent: str) -> gym.Space:
         """
-        16-dimensional observation vector:
-        [self_y / H, 7 obstacle LiDAR distances, 4 target features, 4 neighbor features]
+        Returns the observation space for the given agent.
+
+        Each drone observes a 16-dimensional continuous feature vector bounded
+        in ``[-1.0, 1.0]``.  The layout is:
+
+        - **[0]** Normalized altitude ``y / H``
+        - **[1–7]** LiDAR obstacle distances (7 rays, 120° FOV)
+        - **[8–11]** Nearest-target relative vector ``[dx/W, dy/H, dist/diag, in_range]``
+        - **[12–15]** Nearest-neighbor relative vector ``[dx/W, dy/H, dist/diag, in_comm]``
+
+        Args:
+            agent: PettingZoo agent ID string (e.g. ``"agent_0"``).
+
+        Returns:
+            ``spaces.Box(low=-1.0, high=1.0, shape=(16,), dtype=np.float32)``
         """
         return spaces.Box(
             low=-1.0,
@@ -125,15 +174,27 @@ class ScrollSwarmEnv(ParallelEnv):
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent: str) -> gym.Space:
-        """Discrete(3): {0: UP (-5px), 1: STAY (0px), 2: DOWN (+5px)}."""
+        """
+        Returns the action space for the given agent.
+
+        Args:
+            agent: PettingZoo agent ID string (e.g. ``"agent_0"``).
+
+        Returns:
+            ``spaces.Discrete(3)`` mapping to
+            ``{0: Action.UP, 1: Action.STAY, 2: Action.DOWN}``.
+        """
         return spaces.Discrete(3)
 
     @property
     def state_space(self) -> gym.Space:
         """
         Centralized state space for CTDE algorithms (MAPPO, QMIX, MADDPG).
-        Concatenation of 16-dimensional observation vectors across all possible agents.
-        Shape: (16 * num_agents,)
+
+        Returns:
+            ``spaces.Box`` of shape ``(16 * num_agents,)``, the concatenation of
+            all agents' 16-dimensional observation vectors, bounded in
+            ``[-1.0, 1.0]``.
         """
         total_dim = 16 * self._num_agents
         return spaces.Box(
@@ -146,8 +207,14 @@ class ScrollSwarmEnv(ParallelEnv):
     def state(self) -> np.ndarray:
         """
         Returns the centralized global state vector for CTDE.
-        Concatenates observation vectors across all possible agents.
-        Dead agents contribute a zero vector of shape (16,).
+
+        Concatenates the 16-dimensional observation of each possible agent in
+        order.  Terminated agents (``alive == False``) contribute a zero vector
+        of shape ``(16,)`` so the state dimension stays fixed at
+        ``16 * num_agents``.
+
+        Returns:
+            ``np.ndarray`` of shape ``(16 * num_agents,)``, dtype ``float32``.
         """
         parts = []
         all_agents = list(self._agent_map.values())
@@ -166,7 +233,22 @@ class ScrollSwarmEnv(ParallelEnv):
         options: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, Dict[str, Any]]]:
         """
-        Resets the environment, generating a fresh corridor and placing UAVs.
+        Resets the environment for a new episode.
+
+        Regenerates the scrolling corridor, repositions all UAVs in evenly
+        spaced vertical columns, and returns initial observations and telemetry.
+
+        Args:
+            seed: Optional integer seed for deterministic corridor generation
+                and obstacle placement.
+            options: Unused; accepted for PettingZoo API compatibility.
+
+        Returns:
+            observations: Dict mapping each agent ID to its initial
+                16-dimensional observation array.
+            infos: Dict mapping each agent ID to its initial telemetry dict
+                ``{"targets_photographed": 0, "targets_collected": 0,
+                "collision": None, "steps_alive": 0}``.
         """
         self.step_count = 0
         self.agents = self.possible_agents[:]
@@ -214,13 +296,31 @@ class ScrollSwarmEnv(ParallelEnv):
         Dict[str, Dict[str, Any]],
     ]:
         """
-        Executes one synchronized multi-agent step:
-        1. Executes discrete vertical actions for all living UAVs.
-        2. Advances scrolling map (obstacles and targets shift left).
-        3. Checks boundary and obstacle collisions (instant individual termination).
-        4. Calculates soft inter-agent proximity penalties.
-        5. Evaluates stochastic target inspection under action uncertainty.
-        6. Constructs PettingZoo standard dictionaries.
+        Executes one synchronized multi-agent step.
+
+        The step proceeds in the following order:
+
+        1. Applies discrete vertical actions for all living UAVs.
+        2. Advances the scrolling map (obstacles and targets shift left).
+        3. Checks boundary and obstacle collisions — collision causes immediate
+           individual termination and applies ``crash_penalty``.
+        4. Evaluates stochastic target inspection for all living drones within
+           photo radius; successful photos grant ``target_reward``.
+        5. Checks episode truncation at ``max_cycles``.
+        6. Builds and returns PettingZoo-standard output dictionaries.
+
+        Args:
+            actions: Dict mapping each active agent ID to an integer action
+                ``{0: UP, 1: STAY, 2: DOWN}``.
+
+        Returns:
+            observations: Post-step 16-dimensional observation for each agent.
+            rewards: Per-agent scalar reward for this step.
+            terminations: ``True`` for agents that collided this step.
+            truncations: ``True`` for all agents when ``max_cycles`` is reached.
+            infos: Per-agent telemetry ``{"targets_photographed": int,
+                "targets_collected": int, "collision": str | None,
+                "steps_alive": int}``.
         """
         self.step_count += 1
         rewards: Dict[str, float] = {a: 0.0 for a in self.agents}

@@ -54,7 +54,29 @@ COLOR_TREE_TRUNK = COLOR_BUILDING_SPECULAR
 
 @dataclass
 class MapConfig:
-    """Configuration parameters for the UAV survey corridor."""
+    """
+    Configuration parameters for the ScrollSwarm UAV survey corridor.
+
+    Attributes:
+        width: Corridor width in pixels.
+        height: Corridor height in pixels.
+        fps: Target simulation frame rate (used by the Pygame clock).
+        scroll_speed: Leftward scroll velocity in pixels per step.
+        ceiling_y: Upper boundary ``y`` coordinate (pixels from top).
+        floor_margin: Lower boundary inset from the bottom in pixels;
+            the navigable floor is at ``y = height - floor_margin``.
+        min_corridor_gap: Minimum guaranteed vertical clearance between the
+            highest ground structure and lowest overhead structure in pixels.
+            Obstacles are rejected at spawn time if they would violate this
+            invariant.
+        obstacle_spawn_interval: Minimum number of steps between consecutive
+            obstacle spawns.
+        target_spawn_interval: Minimum number of steps between consecutive
+            target spawns.
+        preseed: When ``True``, the corridor is pre-populated with obstacles
+            and targets before the first ``step()`` call.
+        seed: Optional integer seed for deterministic environment generation.
+    """
     width: int = 800
     height: int = 400
     fps: int = 30
@@ -84,11 +106,36 @@ class MapConfig:
 
 class ScrollingMap:
     """
-    Manages the aerial environment state, multi-scale obstacles,
-    guaranteed navigable passage, and inspection targets.
+    Manages the scrolling aerial corridor, multi-scale procedural obstacles,
+    guaranteed navigable passage, and stochastic inspection targets.
+
+    The map advances one pixel per step (``scroll_speed = 1``) in the leftward
+    direction.  Obstacles are procedurally generated off-screen to the right
+    and culled when they scroll past the left edge.  The minimum navigable gap
+    ``G_min >= min_corridor_gap`` is enforced at spawn time.
+
+    Attributes:
+        config: ``MapConfig`` instance governing all corridor parameters.
+        width: Corridor width in pixels.
+        height: Corridor height in pixels.
+        ceiling_y: Upper navigable boundary ``y`` in pixels.
+        floor_y: Lower navigable boundary ``y`` in pixels.
+        obstacles: List of active ``Obstacle`` polygon entities.
+        targets: List of active ``Target`` waypoint entities.
+        rng: ``numpy.random.Generator`` used for all stochastic decisions.
+        global_step: Monotonically increasing step counter.
+        top_heights: Per-column ceiling boundary array (shape ``(W,)``).
+        bot_heights: Per-column floor inset array (shape ``(W,)``).
     """
 
     def __init__(self, config: Optional[MapConfig] = None):
+        """
+        Initializes the ScrollingMap.
+
+        Args:
+            config: ``MapConfig`` dataclass instance.  Defaults to
+                ``MapConfig()`` (800×400 corridor, standard spawn rates).
+        """
         self.config = config or MapConfig()
         self.width = self.config.width
         self.height = self.config.height

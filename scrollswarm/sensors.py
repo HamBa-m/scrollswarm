@@ -23,7 +23,19 @@ from scrollswarm.items import Obstacle, Target
 
 @dataclass
 class RayHit:
-    """Stores the result of a single ray cast."""
+    """
+    Result of a single ray cast from the LiDAR rangefinder.
+
+    Attributes:
+        distance: Absolute ray travel distance in pixels, clamped to
+            ``[0, max_range]``.
+        norm_distance: Normalized distance in ``[0.0, 1.0]``
+            (``distance / max_range``).
+        hit_type: Nature of the nearest intersection:
+            ``"boundary"`` (ceiling or floor), ``"obstacle"`` (polygon
+            structure), or ``"none"`` (ray reached max range without contact).
+        endpoint: Absolute ``(x, y)`` coordinate of the ray terminus in pixels.
+    """
     distance: float            # In pixels [0, max_range]
     norm_distance: float       # Normalized [0.0, 1.0]
     hit_type: str              # "boundary", "obstacle", or "none"
@@ -32,10 +44,17 @@ class RayHit:
 
 class RaySensor:
     """
-    Multi-modal perception sensor:
-    - 7-ray forward LiDAR rangefinder for obstacles and boundaries.
-    - Relative target bearing and distance tracker.
-    - Relative neighbor drone proximity sensor.
+    Multi-modal perception sensor for a ScrollSwarm UAV.
+
+    Combines three sensing modalities into one 16-dimensional observation:
+
+    - **LiDAR rangefinder:** 7 rays spanning a 120° forward FOV, detecting
+      corridor boundaries and polygon obstacles via exact analytic
+      ray–edge intersection (vector cross-product).
+    - **Target tracker:** Relative bearing and distance to the nearest
+      uninspected waypoint target.
+    - **Neighbor proximity sensor:** Relative bearing and distance to the
+      nearest living teammate drone, plus a binary communication-range flag.
     """
 
     def __init__(
@@ -47,6 +66,26 @@ class RaySensor:
         comm_range: float = 180.0,
         safe_proximity_dist: float = 28.0,
     ):
+        """
+        Initializes the RaySensor.
+
+        Args:
+            num_rays: Number of LiDAR rays cast per observation step.
+                Default 7 covers the full 120° FOV at 20° increments.
+            max_range: Maximum ray travel distance in pixels.  Rays that reach
+                this limit without a hit report ``norm_distance = 1.0``.
+            fov_degrees: Total angular span of the ray fan in degrees,
+                centred on the forward (rightward) direction.  Default 120°
+                spans −60° (up-forward) to +60° (down-forward).
+            photo_radius: Maximum pixel distance at which a drone can photograph
+                a target, used to compute the ``in_range`` flag in the
+                observation vector.
+            comm_range: Maximum pixel distance at which two drones are
+                considered to be within communication range, used to compute
+                the ``in_comm`` flag in the observation vector.
+            safe_proximity_dist: Legacy parameter retained for backward
+                compatibility with proximity-penalty code paths.
+        """
         self.num_rays = num_rays
         self.max_range = float(max_range)
         self.fov_degrees = float(fov_degrees)

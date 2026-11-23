@@ -16,7 +16,14 @@ from scrollswarm.sensors import RaySensor
 
 
 class Action(IntEnum):
-    """Discrete vertical movement actions."""
+    """
+    Discrete vertical movement actions for a ScrollSwarm UAV.
+
+    Attributes:
+        UP: Climb — decreases ``y`` by ``step_size`` pixels (index ``0``).
+        STAY: Hold altitude — ``y`` unchanged (index ``1``).
+        DOWN: Dive — increases ``y`` by ``step_size`` pixels (index ``2``).
+    """
     UP = 0
     STAY = 1
     DOWN = 2
@@ -42,7 +49,25 @@ COLOR_AGENT_DEAD = (100, 100, 100)
 
 class Agent:
     """
-    Represents an autonomous survey UAV (quadcopter) in ScrollSwarm.
+    Autonomous survey UAV (quadcopter) entity in ScrollSwarm.
+
+    Each agent occupies a fixed horizontal column and navigates vertically
+    (UP / STAY / DOWN) with a configurable step size.  The agent is represented
+    as a forward-facing triangle for collision geometry and rendered as a
+    quadcopter sprite in ``render_mode="human"``.
+
+    Attributes:
+        agent_id: Zero-based integer index of this drone in the swarm.
+        x: Fixed horizontal position in pixels (column station-keeping).
+        y: Current vertical position in pixels (mutable each step).
+        step_size: Vertical displacement per UP/DOWN action in pixels.
+        width: Horizontal collision bounding box extent in pixels.
+        height: Vertical collision bounding box extent in pixels.
+        color: RGB tuple used for rendering this drone.
+        alive: ``False`` after any boundary or obstacle collision.
+        score: Cumulative count of targets successfully photographed.
+        steps_alive: Number of steps the drone has survived.
+        collision_radius: Effective radius for obstacle proximity checks.
     """
 
     def __init__(
@@ -56,6 +81,24 @@ class Agent:
         color: Optional[Tuple[int, int, int]] = None,
         safe_proximity_dist: float = 28.0,
     ):
+        """
+        Initializes the UAV agent.
+
+        Args:
+            agent_id: Zero-based drone index; also selects the color palette
+                entry and is used to build the PettingZoo agent ID string.
+            x: Initial horizontal position in pixels (fixed for the episode).
+            y: Initial vertical position in pixels (dynamic).
+            step_size: Vertical displacement per UP / DOWN action in pixels.
+                Valid range: [1, 20].
+            width: Physical horizontal bounding extent of the quadcopter body
+                in pixels (used for collision triangle geometry).
+            height: Physical vertical bounding extent in pixels.
+            color: RGB tuple override.  Defaults to the palette entry for
+                ``agent_id``.
+            safe_proximity_dist: Minimum safe separation distance from other
+                drones in pixels (retained for legacy proximity checks).
+        """
         self.agent_id = agent_id
         self.x = float(x)
         self.y = float(y)
@@ -80,6 +123,7 @@ class Agent:
     def vertices(self) -> List[Tuple[float, float]]:
         """
         Calculates the 3 vertices of the quadcopter facing forward (RIGHT):
+
         - Tip: (x + width / 2, y)
         - Top-Left: (x - width / 2, y - height / 2)
         - Bottom-Left: (x - width / 2, y + height / 2)

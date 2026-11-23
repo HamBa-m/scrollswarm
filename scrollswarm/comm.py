@@ -21,7 +21,21 @@ from scrollswarm.agent import Agent
 
 
 class TopologyType(str, Enum):
-    """Supported graph communication topologies."""
+    """
+    Supported graph communication topologies for the ScrollSwarm swarm.
+
+    Attributes:
+        CHAIN: Linear chain — each drone connects to its immediate left and
+            right column neighbors (maximum degree 2).
+        RING: Circular ring — same as CHAIN but with wrap-around between the
+            first and last drone.
+        FULL: Complete broadcast graph — every drone connects to every other
+            drone (maximum degree N−1).
+        RADIUS: Spatial proximity disk — drones connect if their Euclidean
+            distance is at most ``radius`` pixels.
+        CAPPED: Degree-capped k-nearest-neighbor — each drone connects to its
+            ``max_degree`` closest neighbors by Euclidean distance.
+    """
     CHAIN = "chain"
     RING = "ring"
     FULL = "full"
@@ -32,7 +46,17 @@ class TopologyType(str, Enum):
 class CommunicationGraph:
     """
     Manages communication topology, dynamic edge pruning, and message passing
-    across the multi-agent swarm.
+    across the ScrollSwarm multi-agent swarm.
+
+    The graph is recomputed dynamically each step based on agent liveness and,
+    for spatial topologies (``RADIUS``, ``CAPPED``), agent positions.  Dead
+    agents (``alive == False``) are immediately pruned: their rows and columns
+    in the adjacency matrix are zeroed.
+
+    Attributes:
+        topology: Active ``TopologyType`` governing edge construction.
+        radius: Maximum communication range in pixels (used by ``RADIUS``).
+        max_degree: Maximum number of neighbors per drone (used by ``CAPPED``).
     """
 
     def __init__(
@@ -41,6 +65,17 @@ class CommunicationGraph:
         radius: float = 180.0,
         max_degree: int = 2,
     ):
+        """
+        Initializes the CommunicationGraph.
+
+        Args:
+            topology: Graph topology to use.  Pass a ``TopologyType`` enum
+                value or its string equivalent (e.g. ``"chain"``).
+            radius: Communication radius in pixels for the ``RADIUS`` topology.
+                Drones further apart than this do not share edges.
+            max_degree: Maximum number of incoming neighbors per drone for the
+                ``CAPPED`` topology.
+        """
         if isinstance(topology, str):
             topology = TopologyType(topology.lower())
         self.topology = topology
@@ -49,9 +84,17 @@ class CommunicationGraph:
 
     def get_adjacency_matrix(self, agents: List[Agent]) -> np.ndarray:
         """
-        Computes the (N, N) binary adjacency matrix A:
-            A[i, j] = 1 if an edge exists from agent j to agent i (j -> i).
-        Dead agents (alive == False) have strictly zero rows and columns.
+        Computes the binary adjacency matrix for the current swarm state.
+
+        ``A[i, j] = 1`` if a directed edge exists from agent ``j`` to agent
+        ``i`` (i.e., agent ``i`` receives a message from agent ``j``).
+        Dead agents (``alive == False``) have strictly zero rows and columns.
+
+        Args:
+            agents: Ordered list of all ``Agent`` instances in the swarm.
+
+        Returns:
+            Binary ``np.ndarray`` of shape ``(N, N)`` and dtype ``float32``.
         """
         n = len(agents)
         if n == 0:
@@ -114,10 +157,20 @@ class CommunicationGraph:
         map_height: float = 400.0,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Extracts edges in PyTorch Geometric (PyG) format:
+        Extracts active edges in PyTorch Geometric (PyG) COO format.
+
+        Args:
+            agents: Ordered list of all ``Agent`` instances in the swarm.
+            map_width: Corridor width in pixels, used to normalize ``dx``.
+            map_height: Corridor height in pixels, used to normalize ``dy``.
+
         Returns:
-            edge_index: (2, E) array where edge_index[0] is source (j), edge_index[1] is target (i)
-            edge_attr:  (E, 3) array with normalized [dx, dy, dist] relative vectors
+            edge_index: Integer array of shape ``(2, E)`` where
+                ``edge_index[0]`` contains source node indices (``j``) and
+                ``edge_index[1]`` contains target node indices (``i``).
+            edge_attr: Float32 array of shape ``(E, 3)`` with normalized
+                relative spatial features ``[dx/W, dy/H, dist/diag]`` for
+                each directed edge ``j → i``.
         """
         adj = self.get_adjacency_matrix(agents)
         target_indices, source_indices = np.where(adj > 0.5)
@@ -150,14 +203,35 @@ class CommunicationGraph:
         message_dim: Optional[int] = None,
     ) -> Dict[str, np.ndarray]:
         """
-        Routes and aggregates messages across communication graph edges.
-        Parameters:
-            messages: Dict mapping agent ID (int or 'agent_i') to message array of shape (M,)
-            agents: List of Agent instances
-            aggregation: 'mean', 'max', 'sum', or 'concat'
-            message_dim: dimensionality M (inferred from messages if omitted)
+        Routes and aggregates neighbor messages across the communication graph.
+
+        Each living agent ``i`` collects the messages of its in-neighbors
+        ``j ∈ N(i)`` and aggregates them according to the chosen operator.
+        Isolated or dead agents receive a zero vector.
+
+        Args:
+            messages: Dict mapping agent ID (``int`` or ``"agent_i"`` string)
+                to a 1-D message array of shape ``(M,)``.
+            agents: Ordered list of all ``Agent`` instances in the swarm.
+            aggregation: Aggregation function applied across in-neighbor
+                messages.  One of:
+
+                - ``"mean"`` *(default)* — permutation-invariant mean pooling.
+                - ``"sum"`` — cumulative sum (sensitive to degree).
+                - ``"max"`` — element-wise maximum (saliency filtering).
+                - ``"concat"`` — concatenation up to ``max_degree`` neighbors
+                  (fixed-size; order is arbitrary).
+
+            message_dim: Dimensionality ``M`` of each message.  Inferred
+                from the first entry of ``messages`` if omitted.
+
         Returns:
-            Dict mapping 'agent_i' to aggregated neighbor message array
+            Dict mapping ``"agent_i"`` to the aggregated neighbor message
+            array of shape ``(M,)`` (or ``(M * k,)`` for ``"concat"``).
+
+        Raises:
+            ValueError: If ``aggregation`` is not one of the four supported
+                operators.
         """
         adj = self.get_adjacency_matrix(agents)
         n = len(agents)

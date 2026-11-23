@@ -13,7 +13,17 @@ if TYPE_CHECKING:
 
 
 class ObstacleType(str, Enum):
-    """Categorization of urban and aerial hazards."""
+    """
+    Categorization of procedurally generated airspace hazards.
+
+    Attributes:
+        STRUCTURE: Ground-standing building or tower extending upward from the
+            corridor floor.
+        OVERHEAD: Ceiling-mounted suspended structure or barrier extending
+            downward from the corridor ceiling.
+        FLOATING: Mid-air debris or airborne obstacle with subtle epicyclic
+            vertical oscillation.
+    """
     STRUCTURE = "structure"    # Ground-standing building / tower
     OVERHEAD = "overhead"      # Suspended overhead structure / cable
     FLOATING = "floating"      # Mid-air debris / airborne obstacle

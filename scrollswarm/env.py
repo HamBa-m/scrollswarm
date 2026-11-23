@@ -1,13 +1,16 @@
 """
-PettingZoo ParallelEnv implementation for ScrollSwarm.
+PettingZoo ParallelEnv implementation for ScrollSwarm (UAV Swarm Reconnaissance).
 
 Provides a standard Multi-Agent Reinforcement Learning (MARL) interface:
-- Observations: Box(low=0.0, high=1.0, shape=(15,), dtype=np.float32) from 7-ray LiDAR.
-- Actions: Discrete(3) -> {0: UP, 1: STAY, 2: DOWN}.
-- Rewards: Raw ground-truth signal (+1.0 on target collection, 0.0 otherwise).
-- Terminations: True on collision with mountain boundary or tree.
+- Observations: Box(low=-1.0, high=1.0, shape=(16,), dtype=np.float32)
+    [self_y/H, 7 LiDAR ray obstacle distances, 4 nearest target features, 4 nearest neighbor features]
+- Actions: Discrete(3) -> {0: UP, 1: STAY, 2: DOWN}
+- Rewards:
+    - Target inspection under action uncertainty: +1.0
+    - Survival step: +0.01
+    - Obstacle / boundary collision: -10.0 (causes individual termination)
+- Terminations: True on collision with boundary or obstacle.
 - Truncations: True when max_cycles (default: 1000) is reached.
-- Telemetry: Rich collision and score metadata in infos dictionary.
 - Rendering: Supports both "human" (Pygame window) and "rgb_array" (NumPy image tensor).
 """
 
@@ -21,24 +24,29 @@ from pettingzoo import ParallelEnv
 from scrollswarm.map import (
     ScrollingMap,
     MapConfig,
-    COLOR_SPACE_VOID,
-    COLOR_RING_HAZE,
-    COLOR_RING_SHEATH,
-    COLOR_RING_RIM,
-    COLOR_ASTEROID_FILL,
-    COLOR_ASTEROID_OUTLINE,
-    COLOR_ASTEROID_SPECULAR,
+    COLOR_AIRSPACE,
+    COLOR_GRID_LINE,
+    COLOR_CEILING,
+    COLOR_GROUND,
+    COLOR_BOUNDARY_RIM,
+    COLOR_BUILDING_FILL,
+    COLOR_BUILDING_OUTLINE,
+    COLOR_BUILDING_SPECULAR,
+    COLOR_HAZARD_FILL,
+    COLOR_HAZARD_OUTLINE,
     COLOR_TARGET,
+    COLOR_TARGET_INSPECTED,
 )
+from scrollswarm.items import ObstacleType
 from scrollswarm.agent import Agent, Action, create_agents, COLOR_AGENT_DEAD
 from scrollswarm.sensors import RaySensor
 from scrollswarm.comm import CommunicationGraph, TopologyType
-from scrollswarm.sprites import get_rocket_sprite
+from scrollswarm.sprites import get_quadcopter_sprite
 
 
 class ScrollSwarmEnv(ParallelEnv):
     """
-    ScrollSwarm standard PettingZoo Parallel Environment.
+    ScrollSwarm standard PettingZoo Parallel Environment for UAV Swarm Reconnaissance.
     """
 
     metadata = {
@@ -80,7 +88,7 @@ class ScrollSwarmEnv(ParallelEnv):
 
         # Pre-populate space dictionaries
         self.observation_spaces = {
-            a: spaces.Box(low=0.0, high=1.0, shape=(15,), dtype=np.float32)
+            a: spaces.Box(low=-1.0, high=1.0, shape=(16,), dtype=np.float32)
             for a in self.possible_agents
         }
         self.action_spaces = {
@@ -91,7 +99,7 @@ class ScrollSwarmEnv(ParallelEnv):
         # Step counter for truncation
         self.step_count = 0
 
-        # Physical map engine & agent instances
+        # Physical map engine & agent entities
         self.scrolling_map = ScrollingMap(self.map_config)
         self._agent_map: Dict[str, Agent] = {}
 
@@ -105,13 +113,13 @@ class ScrollSwarmEnv(ParallelEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent: str) -> gym.Space:
         """
-        15-dimensional observation vector:
-        [self_y / H, 7 normalized obstacle ray distances, 7 normalized target ray distances]
+        16-dimensional observation vector:
+        [self_y / H, 7 obstacle LiDAR distances, 4 target features, 4 neighbor features]
         """
         return spaces.Box(
-            low=0.0,
+            low=-1.0,
             high=1.0,
-            shape=(15,),
+            shape=(16,),
             dtype=np.float32,
         )
 
@@ -124,12 +132,12 @@ class ScrollSwarmEnv(ParallelEnv):
     def state_space(self) -> gym.Space:
         """
         Centralized state space for CTDE algorithms (MAPPO, QMIX, MADDPG).
-        Concatenation of 15-dimensional observation vectors across all possible agents.
-        Shape: (15 * num_agents,)
+        Concatenation of 16-dimensional observation vectors across all possible agents.
+        Shape: (16 * num_agents,)
         """
-        total_dim = 15 * self._num_agents
+        total_dim = 16 * self._num_agents
         return spaces.Box(
-            low=0.0,
+            low=-1.0,
             high=1.0,
             shape=(total_dim,),
             dtype=np.float32,
@@ -137,17 +145,18 @@ class ScrollSwarmEnv(ParallelEnv):
 
     def state(self) -> np.ndarray:
         """
-        Returns the centralized global state vector for CTDE (e.g. MAPPO, QMIX).
-        Formed by concatenating the 15-dimensional observation vectors across all possible agents.
-        Dead agents contribute a zero vector of shape (15,).
+        Returns the centralized global state vector for CTDE.
+        Concatenates observation vectors across all possible agents.
+        Dead agents contribute a zero vector of shape (16,).
         """
         parts = []
+        all_agents = list(self._agent_map.values())
         for agent_id in self.possible_agents:
             agent = self._agent_map.get(agent_id)
             if agent is not None and agent.alive:
-                obs = agent.get_observation(self.scrolling_map)
+                obs = agent.get_observation(self.scrolling_map, other_agents=all_agents)
             else:
-                obs = np.zeros(15, dtype=np.float32)
+                obs = np.zeros(16, dtype=np.float32)
             parts.append(obs)
         return np.concatenate(parts, dtype=np.float32)
 
@@ -157,10 +166,7 @@ class ScrollSwarmEnv(ParallelEnv):
         options: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, Dict[str, Any]]]:
         """
-        Resets the environment, generating a fresh multi-scale corridor and placing agents.
-        Returns:
-            observations: Dict[agent_id, np.ndarray of shape (15,)]
-            infos: Dict[agent_id, dict]
+        Resets the environment, generating a fresh corridor and placing UAVs.
         """
         self.step_count = 0
         self.agents = self.possible_agents[:]
@@ -179,21 +185,21 @@ class ScrollSwarmEnv(ParallelEnv):
             f"agent_{i}": agent_list[i] for i in range(self._num_agents)
         }
 
+        # Build initial observations and telemetry infos
+        all_agents = list(self._agent_map.values())
         observations = {
-            a: self._agent_map[a].get_observation(self.scrolling_map)
+            a: self._agent_map[a].get_observation(self.scrolling_map, other_agents=all_agents)
             for a in self.agents
         }
         infos = {
             a: {
+                "targets_photographed": 0,
                 "targets_collected": 0,
                 "collision": None,
-                "steps_survived": 0,
+                "steps_alive": 0,
             }
             for a in self.agents
         }
-
-        if self.render_mode == "human":
-            self.render()
 
         return observations, infos
 
@@ -208,212 +214,206 @@ class ScrollSwarmEnv(ParallelEnv):
         Dict[str, Dict[str, Any]],
     ]:
         """
-        Executes a step for all active agents.
-        Returns:
-            (observations, rewards, terminations, truncations, infos)
+        Executes one synchronized multi-agent step:
+        1. Executes discrete vertical actions for all living UAVs.
+        2. Advances scrolling map (obstacles and targets shift left).
+        3. Checks boundary and obstacle collisions (instant individual termination).
+        4. Calculates soft inter-agent proximity penalties.
+        5. Evaluates stochastic target inspection under action uncertainty.
+        6. Constructs PettingZoo standard dictionaries.
         """
         self.step_count += 1
-        is_truncated = self.step_count >= self.max_cycles
+        rewards: Dict[str, float] = {a: 0.0 for a in self.agents}
+        terminations: Dict[str, bool] = {a: False for a in self.agents}
+        truncations: Dict[str, bool] = {a: False for a in self.agents}
+        infos: Dict[str, Dict[str, Any]] = {a: {} for a in self.agents}
 
-        rewards: Dict[str, float] = {}
-        terminations: Dict[str, bool] = {}
-        truncations: Dict[str, bool] = {}
-        infos: Dict[str, Dict[str, Any]] = {}
-
-        # 1. Apply vertical movements for all currently active agents
+        # 1. Execute vertical movement actions
         for agent_id in self.agents:
-            act = actions.get(agent_id, Action.STAY)
-            agent = self._agent_map[agent_id]
-            if agent.alive:
-                agent.step(act, self.scrolling_map.height)
+            if agent_id in actions:
+                action = actions[agent_id]
+                self._agent_map[agent_id].step(action, self.scrolling_map.height)
 
-        # 2. Advance scrolling world by 1 pixel
+        # 2. Advance scrolling map
         self.scrolling_map.step()
 
-        # 3. Check collisions, target collections, and calculate individual transitions
-        indiv_rewards: Dict[str, float] = {}
+        # 3. Collision checks (instant structural termination on obstacle/boundary contact)
         for agent_id in self.agents:
             agent = self._agent_map[agent_id]
-            collision_type = None
+            collision_cause = None
 
-            if agent.alive:
-                # Check sheath boundary collision
-                if agent.check_collision_boundary(self.scrolling_map):
-                    collision_type = "boundary"
-                # Check asteroid obstacle collision
-                elif agent.check_collision_obstacles(self.scrolling_map.asteroids):
-                    collision_type = "asteroid"
+            if agent.check_collision_boundary(self.scrolling_map):
+                collision_cause = "boundary"
+            elif agent.check_collision_obstacles(self.scrolling_map.obstacles):
+                collision_cause = "obstacle"
 
-                # Check target collection
-                collected = agent.check_target_collection(self.scrolling_map.targets)
+            if collision_cause is not None:
+                terminations[agent_id] = True
+                rewards[agent_id] -= self.crash_penalty
+                infos[agent_id]["collision"] = collision_cause
+            else:
+                infos[agent_id]["collision"] = None
+                rewards[agent_id] += self.step_reward
 
-                # Reward formulation: penalty on crash (-10), survival bonus (+0.01), target collection (+1.0)
-                if collision_type is not None:
-                    r = -self.crash_penalty
+        # 4. Stochastic target inspection under action uncertainty
+        # Evaluate all targets against living drones
+        living_agents = [self._agent_map[a] for a in self.agents if self._agent_map[a].alive]
+        targets_photographed_this_step = 0
+        for target in self.scrolling_map.targets:
+            if target.collected:
+                continue
+            if target.sample_inspection(living_agents, self.scrolling_map.rng):
+                targets_photographed_this_step += 1
+                # Find which drones contributed to the photo
+                contributing_drones = [
+                    d for d in living_agents
+                    if np.sqrt((d.x - target.x) ** 2 + (d.y - target.y) ** 2) <= target.inspection_radius
+                ]
+                for d in contributing_drones:
+                    d.score += 1
+
+                if self.team_reward and living_agents:
+                    team_share = self.target_reward / len(living_agents)
+                    for d in living_agents:
+                        rewards[f"agent_{d.agent_id}"] += team_share
                 else:
-                    r = self.step_reward + (self.target_reward * float(collected))
-            else:
-                r = 0.0
+                    for d in contributing_drones:
+                        rewards[f"agent_{d.agent_id}"] += self.target_reward
 
-            indiv_rewards[agent_id] = r
-            is_terminated = not agent.alive
-
-            terminations[agent_id] = is_terminated
-            truncations[agent_id] = is_truncated
-            infos[agent_id] = {
-                "targets_collected": agent.score,
-                "collision": collision_type,
-                "steps_survived": agent.steps_alive,
-                "individual_reward": r,
-            }
-
-        # Scaled cooperative team reward (mean across total swarm size)
-        team_reward_val = sum(indiv_rewards.values()) / float(self._num_agents)
-
+        # 6. Check episode truncation
+        is_truncated = self.step_count >= self.max_cycles
         for agent_id in self.agents:
-            infos[agent_id]["team_reward"] = team_reward_val
-            if self.team_reward:
-                rewards[agent_id] = team_reward_val
-            else:
-                rewards[agent_id] = indiv_rewards[agent_id]
+            truncations[agent_id] = is_truncated
+            agent = self._agent_map[agent_id]
+            infos[agent_id]["targets_photographed"] = agent.score
+            infos[agent_id]["targets_collected"] = agent.score  # Backward compatibility
+            infos[agent_id]["steps_alive"] = agent.steps_alive
 
-        # 4. Generate observations for agents that are still active
-        observations = {
-            agent_id: self._agent_map[agent_id].get_observation(self.scrolling_map)
-            for agent_id in self.agents
+        # 7. Build observation vectors
+        all_agents = list(self._agent_map.values())
+        observations: Dict[str, np.ndarray] = {
+            a: self._agent_map[a].get_observation(self.scrolling_map, other_agents=all_agents)
+            for a in self.agents
         }
 
-        # 5. Filter dead or truncated agents per PettingZoo parallel specification
+        # 8. Cull terminated or truncated agents from active list
         self.agents = [
-            a for a in self.agents if not (terminations[a] or truncations[a])
+            a for a in self.agents
+            if not terminations[a] and not truncations[a]
         ]
-
-        if self.render_mode == "human":
-            self.render()
 
         return observations, rewards, terminations, truncations, infos
 
-    def get_adjacency_matrix(self) -> np.ndarray:
-        """Returns the current (N, N) binary adjacency matrix for alive agents."""
-        return self.comm_graph.get_adjacency_matrix(list(self._agent_map.values()))
-
-    def get_edge_index_and_attributes(self) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Returns PyG-compatible graph representations for active agents:
-            edge_index: (2, E)
-            edge_attr:  (E, 3) relative [dx, dy, normalized_dist]
-        """
-        return self.comm_graph.get_edge_index_and_attributes(
-            list(self._agent_map.values()),
-            map_width=float(self.scrolling_map.width),
-            map_height=float(self.scrolling_map.height),
-        )
-
     def render(self) -> Optional[np.ndarray]:
-        """Renders the environment in 'human' (window) or 'rgb_array' mode."""
+        """
+        Renders the aerial survey corridor.
+        In 'human' mode: updates live Pygame display window.
+        In 'rgb_array' mode: returns an (H, W, 3) uint8 NumPy image array.
+        """
         if self.render_mode is None:
             return None
+
+        if not self._pygame_initialized:
+            import pygame
+            pygame.init()
+            if self.render_mode == "human":
+                self._screen = pygame.display.set_mode((self.map_config.width, self.map_config.height))
+                pygame.display.set_caption("ScrollSwarm - UAV Swarm Reconnaissance")
+            else:
+                self._screen = pygame.Surface((self.map_config.width, self.map_config.height))
+            self._clock = pygame.time.Clock()
+            self._font = pygame.font.SysFont("Consolas", 13)
+            self._id_font = pygame.font.SysFont("Consolas", 10, bold=True)
+            self._pygame_initialized = True
 
         import pygame
 
         w = self.scrolling_map.width
         h = self.scrolling_map.height
 
-        if not self._pygame_initialized:
-            pygame.init()
-            pygame.font.init()
-            if self.render_mode == "human":
-                self._screen = pygame.display.set_mode((w, h))
-                pygame.display.set_caption(f"ScrollSwarm ({self._num_agents} Agents)")
-                self._clock = pygame.time.Clock()
-            else:
-                # Headless offscreen surface for rgb_array
-                self._screen = pygame.Surface((w, h))
+        # A. Airspace background & survey grid
+        self._screen.fill(COLOR_AIRSPACE)
+        for offset_lane in (60, 120, 180, 240, 300, 360):
+            pygame.draw.line(self._screen, COLOR_GRID_LINE, (0, offset_lane), (w, offset_lane), width=1)
 
-            self._font = pygame.font.SysFont("Consolas", 13)
-            self._id_font = pygame.font.SysFont("Consolas", 10, bold=True)
-            self._pygame_initialized = True
-
-        surface = self._screen
-
-        # 0. Cosmic void background & subtle Saturnian ring dust streams
-        surface.fill(COLOR_SPACE_VOID)
-        for offset_lane in (80, 150, 220, 290):
-            dust_y = offset_lane
-            pygame.draw.line(surface, (20, 26, 40), (0, dust_y), (w, dust_y), 1)
-
-        # 1. Ring sheath boundary planes (flat boundaries with luminous rims)
+        # B. Ceiling and Ground boundaries
         ceil_y = int(self.scrolling_map.ceiling_y)
         floor_y = int(self.scrolling_map.floor_y)
-        pygame.draw.rect(surface, COLOR_RING_SHEATH, (0, 0, w, ceil_y))
-        pygame.draw.rect(surface, COLOR_RING_SHEATH, (0, floor_y, w, h - floor_y))
-        pygame.draw.line(surface, COLOR_RING_RIM, (0, ceil_y), (w, ceil_y), 2)
-        pygame.draw.line(surface, COLOR_RING_RIM, (0, floor_y), (w, floor_y), 2)
+        pygame.draw.rect(self._screen, COLOR_CEILING, (0, 0, w, ceil_y))
+        pygame.draw.rect(self._screen, COLOR_GROUND, (0, floor_y, w, h - floor_y))
+        pygame.draw.line(self._screen, COLOR_BOUNDARY_RIM, (0, ceil_y), (w, ceil_y), 2)
+        pygame.draw.line(self._screen, COLOR_BOUNDARY_RIM, (0, floor_y), (w, floor_y), 2)
 
-        # 2. Dynamic polygon asteroids & icy moonlets
-        for ast in getattr(self.scrolling_map, "asteroids", []):
-            verts = [(int(vx), int(vy)) for vx, vy in ast.vertices]
+        # C. Multi-scale obstacles (buildings, overhead towers, floating hazards)
+        for obs in self.scrolling_map.obstacles:
+            verts = [(int(vx), int(vy)) for vx, vy in obs.vertices]
             if len(verts) >= 3:
-                pygame.draw.polygon(surface, COLOR_ASTEROID_FILL, verts)
-                pygame.draw.polygon(surface, COLOR_ASTEROID_OUTLINE, verts, width=2)
-                # Frosted ice specular facet line
-                pygame.draw.line(surface, COLOR_ASTEROID_SPECULAR, verts[0], verts[2], 1)
+                fill_color = COLOR_HAZARD_FILL if obs.obstacle_type == ObstacleType.FLOATING else COLOR_BUILDING_FILL
+                edge_color = COLOR_HAZARD_OUTLINE if obs.obstacle_type == ObstacleType.FLOATING else COLOR_BUILDING_OUTLINE
+                pygame.draw.polygon(self._screen, fill_color, verts)
+                pygame.draw.polygon(self._screen, edge_color, verts, width=2)
+                if obs.obstacle_type != ObstacleType.FLOATING:
+                    pygame.draw.line(self._screen, COLOR_BUILDING_SPECULAR, verts[0], verts[2], 1)
 
-        # 3. Targets
+        # D. Inspection targets (with photo radius halos)
         for tgt in self.scrolling_map.targets:
-            if not tgt.collected:
-                cx, cy, s = int(tgt.x), int(tgt.y), tgt.size
-                pygame.draw.circle(surface, COLOR_TARGET, (cx, cy), s)
-                pygame.draw.circle(surface, (255, 235, 120), (cx, cy), s + 3, width=1)
-                pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
+            cx, cy, s = int(tgt.x), int(tgt.y), tgt.size
+            if tgt.collected:
+                pygame.draw.circle(self._screen, COLOR_TARGET_INSPECTED, (cx, cy), s)
+                pygame.draw.circle(self._screen, (255, 255, 255), (cx, cy), 2)
+            else:
+                # Translucent photo inspection radius ring
+                pygame.draw.circle(self._screen, (255, 215, 0), (cx, cy), int(tgt.inspection_radius), width=1)
+                pygame.draw.circle(self._screen, COLOR_TARGET, (cx, cy), s)
+                pygame.draw.circle(self._screen, (255, 240, 150), (cx, cy), s + 3, width=1)
+                pygame.draw.circle(self._screen, (255, 255, 255), (cx, cy), 2)
 
-        # 4. Agents (rocket probe sprites)
-        all_agents = list(self._agent_map.values())
-        for agent in all_agents:
+        # E. Communication graph links
+        living_agents = [self._agent_map[a] for a in self.possible_agents if self._agent_map[a].alive]
+        comm_edges = self.comm_graph.get_communication_edges(living_agents)
+        for p1, p2 in comm_edges:
+            pygame.draw.line(self._screen, (70, 140, 230), (int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1])), 1)
+
+        # F. UAV Quadcopters
+        for agent_id in self.possible_agents:
+            agent = self._agent_map[agent_id]
             color = agent.color if agent.alive else COLOR_AGENT_DEAD
-            sprite = get_rocket_sprite(color, size=(24, 24))
+            sprite = get_quadcopter_sprite(color, size=(24, 24))
             sw, sh = sprite.get_size()
-            surface.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
+            self._screen.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
-            # Draw indicator only when dead
-            if not agent.alive:
-                pygame.draw.circle(surface, (180, 50, 50), (int(agent.x), int(agent.y)), 13, width=1)
+            # Agent ID label
+            tag_surf = self._id_font.render(f"#{agent.agent_id + 1}", True, (255, 255, 255))
+            self._screen.blit(tag_surf, (int(agent.x - tag_surf.get_width() // 2), int(agent.y - 18)))
 
-            # ID label above probe
-            lbl = self._id_font.render(str(agent.agent_id), True, (220, 225, 235))
-            surface.blit(lbl, (int(agent.x - 3), int(agent.y - sh // 2 - 12)))
-
-        # 5. Telemetry HUD
-        hud_bg = pygame.Surface((w - 24, 28), pygame.SRCALPHA)
-        pygame.draw.rect(hud_bg, (16, 22, 32, 185), (0, 0, w - 24, 28), border_radius=4)
-        surface.blit(hud_bg, (12, 18))
-
-        alive_count = sum(1 for a in all_agents if a.alive)
-        team_score = sum(a.score for a in all_agents)
-        txt1 = self._font.render(
-            f"Step: {self.step_count}/{self.max_cycles} | Probes Active: {alive_count}/{self._num_agents} | Team Score: {team_score}",
-            True,
-            (240, 245, 250),
-        )
-        surface.blit(txt1, (22, 23))
-
+        # Update display or export rgb array
         if self.render_mode == "human":
+            pygame.event.pump()
             pygame.display.flip()
-            if self._clock:
-                self._clock.tick(self.metadata["render_fps"])
+            self._clock.tick(self.metadata["render_fps"])
             return None
-
         elif self.render_mode == "rgb_array":
-            # Convert surface to (H, W, 3) NumPy array
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(surface)),
-                axes=(1, 0, 2),
-            )
+            # Pygame surface to NumPy uint8 array of shape (H, W, 3)
+            img_array = pygame.surfarray.array3d(self._screen)
+            return np.transpose(img_array, (1, 0, 2))
 
     def close(self) -> None:
-        """Closes Pygame windows and cleans up display resources."""
+        """Closes any open Pygame window and cleans up resources."""
         if self._pygame_initialized:
             import pygame
             pygame.quit()
             self._pygame_initialized = False
-            self._screen = None
+
+    def get_adjacency_matrix(self) -> np.ndarray:
+        """Convenience method: returns the (N, N) binary adjacency matrix."""
+        all_agents = [self._agent_map[a] for a in self.possible_agents]
+        return self.comm_graph.get_adjacency_matrix(all_agents)
+
+    def get_edge_index_and_attributes(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Convenience method: returns PyG-compatible edge_index (2, E) and edge_attr (E, 3)."""
+        all_agents = [self._agent_map[a] for a in self.possible_agents]
+        return self.comm_graph.get_edge_index_and_attributes(
+            all_agents,
+            map_width=float(self.scrolling_map.width),
+            map_height=float(self.scrolling_map.height),
+        )

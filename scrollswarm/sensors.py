@@ -1,12 +1,14 @@
 """
-Raycasting sensor module for ScrollSwarm (Saturn Ring Surfing).
+Raycasting and perception sensor module for ScrollSwarm.
 
-Implements a 7-ray forward rangefinder:
-- 7 rays spanning the upcoming half of the screen upfront (angles in [-60°, +60°]).
-- Intersects ring sheath boundaries (ceiling and floor), dynamic polygon asteroids,
-  and collection targets.
-- Merges boundary clearance and asteroid warnings into a continuous, fixed-size vector.
-- Vector shape: [y_norm, 7 obstacle ray distances, 7 target ray distances] (15 floats).
+Provides a multi-modal 16-dimensional observation vector for each UAV:
+1. Normalized altitude (1 float): y / H in [0.0, 1.0]
+2. 7-ray forward LiDAR rangefinder (7 floats): normalized obstacle ray distances in [0.0, 1.0]
+3. Nearest target relative bearing & proximity (4 floats):
+   [dx / W, dy / H, dist / diag, in_photo_range]
+4. Nearest living neighbor drone relative bearing & communication link (4 floats):
+   [dx / W, dy / H, dist / diag, in_comm_range]
+Total: 16 floats, bounded in [-1.0, 1.0].
 """
 
 from dataclasses import dataclass
@@ -15,7 +17,8 @@ import numpy as np
 
 if TYPE_CHECKING:
     from scrollswarm.map import ScrollingMap
-from scrollswarm.items import Asteroid, Target
+    from scrollswarm.agent import Agent
+from scrollswarm.items import Obstacle, Target
 
 
 @dataclass
@@ -23,24 +26,33 @@ class RayHit:
     """Stores the result of a single ray cast."""
     distance: float            # In pixels [0, max_range]
     norm_distance: float       # Normalized [0.0, 1.0]
-    hit_type: str              # "boundary", "asteroid", "target", or "none"
+    hit_type: str              # "boundary", "obstacle", or "none"
     endpoint: Tuple[float, float]
 
 
 class RaySensor:
     """
-    7-ray LiDAR-style sensor projecting forward into the oncoming half of the screen.
+    Multi-modal perception sensor:
+    - 7-ray forward LiDAR rangefinder for obstacles and boundaries.
+    - Relative target bearing and distance tracker.
+    - Relative neighbor drone proximity sensor.
     """
 
     def __init__(
         self,
         num_rays: int = 7,
-        max_range: float = 400.0,      # Upcoming half of 800px screen
+        max_range: float = 400.0,      # Default: forward half of 800px screen
         fov_degrees: float = 120.0,     # Spans -60° (up-forward) to +60° (down-forward)
+        photo_radius: float = 45.0,
+        comm_range: float = 180.0,
+        safe_proximity_dist: float = 28.0,
     ):
         self.num_rays = num_rays
         self.max_range = float(max_range)
         self.fov_degrees = float(fov_degrees)
+        self.photo_radius = float(photo_radius)
+        self.comm_range = float(comm_range)
+        self.safe_proximity_dist = float(safe_proximity_dist)
 
         # Compute ray angles (in radians), from top-forward to bottom-forward
         half_fov = np.radians(self.fov_degrees / 2.0)
@@ -53,79 +65,57 @@ class RaySensor:
         scrolling_map: "ScrollingMap",
     ) -> Tuple[List[RayHit], List[RayHit]]:
         """
-        Casts 7 rays from (origin_x, origin_y):
-        - Returns (obstacle_hits, target_hits).
-        - Obstacle hits check ring sheath boundaries and dynamic polygon asteroids.
-        - Target hits check collection targets.
+        Casts 7 rays from (origin_x, origin_y).
+        Returns (obstacle_hits, target_hits).
         """
         obs_hits: List[RayHit] = []
         tgt_hits: List[RayHit] = []
 
         h = float(scrolling_map.height)
-        ceil_y = float(scrolling_map.config.ceiling_y)
-        floor_y = h - float(scrolling_map.config.floor_margin)
+        ceil_y = float(scrolling_map.ceiling_y)
+        floor_y = float(scrolling_map.floor_y)
 
-        # Retrieve asteroids (or legacy trees)
-        asteroids: List[Asteroid] = getattr(scrolling_map, "asteroids", [])
-        if not asteroids and hasattr(scrolling_map, "trees"):
-            asteroids = scrolling_map.trees
+        obstacles: List[Obstacle] = getattr(scrolling_map, "obstacles", [])
+        if not obstacles and hasattr(scrolling_map, "asteroids"):
+            obstacles = scrolling_map.asteroids
 
         for angle in self.angles:
             cos_a = float(np.cos(angle))
             sin_a = float(np.sin(angle))
 
-            # -------------------------------------------------------------
-            # 1. OBSTACLE INTERSECTIONS (Ring Boundaries & Polygon Asteroids)
-            # -------------------------------------------------------------
             closest_obs_dist = self.max_range
             obs_hit_type = "none"
 
-            # A. Analytical ceiling and floor intersections
+            # 1. Analytical ceiling and floor intersections
             if sin_a < -1e-5:
-                # Pointing upwards: intersects ceiling y = ceil_y
                 t_ceil = (ceil_y - origin_y) / sin_a
                 if 0.0 <= t_ceil < closest_obs_dist:
                     closest_obs_dist = t_ceil
                     obs_hit_type = "boundary"
             elif sin_a > 1e-5:
-                # Pointing downwards: intersects floor y = floor_y
                 t_floor = (floor_y - origin_y) / sin_a
                 if 0.0 <= t_floor < closest_obs_dist:
                     closest_obs_dist = t_floor
                     obs_hit_type = "boundary"
 
-            # B. Check dynamic polygon asteroids
-            for ast in asteroids:
-                vx = ast.x - origin_x
-                vy = ast.y - origin_y
+            # 2. Polygon and rectangular obstacle intersections
+            for obs in obstacles:
+                vx = obs.x - origin_x
+                vy = obs.y - origin_y
                 t_proj = vx * cos_a + vy * sin_a
 
-                # Bounding sphere rejection test
-                if t_proj < -ast.radius or t_proj > closest_obs_dist + ast.radius:
-                    continue
-                perp_sq = (vx * vx + vy * vy) - (t_proj * t_proj)
-                if perp_sq > ast.radius * ast.radius:
+                # Bounding sphere rejection
+                max_dim = max(obs.radius, getattr(obs, "width", 40.0), getattr(obs, "height", 60.0))
+                if t_proj < -max_dim or t_proj > closest_obs_dist + max_dim:
                     continue
 
-                # Exact 2D ray-segment determinant checks against polygon edges
-                edges = ast.edges if hasattr(ast, "edges") else []
-                if not edges and hasattr(ast, "outer_radius"):
-                    # Fallback for circular entities
-                    r_sq = ast.outer_radius * ast.outer_radius
-                    if perp_sq < r_sq:
-                        half_chord = np.sqrt(max(0.0, r_sq - perp_sq))
-                        entry_dist = t_proj - half_chord
-                        if 0.0 <= entry_dist < closest_obs_dist:
-                            closest_obs_dist = entry_dist
-                            obs_hit_type = "asteroid"
-                    continue
-
+                edges = obs.edges if hasattr(obs, "edges") else []
                 for (ax, ay), (bx, by) in edges:
                     ex = bx - ax
                     ey = by - ay
                     denom = cos_a * ey - sin_a * ex
                     if abs(denom) < 1e-6:
-                        continue  # Ray and edge are parallel
+                        continue
 
                     dx = ax - origin_x
                     dy = ay - origin_y
@@ -134,9 +124,8 @@ class RaySensor:
 
                     if 0.0 <= t < closest_obs_dist and 0.0 <= u <= 1.0:
                         closest_obs_dist = t
-                        obs_hit_type = "asteroid"
+                        obs_hit_type = "obstacle"
 
-            # Clamp obstacle hit
             closest_obs_dist = float(np.clip(closest_obs_dist, 0.0, self.max_range))
             end_x = origin_x + closest_obs_dist * cos_a
             end_y = origin_y + closest_obs_dist * sin_a
@@ -148,9 +137,7 @@ class RaySensor:
                 endpoint=(end_x, end_y),
             ))
 
-            # -------------------------------------------------------------
-            # 2. TARGET INTERSECTIONS (Analytical Ray-Circle)
-            # -------------------------------------------------------------
+            # 3. Ray-target intersections for visual overlay
             closest_tgt_dist = self.max_range
             tgt_hit_type = "none"
 
@@ -193,17 +180,71 @@ class RaySensor:
         origin_x: float,
         origin_y: float,
         scrolling_map: "ScrollingMap",
+        other_agents: Optional[List["Agent"]] = None,
+        agent_id: Optional[int] = None,
     ) -> np.ndarray:
         """
-        Generates the 15-dimensional observation vector:
-        [normalized_y, 7 obstacle ray distances, 7 target ray distances].
+        Constructs the complete 16-dimensional observation vector:
+        - 1 float: self_y / H in [0.0, 1.0]
+        - 7 floats: LiDAR obstacle normalized distances in [0.0, 1.0]
+        - 4 floats: Nearest target [dx/W, dy/H, dist/diag, in_range]
+        - 4 floats: Nearest neighbor [dx/W, dy/H, dist/diag, proximity_alert]
         """
-        obs_hits, tgt_hits = self.cast_rays(origin_x, origin_y, scrolling_map)
+        w = float(scrolling_map.width)
         h = float(scrolling_map.height)
-        y_norm = float(np.clip(origin_y / h, 0.0, 1.0))
+        diag = float(np.sqrt(w * w + h * h))
 
+        # 1. Normalized altitude
+        self_y_norm = float(np.clip(origin_y / h, 0.0, 1.0))
+
+        # 2. LiDAR rays
+        obs_hits, _ = self.cast_rays(origin_x, origin_y, scrolling_map)
         obs_dists = [hit.norm_distance for hit in obs_hits]
-        tgt_dists = [hit.norm_distance for hit in tgt_hits]
 
-        vec = np.array([y_norm] + obs_dists + tgt_dists, dtype=np.float32)
-        return np.clip(vec, 0.0, 1.0)
+        # 3. Nearest uninspected target vector
+        nearest_tgt_dist = float("inf")
+        target_vec = [0.0, 0.0, 1.0, 0.0]
+
+        for tgt in scrolling_map.targets:
+            if tgt.collected:
+                continue
+            dx = tgt.x - origin_x
+            dy = tgt.y - origin_y
+            d = float(np.sqrt(dx * dx + dy * dy))
+            if d < nearest_tgt_dist:
+                nearest_tgt_dist = d
+                in_range = 1.0 if d <= self.photo_radius else 0.0
+                target_vec = [
+                    float(np.clip(dx / w, -1.0, 1.0)),
+                    float(np.clip(dy / h, -1.0, 1.0)),
+                    float(np.clip(d / diag, 0.0, 1.0)),
+                    in_range,
+                ]
+
+        # 4. Nearest living neighbor drone vector
+        nearest_nbr_dist = float("inf")
+        nbr_vec = [0.0, 0.0, 1.0, 0.0]
+
+        if other_agents is not None:
+            for other in other_agents:
+                if not other.alive:
+                    continue
+                if agent_id is not None and other.agent_id == agent_id:
+                    continue
+                dx = other.x - origin_x
+                dy = other.y - origin_y
+                if abs(dx) < 1e-4 and abs(dy) < 1e-4:
+                    continue
+                d = float(np.sqrt(dx * dx + dy * dy))
+                if d < nearest_nbr_dist:
+                    nearest_nbr_dist = d
+                    in_comm = 1.0 if d <= self.comm_range else 0.0
+                    nbr_vec = [
+                        float(np.clip(dx / w, -1.0, 1.0)),
+                        float(np.clip(dy / h, -1.0, 1.0)),
+                        float(np.clip(d / diag, 0.0, 1.0)),
+                        in_comm,
+                    ]
+
+        obs_array = np.array([self_y_norm] + obs_dists + target_vec + nbr_vec, dtype=np.float32)
+        return obs_array

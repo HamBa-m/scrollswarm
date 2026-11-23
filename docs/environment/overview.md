@@ -17,7 +17,8 @@ The following matrix summarizes the fundamental decision-theoretic models formal
 | **Dec-POMDP** | Multi | Partial | None |
 | **Dec-POMDP-Comm** | Multi | Partial | Integrated (Graph $\mathcal{G}$) |
 
-> **Note on ScrollSwarm Support:** By configuring swarm size (`num_agents=1` vs. `N >= 2`), enabling or bypassing graph communication (`comm_topology`), and selecting decentralized observations vs. centralized state vectors (`env.state()`), ScrollSwarm seamlessly maps to any of these six formulations.
+!!! info "ScrollSwarm Support"
+    By configuring swarm size (`num_agents=1` vs. $N \ge 2$), enabling or bypassing graph communication (`comm_topology`), and selecting decentralized observations vs. centralized state vectors (`env.state()`), ScrollSwarm seamlessly maps to any of these six formulations.
 
 ---
 

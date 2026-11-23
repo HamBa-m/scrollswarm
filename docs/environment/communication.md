@@ -113,7 +113,8 @@ ScrollSwarm formalizes four canonical aggregation operators:
 | **Max ($\text{max}$)** | $\tilde{\mathbf{m}}_i = \max_{j \in \mathcal{N}_{\text{in}}(i)} \mathbf{m}_j$ | Element-wise max-pooling; filters for peak salient alert signals across the neighborhood. |
 | **Ordered Concatenation ($\text{concat}$)** | $\tilde{\mathbf{m}}_i = \big[ \mathbf{m}_{j_1}^\top, \dots, \mathbf{m}_{j_k}^\top \big]^\top$ | Fixed-degree ordered concatenation; preserves directional identity for regular topologies (Ring, Chain). |
 
-> **Note on Concrete Tensors:** For PyTorch Geometric tensor formats (`edge_index`, `edge_attr`) and runtime routing code, see the [Configuration & Technical Reference](../getting-started/config.md#5-graph-neural-network-pyg-tensors-routing-engine).
+!!! info "Note on Concrete Tensors"
+    For PyTorch Geometric tensor formats (`edge_index`, `edge_attr`) and runtime routing code, see the [Configuration & Technical Reference](../getting-started/config.md#5-graph-neural-network-pyg-tensors-routing-engine).
 
 ---
 

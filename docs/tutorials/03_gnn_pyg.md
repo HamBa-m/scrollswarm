@@ -133,8 +133,8 @@ for agent_id, aggregated_msg in inbox.items():
 | **`"max"`** | $\tilde{\mathbf{m}}_i = \max_{j \in \mathcal{N}(i)} \mathbf{m}_j$ | Saliency detection (e.g., closest obstacle threat) |
 | **`"concat"`** | $\tilde{\mathbf{m}}_i = [\mathbf{m}_{j_1}^\top, \dots, \mathbf{m}_{j_k}^\top]^\top$ | Fixed-degree architectures (e.g., `max_degree = 2`) |
 
-> [!NOTE]
-> If a drone has no active in-neighbors ($|\mathcal{N}(i)| = 0$) or is dead, `route_messages` safely assigns a zero-filled vector $\mathbf{0}_M$, preventing undefined numerical behavior or NaNs.
+!!! note "Isolated or Dead Nodes"
+    If a drone has no active in-neighbors ($|\mathcal{N}(i)| = 0$) or is dead, `route_messages` safely assigns a zero-filled vector $\mathbf{0}_M$, preventing undefined numerical behavior or NaNs.
 
 ---
 

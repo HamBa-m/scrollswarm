@@ -38,8 +38,8 @@ ScrollSwarm maintains two distinct agent lists conforming to PettingZoo specific
 - **`env.possible_agents`**: The immutable, static list of all potential agents that could exist in the environment (e.g., `["agent_0", "agent_1", "agent_2", "agent_3", "agent_4"]`). This set never shrinks or changes during an episode.
 - **`env.agents`**: The dynamic list of agents currently active (alive and un-truncated). When a drone collides with an obstacle or boundary, it suffers structural termination (`alive = False`), is penalized, and is removed from `env.agents` on the subsequent step.
 
-> [!IMPORTANT]
-> The action dictionary passed to `env.step(actions)` must contain keys for **all** currently active agents in `env.agents`. Attempting to submit actions for dead agents is ignored, while omitting active agents will skip their physical updates.
+!!! warning "Important: Active Agent Set"
+    The action dictionary passed to `env.step(actions)` must contain keys for **all** currently active agents in `env.agents`. Attempting to submit actions for dead agents is ignored, while omitting active agents will skip their physical updates.
 
 ---
 
@@ -90,6 +90,7 @@ print(f"Action space:      {act_space}")  # Discrete(3)
 ```
 
 The discrete action indices map directly to vertical thrust kinematics:
+
 - **`0` (`Action.UP`)**: Ascends (climbs) $\Delta y = -k$ pixels ($k = 5\text{ px}$).
 - **`1` (`Action.STAY`)**: Maintains current flight altitude $\Delta y = 0\text{ px}$.
 - **`2` (`Action.DOWN`)**: Descends (dives) $\Delta y = +k$ pixels ($k = 5\text{ px}$).
@@ -131,9 +132,8 @@ while env.agents:
    - `"collision"`: Contact cause (`"boundary"`, `"obstacle"`, or `None`).
    - `"steps_alive"`: Cumulative time steps this UAV has survived.
 
-> [!CAUTION]
-> **Avoiding KeyError on Agent Death**:
-> Once an agent terminates (`terminations[a] = True`), it is removed from `env.agents` on the next step. As a result, subsequent `observations`, `rewards`, and `infos` will **no longer contain keys** for that agent. Always check `if agent in observations` or track cumulative metrics in an external dictionary across `env.possible_agents`.
+!!! danger "Caution: Avoiding KeyError on Agent Death"
+    Once an agent terminates (`terminations[a] = True`), it is removed from `env.agents` on the next step. As a result, subsequent `observations`, `rewards`, and `infos` will **no longer contain keys** for that agent. Always check `if agent in observations` or track cumulative metrics in an external dictionary across `env.possible_agents`.
 
 ---
 

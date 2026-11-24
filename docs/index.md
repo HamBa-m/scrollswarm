@@ -82,5 +82,5 @@ flowchart TD
 - **[Installation](getting-started/installation.md):** Setup instructions with `uv` and standard `pip`.
 - **[Quickstart & Visualizer](getting-started/quickstart.md):** Launch the interactive Pygame flight simulator and run a minimal 20-line stepping script.
 - **[Environment Specification](environment/overview.md):** Formal Dec-POMDP formulation, kinematics, sensor geometry, and graph communication.
-- **[Tutorials](tutorials/01_parallel_env.md):** Hands-on walkthroughs for PettingZoo loops, reactive heuristics, and GNN integration.
+- **[Tutorials](tutorials/01_parallel_env.md):** Hands-on walkthroughs for PettingZoo loops, reactive heuristics, GNN integration, and computational geometry acceleration.
 - **[API Reference](api/env.md):** Detailed class references and docstrings for all core modules.

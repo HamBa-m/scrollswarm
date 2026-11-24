@@ -86,6 +86,7 @@ nav:
       - "01: PettingZoo ParallelEnv Loop": tutorials/01_parallel_env.md
       - "02: Heuristic Reactive Policy": tutorials/02_heuristic_baseline.md
       - "03: PyG & GNN Integration": tutorials/03_gnn_pyg.md
+      - "04: Computational Acceleration": tutorials/04_acceleration_backends.md
   - API Reference:
       - ScrollSwarmEnv: api/env.md
       - Agent & Dynamics: api/agent.md

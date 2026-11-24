@@ -16,7 +16,7 @@ This tutorial guides you through:
 
 ---
 
-## 1. The Computational Bottleneck: Why Geometry Dominates
+## 1. The Computational Bottleneck: Why Geometry Dominates?
 
 In ScrollSwarm, each active UAV continuously perceives its local airspace through forward-facing LiDAR sensor rays. 
 
@@ -59,9 +59,9 @@ flowchart TD
 
     subgraph BACKENDS ["Pluggable Computational Engines"]
         direction TB
-        CPP["<b>Native C++20 Kernel</b><br/>• pybind11 Zero-Copy Array Views<br/>• Static Runtime Linkage (-O3)<br/>• Zero JIT Warmup Overhead"]
-        NUMBA["<b>Numba LLVM JIT</b><br/>• @njit(fastmath=True, nogil=True)<br/>• Automatic CPU Vectorization<br/>• ~1.5s Initial Compilation"]
-        NUMPY["<b>Pure NumPy Baseline</b><br/>• Vectorized Analytical Trigonometry<br/>• Zero Compilation / Dependency Free<br/>• Universal Cross-Platform Portability"]
+        CPP["<b>Native C++20 Kernel</b><br/>• pybind11 Zero-Copy Array Views<br/>• Static Runtime Linkage (-O3)"]
+        NUMBA["<b>Numba LLVM JIT</b><br/>• Automatic CPU Vectorization<br/>• ~1.5s Initial Compilation"]
+        NUMPY["<b>Pure NumPy Baseline</b><br/>• Vectorized Analytical Trigonometry<br/>• Zero Compilation / Dependency Free"]
     end
 
     ENV -->|Passes Flattened Geometry Buffers| DISPATCH
@@ -103,9 +103,9 @@ obs_meta, obs_edges, obs_ranges, target_data = extract_geometry_buffers(
 
 ScrollSwarm requires **zero compiler tools** to run out-of-the-box using the NumPy baseline. Depending on your computing cluster or workstation setup, you can enable either Numba or C++20 acceleration.
 
-### Option A: Numba LLVM JIT Acceleration (Recommended for Quick Setup)
+### Option A: Numba LLVM JIT Acceleration
 
-Numba compiles Python functions directly into optimized machine instructions via LLVM without requiring an external C++ toolchain:
+*(Recommended for Quick Setup)* Numba compiles Python functions directly into optimized machine instructions via LLVM without requiring an external C++ toolchain:
 
 ```bash
 # Add Numba to your active virtual environment
@@ -114,7 +114,7 @@ uv add numba
 
 Once installed, ScrollSwarm automatically detects Numba and activates the `@njit(fastmath=True, nogil=True)` execution kernels.
 
-### Option B: Native C++20 Kernel Compilation (Maximum Performance & Zero Warmup)
+### Option B: Native C++20 Kernel Compilation
 
 For production training clusters where compilation warmup latency is undesirable, ScrollSwarm includes a header-only C++20 geometry kernel (`scrollswarm/geometry/cpp/geometry.hpp`) bound via `pybind11`.
 
@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
 ---
 
-## 5. Direct Micro-Kernel Invocation (Standalone Geometry API)
+## 5. Direct Micro-Kernel Invocation 
 
 Researchers building custom trajectory optimizers, model-predictive control (MPC) loops, or non-PettingZoo simulators can invoke the optimized geometry kernels directly.
 
@@ -282,7 +282,7 @@ To run the benchmark on your local machine:
 uv run python scripts/benchmark_backends.py --steps 500 --num-agents 4 --seed 42
 ```
 
-### Benchmark Results (AMD Ryzen / Intel Core CPU, 4 UAVs, Seed 42)
+### Benchmark Results (Intel Core i7-11850H @ 2.50 GHz, 4 UAVs, Seed 42)
 
 | Backend Engine | Isolated Raycast Latency | Raycast Speedup | Stepping Throughput | Stepping Latency | End-to-End Speedup | JIT Warmup Overhead |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |

@@ -86,16 +86,16 @@ To enable zero-copy passing into compiled native kernels (C++ and LLVM machine c
 from scrollswarm.geometry import extract_geometry_buffers
 
 # Transforms dynamic Python polygon objects into flat contiguous C-arrays
-obs_meta, obs_edges, obs_ranges, target_data = extract_geometry_buffers(
+obs_meta, obs_edges, obs_edge_ranges, target_data = extract_geometry_buffers(
     obstacles=scrolling_map.obstacles,
     targets=scrolling_map.targets,
 )
 ```
 
-- **`obs_meta`** (`np.ndarray[np.float32]`, shape `(M, 6)`): Polygon bounding boxes $(x_{\min}, y_{\min}, x_{\max}, y_{\max})$, edge start offset, and edge count.
-- **`obs_edges`** (`np.ndarray[np.float32]`, shape `(TotalEdges, 4)`): Contiguous segment coordinates $(x_1, y_1, x_2, y_2)$ for all polygon facets.
-- **`obs_ranges`** (`np.ndarray[np.float32]`, shape `(M, 2)`): Horizontal span $[x_{\min}, x_{\max}]$ for early broad-phase rejection.
-- **`target_data`** (`np.ndarray[np.float32]`, shape `(T, 4)`): Target center coordinates $(x, y)$, inspection radius, and active status.
+- **`obs_meta`** (`np.ndarray[np.float32]`, shape `(N_{\text{obs}}, 4)`): Obstacle bounding parameters `[x, y, radius, max_dim]`.
+- **`obs_edges`** (`np.ndarray[np.float32]`, shape `(N_{\text{edges}}, 4)`): Flat segment coordinates `[ax, ay, bx, by]` for all polygon facets.
+- **`obs_edge_ranges`** (`np.ndarray[np.int32]`, shape `(N_{\text{obs}}, 2)`): Index slice `[start_idx, end_idx]` mapping each obstacle to its range in `obs_edges`.
+- **`target_data`** (`np.ndarray[np.float32]`, shape `(N_{\text{tgts}}, 3)`): Active target parameters `[x, y, radius]`.
 
 ---
 
@@ -225,7 +225,7 @@ from scrollswarm.map import ScrollingMap, MapConfig
 # 1. Initialize map and extract flattened geometry buffers
 map_cfg = MapConfig(seed=42)
 scrolling_map = ScrollingMap(map_cfg)
-obs_meta, obs_edges, obs_ranges, target_data = extract_geometry_buffers(
+obs_meta, obs_edges, obs_edge_ranges, target_data = extract_geometry_buffers(
     scrolling_map.obstacles, scrolling_map.targets
 )
 
@@ -238,36 +238,55 @@ ray_angles = np.linspace(-fov / 2.0, fov / 2.0, num_rays, dtype=np.float32)
 max_range = 400.0  # Max sensor range in pixels
 
 # 3. Call native C++ kernel directly
-distances, hit_types = cast_rays_cpp(
-    origin_x=origin_x,
-    origin_y=origin_y,
-    ray_angles=ray_angles,
-    max_range=max_range,
-    ceiling_y=float(scrolling_map.ceiling_y),
-    floor_y=float(scrolling_map.floor_y),
-    obs_meta=obs_meta,
-    obs_edges=obs_edges,
-    obs_ranges=obs_ranges,
-    target_data=target_data,
+obs_dists, obs_types, obs_endpoints, tgt_dists, tgt_types, tgt_endpoints = cast_rays_cpp(
+    origin_x,
+    origin_y,
+    ray_angles,
+    max_range,
+    float(scrolling_map.ceiling_y),
+    float(scrolling_map.floor_y),
+    obs_meta,
+    obs_edges,
+    obs_edge_ranges,
+    target_data,
 )
 
-print(f"Normalized Distances [0, 1]:\n{distances}")
-print(f"Surface Hit Types (0=None, 1=Obstacle, 2=Boundary, 3=Target):\n{hit_types}")
+print(f"Obstacle Hit Distances (pixels):\n{obs_dists}")
+print(f"Obstacle Surface Hit Types (0=None, 1=Boundary, 2=Obstacle):\n{obs_types}")
+print(f"Target Hit Distances (pixels):\n{tgt_dists}")
+print(f"Target Hit Types (0=None, 1=Target):\n{tgt_types}")
 ```
 
 ### Point-in-Polygon & Distance Testing
 
 ```python
+import numpy as np
 from scrollswarm.geometry import point_in_polygon_cpp, distance_to_polygon_cpp
 
-# Test if drone coordinates penetrate an obstacle
-test_x, test_y = 150.0, 220.0
-is_inside = point_in_polygon_cpp(test_x, test_y, obs_edges, start_idx=0, edge_count=4)
-print("Penetration violation:", is_inside)
+# Define a square obstacle centered at (150, 200) with half-width 20 px
+hw = 20.0
+vertices = np.array([
+    [150.0 - hw, 200.0 - hw],
+    [150.0 + hw, 200.0 - hw],
+    [150.0 + hw, 200.0 + hw],
+    [150.0 - hw, 200.0 + hw],
+], dtype=np.float32)
 
-# Compute minimum Euclidean distance to polygon boundary
-min_dist = distance_to_polygon_cpp(test_x, test_y, obs_edges, start_idx=0, edge_count=4)
-print(f"Proximity clearance: {min_dist:.2f} pixels")
+edges = np.array([
+    [vertices[0, 0], vertices[0, 1], vertices[1, 0], vertices[1, 1]],
+    [vertices[1, 0], vertices[1, 1], vertices[2, 0], vertices[2, 1]],
+    [vertices[2, 0], vertices[2, 1], vertices[3, 0], vertices[3, 1]],
+    [vertices[3, 0], vertices[3, 1], vertices[0, 0], vertices[0, 1]],
+], dtype=np.float32)
+
+# Test point containment (e.g., test if drone coordinate is inside polygon)
+test_x, test_y = 150.0, 200.0
+is_inside = point_in_polygon_cpp(test_x, test_y, vertices)
+print("Penetration violation:", is_inside)  # True
+
+# Compute Euclidean distance to polygon boundary from outside point (180, 200)
+dist = distance_to_polygon_cpp(180.0, 200.0, vertices, edges)
+print(f"Proximity clearance: {dist:.2f} pixels")  # 10.00 pixels
 ```
 
 ---
@@ -282,7 +301,15 @@ To run the benchmark on your local machine:
 uv run python scripts/benchmark_backends.py --steps 500 --num-agents 4 --seed 42
 ```
 
-### Benchmark Results (Intel Core i7-11850H @ 2.50 GHz, 4 UAVs, Seed 42)
+### Benchmark Results 
+
+The following results were obtained on a personal workstation with the following specs:
+
+* CPU: Intel Core i7-11850H @ 2.50 GHz, 8 cores, 16 threads
+* RAM: 32 GB
+* Seed: 42
+* Num agents: 4
+* Number of env steps: 500
 
 | Backend Engine | Isolated Raycast Latency | Raycast Speedup | Stepping Throughput | Stepping Latency | End-to-End Speedup | JIT Warmup Overhead |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -306,7 +333,7 @@ xychart-beta
    - **Numba** delivers slightly higher peak micro-throughput thanks to LLVM loop optimization, but incurs an initial $\sim 1.5\,\text{s}$ compilation lag on first invocation.
    - **C++20** achieves comparable high throughput with **zero warmup latency**, making it ideal for distributed Ray/SubprocVec workers where processes restart frequently.
 
-### Swarm Cardinality Scaling ($N \in [1, 10]$)
+### Swarm Cardinality Scaling
 
 To characterize how environment throughput and computational speedup scale with fleet size, ScrollSwarm provides an automated swarm cardinality sweep:
 
@@ -333,7 +360,7 @@ uv run python scripts/benchmark_backends.py --sweep-agents --steps 500 --seed 42
 
 #### Analytical Observations
 
-1. **Sustained $2.0\times\text{--}3.0\times$ Real-World Speedup:** Across all swarm cardinalities $N \in [1, 10]$, the compiled C++20 and Numba kernels consistently deliver **$2.0\times$ to $3.0\times$ faster environment execution** than pure NumPy.
+1. **Sustained $2.0\times\text{-}3.0\times$ Real-World Speedup:** Across all swarm cardinalities $N \in [1, 10]$, the compiled C++20 and Numba kernels consistently deliver **$2.0\times$ to $3.0\times$ faster environment execution** than pure NumPy.
 2. **Single-Agent Peak Rate:** For $N=1$, environment execution exceeds **$5,400\text{--}5,700\text{ steps/second}$** ($<0.19\text{ ms/step}$), making single-drone policy debugging near instantaneous.
 3. **Decoupled Scaling with Vectorized Workers:** Because a single corridor realistically bounds swarm density to $N \le 10$, large-scale distributed MARL architectures scale linearly across CPU cores by instantiating $\mathcal{E}$ vectorized environment workers via PettingZoo / SubprocVec, maintaining high per-worker throughput without artificial crowding.
 

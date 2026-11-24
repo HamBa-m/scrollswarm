@@ -34,15 +34,15 @@ ScrollSwarm is a lightweight, high-throughput multi-agent simulation where a tea
 
 ```mermaid
 flowchart TD
-    ENV["<b>1. Aerial Corridor & Swarm State</b><br/>• Procedural Ceiling, Floor & Safe Passage<br/>• Static/Dynamic Hazards & Recon Targets<br/>• Active UAV Fleet Coordinates (x, y)<br/>• Altitude Clamping & Life State"]
+    ENV["<b>1. Aerial Corridor & Swarm State</b>"]
 
-    PERCEPTION["<b>2. Perception & Relational Graph</b><br/>• 7-Ray Forward LiDAR Depth Beams<br/>• Relative Target Bearing & Speed Vectors<br/>• Dynamic Graph: PyG edge_index & edge_attr<br/>• Centralized Global State Vector (16N)"]
+    PERCEPTION["<b>2. Perception & Relational Graph</b>"]
 
-    POLICY["<b>3. Decentralized Decision Layer</b><br/>• Local Policy / Relational GNN Actor<br/>• Inter-Drone Relational Message Passing<br/>• Action Dispatch: UP (-5px), STAY, DOWN (+5px)"]
+    POLICY["<b>3. Decentralized Decision Layer</b>"]
 
-    KINEMATICS["<b>4. Kinematics & Airspace Drift</b><br/>• Discrete Vertical Altitude Integration<br/>• Uniform Airspace Scroll Drift (Delta x)<br/>• Multi-Backend Accelerated Geometry Kernel"]
+    KINEMATICS["<b>4. Kinematics & Airspace Drift</b>"]
 
-    FEEDBACK["<b>5. Dynamics, Rewards & Feedback</b><br/>• Fatal Boundary & Hazard Collision Culling<br/>• Bernoulli Target Coverage Inspection<br/>• Step Penalty, Survival & Mission Rewards"]
+    FEEDBACK["<b>5. Dynamics, Rewards & Feedback</b>"]
 
     ENV -->|Airspace Geometry & UAV Poses| PERCEPTION
     PERCEPTION -->|Local Obs 16D & Relational Graph| POLICY

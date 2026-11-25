@@ -140,3 +140,126 @@ def test_env_no_proximity_penalty_in_reward():
     assert pytest.approx(rewards["agent_0"], abs=1e-3) == 0.01
     assert pytest.approx(rewards["agent_1"], abs=1e-3) == 0.01
     env.close()
+
+
+def test_env_invalid_configuration_raises():
+    """Verifies constructor bounds and backend validation."""
+    with pytest.raises(ValueError):
+        ScrollSwarmEnv(num_agents=0)
+    with pytest.raises(ValueError):
+        ScrollSwarmEnv(num_agents=11)
+
+    bad_env = ScrollSwarmEnv(num_agents=2, backend="invalid_backend")
+    with pytest.raises(ValueError):
+        bad_env.reset(seed=42)
+    bad_env.close()
+
+
+def test_env_team_reward_vs_individual_reward():
+    """Verifies cooperative team_reward splitting versus individual contributor rewards."""
+    from scrollswarm.items import Target
+
+    def _run_photo_step(team_reward: bool):
+        env = ScrollSwarmEnv(
+            num_agents=2,
+            max_cycles=50,
+            target_reward=2.0,
+            step_reward=0.05,
+            team_reward=team_reward,
+        )
+        env.reset(seed=42)
+        env.scrolling_map.obstacles.clear()
+        env.scrolling_map.targets.clear()
+
+        a0 = env._agent_map["agent_0"]
+        a1 = env._agent_map["agent_1"]
+        mid_y = float(env.scrolling_map.height) / 2.0
+        a0.x, a0.y = 100.0, mid_y
+        a1.x, a1.y = 300.0, mid_y
+
+        # Target placed ahead of agent_0 at x=101 so after map scrolls -1px it aligns at x=100
+        tgt = Target(
+            x=101.0,
+            y=mid_y,
+            size=10,
+            inspection_radius=30.0,
+            sensor_reliability=1.0,
+        )
+        env.scrolling_map.targets.append(tgt)
+        _, rewards, _, _, infos = env.step({"agent_0": 1, "agent_1": 1})
+        env.close()
+        return rewards, infos
+
+    indiv_rewards, indiv_infos = _run_photo_step(team_reward=False)
+    assert indiv_infos["agent_0"]["targets_photographed"] == 1
+    assert indiv_infos["agent_1"]["targets_photographed"] == 0
+    assert indiv_rewards["agent_0"] == pytest.approx(2.05)
+    assert indiv_rewards["agent_1"] == pytest.approx(0.05)
+
+    team_rewards, team_infos = _run_photo_step(team_reward=True)
+    assert team_infos["agent_0"]["targets_photographed"] == 1
+    assert team_rewards["agent_0"] == pytest.approx(1.05)
+    assert team_rewards["agent_1"] == pytest.approx(1.05)
+
+
+def test_env_collision_termination_and_culling():
+    """Verifies obstacle and boundary collisions apply crash_penalty and cull dead agents."""
+    from scrollswarm.items import Obstacle, ObstacleType
+
+    env = ScrollSwarmEnv(
+        num_agents=2,
+        max_cycles=50,
+        crash_penalty=10.0,
+        step_reward=0.01,
+    )
+    env.reset(seed=42)
+    env.scrolling_map.obstacles.clear()
+
+    # Force agent_0 into ceiling boundary; keep agent_1 safely centered
+    a0 = env._agent_map["agent_0"]
+    a1 = env._agent_map["agent_1"]
+    a0.y = float(env.scrolling_map.top_heights[int(a0.x)]) - 2.0
+    a1.y = float(env.scrolling_map.height) / 2.0
+
+    _, rewards, terms, truncs, infos = env.step({"agent_0": 1, "agent_1": 1})
+    assert terms["agent_0"] is True
+    assert truncs["agent_0"] is False
+    assert infos["agent_0"]["collision"] == "boundary"
+    assert rewards["agent_0"] == pytest.approx(-10.0)
+    assert terms["agent_1"] is False
+    assert infos["agent_1"]["collision"] is None
+    assert rewards["agent_1"] == pytest.approx(0.01)
+    assert env.agents == ["agent_1"]
+
+    # Force remaining agent_1 into an obstacle placed right at its post-scroll position
+    obs = Obstacle(x=a1.x + 1.0, y=a1.y, radius=20.0, width=40.0, height=40.0, obstacle_type=ObstacleType.STRUCTURE)
+    env.scrolling_map.obstacles.append(obs)
+    _, rewards2, terms2, _, infos2 = env.step({"agent_1": 1})
+    assert terms2["agent_1"] is True
+    assert infos2["agent_1"]["collision"] == "obstacle"
+    assert rewards2["agent_1"] == pytest.approx(-10.0)
+    assert env.agents == []
+    env.close()
+
+
+def test_env_deterministic_reproducibility():
+    """Verifies identical seeds and actions yield bit-exact trajectories."""
+    def _rollout():
+        env = ScrollSwarmEnv(num_agents=4, max_cycles=50, backend="numpy")
+        obs, _ = env.reset(seed=2026)
+        trace = [env.state()]
+        for step_idx in range(30):
+            if not env.agents:
+                break
+            actions = {a: (step_idx + idx) % 3 for idx, a in enumerate(env.agents)}
+            obs, rewards, _, _, _ = env.step(actions)
+            trace.append(env.state())
+            trace.append(np.array([rewards[a] for a in sorted(rewards)], dtype=np.float32))
+        env.close()
+        return trace
+
+    t1 = _rollout()
+    t2 = _rollout()
+    assert len(t1) == len(t2)
+    for arr1, arr2 in zip(t1, t2):
+        np.testing.assert_array_equal(arr1, arr2)

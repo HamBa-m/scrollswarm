@@ -57,7 +57,9 @@ from scrollswarm.comm import CommunicationGraph, TopologyType
 from scrollswarm.sprites import get_quadcopter_sprite
 
 
-def draw_corridor_boundaries(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
+def draw_corridor_boundaries(
+    surface: pygame.Surface, scrolling_map: ScrollingMap
+) -> None:
     """Renders the atmospheric airspace, survey grid lanes, and corridor boundaries."""
     w = scrolling_map.width
     h = scrolling_map.height
@@ -67,7 +69,9 @@ def draw_corridor_boundaries(surface: pygame.Surface, scrolling_map: ScrollingMa
 
     # Subtle survey grid lanes
     for offset_lane in (60, 120, 180, 240, 300, 360):
-        pygame.draw.line(surface, COLOR_GRID_LINE, (0, offset_lane), (w, offset_lane), width=1)
+        pygame.draw.line(
+            surface, COLOR_GRID_LINE, (0, offset_lane), (w, offset_lane), width=1
+        )
 
     # Corridor ceiling and ground planes
     ceil_y = int(scrolling_map.ceiling_y)
@@ -88,12 +92,22 @@ def draw_obstacles(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None
     for obs in scrolling_map.obstacles:
         verts = [(int(vx), int(vy)) for vx, vy in obs.vertices]
         if len(verts) >= 3:
-            fill_color = COLOR_HAZARD_FILL if obs.obstacle_type == ObstacleType.FLOATING else COLOR_BUILDING_FILL
-            edge_color = COLOR_HAZARD_OUTLINE if obs.obstacle_type == ObstacleType.FLOATING else COLOR_BUILDING_OUTLINE
+            fill_color = (
+                COLOR_HAZARD_FILL
+                if obs.obstacle_type == ObstacleType.FLOATING
+                else COLOR_BUILDING_FILL
+            )
+            edge_color = (
+                COLOR_HAZARD_OUTLINE
+                if obs.obstacle_type == ObstacleType.FLOATING
+                else COLOR_BUILDING_OUTLINE
+            )
             pygame.draw.polygon(surface, fill_color, verts)
             pygame.draw.polygon(surface, edge_color, verts, width=2)
             if obs.obstacle_type != ObstacleType.FLOATING:
-                pygame.draw.line(surface, COLOR_BUILDING_SPECULAR, verts[0], verts[2], 1)
+                pygame.draw.line(
+                    surface, COLOR_BUILDING_SPECULAR, verts[0], verts[2], 1
+                )
 
 
 # Backward compatibility aliases
@@ -110,13 +124,17 @@ def draw_targets(surface: pygame.Surface, scrolling_map: ScrollingMap) -> None:
             pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
         else:
             # Inspection photo radius guide
-            pygame.draw.circle(surface, (255, 215, 0), (cx, cy), int(target.inspection_radius), width=1)
+            pygame.draw.circle(
+                surface, (255, 215, 0), (cx, cy), int(target.inspection_radius), width=1
+            )
             pygame.draw.circle(surface, COLOR_TARGET, (cx, cy), s)
             pygame.draw.circle(surface, (255, 240, 150), (cx, cy), s + 3, width=1)
             pygame.draw.circle(surface, (255, 255, 255), (cx, cy), 2)
 
 
-def draw_sensor_rays(surface: pygame.Surface, agent: Agent, scrolling_map: ScrollingMap) -> None:
+def draw_sensor_rays(
+    surface: pygame.Surface, agent: Agent, scrolling_map: ScrollingMap
+) -> None:
     """Renders the 7 forward LiDAR rangefinder beams with high-contrast laser styling."""
     if not agent.alive:
         return
@@ -143,15 +161,28 @@ def draw_sensor_rays(surface: pygame.Surface, agent: Agent, scrolling_map: Scrol
             pygame.draw.circle(surface, (0, 230, 120), end_pt, 6, width=2)
 
 
-def draw_comm_links(surface: pygame.Surface, comm_graph: CommunicationGraph, agents: List[Agent]) -> None:
+def draw_comm_links(
+    surface: pygame.Surface, comm_graph: CommunicationGraph, agents: List[Agent]
+) -> None:
     """Renders active graph communication links between living UAVs."""
     living_agents = [a for a in agents if a.alive]
     edges = comm_graph.get_communication_edges(living_agents)
     for p1, p2 in edges:
-        pygame.draw.line(surface, (70, 140, 230), (int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1])), 1)
+        pygame.draw.line(
+            surface,
+            (70, 140, 230),
+            (int(p1[0]), int(p1[1])),
+            (int(p2[0]), int(p2[1])),
+            1,
+        )
 
 
-def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int, font: pygame.font.Font) -> None:
+def draw_agents(
+    surface: pygame.Surface,
+    agents: List[Agent],
+    selected_idx: int,
+    font: pygame.font.Font,
+) -> None:
     """Renders all UAVs with quadcopter sprites, focus rings, and ID labels."""
     for idx, agent in enumerate(agents):
         color = agent.color if agent.alive else COLOR_AGENT_DEAD
@@ -161,10 +192,16 @@ def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int,
 
         # Highlight focused UAV
         if idx == selected_idx and agent.alive:
-            pygame.draw.circle(surface, (255, 255, 255), (int(agent.x), int(agent.y)), 16, width=2)
-            pygame.draw.circle(surface, (30, 144, 255), (int(agent.x), int(agent.y)), 18, width=1)
+            pygame.draw.circle(
+                surface, (255, 255, 255), (int(agent.x), int(agent.y)), 16, width=2
+            )
+            pygame.draw.circle(
+                surface, (30, 144, 255), (int(agent.x), int(agent.y)), 18, width=1
+            )
         elif not agent.alive:
-            pygame.draw.circle(surface, (180, 50, 50), (int(agent.x), int(agent.y)), 13, width=1)
+            pygame.draw.circle(
+                surface, (180, 50, 50), (int(agent.x), int(agent.y)), 13, width=1
+            )
 
         # ID label above UAV
         lbl = font.render(str(agent.agent_id + 1), True, (220, 225, 235))
@@ -172,19 +209,23 @@ def draw_agents(surface: pygame.Surface, agents: List[Agent], selected_idx: int,
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ScrollSwarm 2D UAV Swarm Reconnaissance Simulation")
-    parser.add_argument(
-        "-n", "--num-agents",
-        type=int,
-        default=5,
-        help="Number of UAVs in the swarm (1 to 10, default: 5)"
+    parser = argparse.ArgumentParser(
+        description="ScrollSwarm 2D UAV Swarm Reconnaissance Simulation"
     )
     parser.add_argument(
-        "-c", "--comm-topology",
+        "-n",
+        "--num-agents",
+        type=int,
+        default=5,
+        help="Number of UAVs in the swarm (1 to 10, default: 5)",
+    )
+    parser.add_argument(
+        "-c",
+        "--comm-topology",
         type=str,
         default="chain",
         choices=["chain", "ring", "full", "radius", "capped"],
-        help="Graph communication topology (default: chain)"
+        help="Graph communication topology (default: chain)",
     )
     args = parser.parse_args()
 
@@ -196,13 +237,20 @@ def main() -> None:
 
     config = MapConfig(width=800, height=400, fps=30)
     screen = pygame.display.set_mode((config.width, config.height))
-    pygame.display.set_caption(f"ScrollSwarm - UAV Swarm Reconnaissance ({num_agents} Drones)")
+    pygame.display.set_caption(
+        f"ScrollSwarm - UAV Swarm Reconnaissance ({num_agents} Drones)"
+    )
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("Consolas", 13)
     id_font = pygame.font.SysFont("Consolas", 10, bold=True)
 
     scrolling_map = ScrollingMap(config)
-    agents = create_agents(num_agents=num_agents, map_width=config.width, scrolling_map=scrolling_map, step_size=5)
+    agents = create_agents(
+        num_agents=num_agents,
+        map_width=config.width,
+        scrolling_map=scrolling_map,
+        step_size=5,
+    )
 
     selected_idx = 0
     show_sensors = True
@@ -288,7 +336,9 @@ def main() -> None:
 
         # HUD Overlay with translucent dark backdrop
         hud_bg = pygame.Surface((config.width - 24, 42), pygame.SRCALPHA)
-        pygame.draw.rect(hud_bg, (16, 22, 32, 190), (0, 0, config.width - 24, 42), border_radius=5)
+        pygame.draw.rect(
+            hud_bg, (16, 22, 32, 190), (0, 0, config.width - 24, 42), border_radius=5
+        )
         screen.blit(hud_bg, (12, 18))
 
         alive_count = sum(1 for a in agents if a.alive)
@@ -304,9 +354,7 @@ def main() -> None:
         hud_suffix = f", Photos: {focused_agent.score})"
         txt_suffix = font.render(hud_suffix, True, (240, 245, 250))
 
-        hud_line2 = (
-            f"[W/S] Climb/Dive | [TAB/1-9] Focus | [A] All | [V] LiDAR | [C] Comm ({args.comm_topology}) | [R] Restart"
-        )
+        hud_line2 = f"[W/S] Climb/Dive | [TAB/1-9] Focus | [A] All | [V] LiDAR | [C] Comm ({args.comm_topology}) | [R] Restart"
         txt_line2 = font.render(hud_line2, True, (175, 185, 200))
 
         cur_x = 22

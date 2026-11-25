@@ -12,7 +12,13 @@ from scrollswarm.map import MapConfig
 def test_env_initialization():
     env = ScrollSwarmEnv(num_agents=5, max_cycles=1000)
     assert len(env.possible_agents) == 5
-    assert env.possible_agents == ["agent_0", "agent_1", "agent_2", "agent_3", "agent_4"]
+    assert env.possible_agents == [
+        "agent_0",
+        "agent_1",
+        "agent_2",
+        "agent_3",
+        "agent_4",
+    ]
     assert env.max_cycles == 1000
 
     # Test observation and action spaces
@@ -232,7 +238,14 @@ def test_env_collision_termination_and_culling():
     assert env.agents == ["agent_1"]
 
     # Force remaining agent_1 into an obstacle placed right at its post-scroll position
-    obs = Obstacle(x=a1.x + 1.0, y=a1.y, radius=20.0, width=40.0, height=40.0, obstacle_type=ObstacleType.STRUCTURE)
+    obs = Obstacle(
+        x=a1.x + 1.0,
+        y=a1.y,
+        radius=20.0,
+        width=40.0,
+        height=40.0,
+        obstacle_type=ObstacleType.STRUCTURE,
+    )
     env.scrolling_map.obstacles.append(obs)
     _, rewards2, terms2, _, infos2 = env.step({"agent_1": 1})
     assert terms2["agent_1"] is True
@@ -244,6 +257,7 @@ def test_env_collision_termination_and_culling():
 
 def test_env_deterministic_reproducibility():
     """Verifies identical seeds and actions yield bit-exact trajectories."""
+
     def _rollout():
         env = ScrollSwarmEnv(num_agents=4, max_cycles=50, backend="numpy")
         obs, _ = env.reset(seed=2026)
@@ -254,7 +268,9 @@ def test_env_deterministic_reproducibility():
             actions = {a: (step_idx + idx) % 3 for idx, a in enumerate(env.agents)}
             obs, rewards, _, _, _ = env.step(actions)
             trace.append(env.state())
-            trace.append(np.array([rewards[a] for a in sorted(rewards)], dtype=np.float32))
+            trace.append(
+                np.array([rewards[a] for a in sorted(rewards)], dtype=np.float32)
+            )
         env.close()
         return trace
 

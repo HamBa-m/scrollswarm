@@ -23,7 +23,10 @@ def test_env_lifecycle_logging_and_zero_hot_path_overhead(caplog):
     with caplog.at_level(logging.DEBUG, logger="scrollswarm"):
         env = ScrollSwarmEnv(num_agents=3, max_cycles=30, backend="numpy")
         init_records = [r for r in caplog.records if r.levelno == logging.INFO]
-        assert any("agents=3" in r.message and "backend=numpy->numpy" in r.message for r in init_records)
+        assert any(
+            "agents=3" in r.message and "backend=numpy->numpy" in r.message
+            for r in init_records
+        )
 
         caplog.clear()
         env.reset(seed=42)
@@ -46,6 +49,7 @@ def test_cpp_extension_load_warning_vs_debug(tmp_path, monkeypatch, caplog):
     Verifies broken compiled C++ binaries emit WARNING whereas an unbuilt
     extension emits only DEBUG.
     """
+
     def _fail_import(name: str):
         raise ImportError(f"simulated load failure for {name}")
 
@@ -54,9 +58,15 @@ def test_cpp_extension_load_warning_vs_debug(tmp_path, monkeypatch, caplog):
     with caplog.at_level(logging.DEBUG, logger="scrollswarm.geometry"):
         assert _load_cpp_extension(geometry_dir=tmp_path) is None
         assert not any(r.levelno >= logging.WARNING for r in caplog.records)
-        assert any(r.levelno == logging.DEBUG and "not built" in r.message for r in caplog.records)
+        assert any(
+            r.levelno == logging.DEBUG and "not built" in r.message
+            for r in caplog.records
+        )
 
         caplog.clear()
         (tmp_path / "_geometry_cpp.cp312-win_amd64.pyd").write_bytes(b"")
         assert _load_cpp_extension(geometry_dir=tmp_path) is None
-        assert any(r.levelno == logging.WARNING and "failed to load" in r.message for r in caplog.records)
+        assert any(
+            r.levelno == logging.WARNING and "failed to load" in r.message
+            for r in caplog.records
+        )

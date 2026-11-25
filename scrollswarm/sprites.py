@@ -44,7 +44,9 @@ def _create_procedural_quadcopter_surface(
     # 1. Carbon-fiber structural arms (dark metallic cross)
     arm_color = (40, 50, 65)
     for mx, my in motors:
-        pygame.draw.line(surface, arm_color, (int(cx), int(cy)), (int(mx), int(my)), width=2)
+        pygame.draw.line(
+            surface, arm_color, (int(cx), int(cy)), (int(mx), int(my)), width=2
+        )
 
     # 2. Spinning rotor discs (translucent spinning blur)
     rotor_disc_color = (200, 230, 255, 120)

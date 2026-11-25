@@ -55,27 +55,34 @@ def _polygon_to_edges(verts: np.ndarray) -> np.ndarray:
 def _assert_polygon_backend_parity(pinp_fn, dist_fn) -> None:
     """Asserts point-in-polygon and distance parity against NumPy on convex and concave shapes."""
     # Concave L-shaped polygon
-    concave_verts = np.array([
-        [100.0, 100.0],
-        [180.0, 100.0],
-        [180.0, 130.0],
-        [130.0, 130.0],
-        [130.0, 180.0],
-        [100.0, 180.0],
-    ], dtype=np.float32)
+    concave_verts = np.array(
+        [
+            [100.0, 100.0],
+            [180.0, 100.0],
+            [180.0, 130.0],
+            [130.0, 130.0],
+            [130.0, 180.0],
+            [100.0, 180.0],
+        ],
+        dtype=np.float32,
+    )
     concave_edges = _polygon_to_edges(concave_verts)
 
     probe_points = [
         (115.0, 115.0),  # Inside main body
         (115.0, 160.0),  # Inside vertical arm
         (160.0, 160.0),  # Outside inside the concave notch
-        (90.0, 140.0),   # Outside near left edge
+        (90.0, 140.0),  # Outside near left edge
         (200.0, 115.0),  # Outside near right edge
     ]
     for px, py in probe_points:
-        assert bool(pinp_fn(px, py, concave_verts)) is point_in_polygon_numpy(px, py, concave_verts)
+        assert bool(pinp_fn(px, py, concave_verts)) is point_in_polygon_numpy(
+            px, py, concave_verts
+        )
         np_dist = distance_to_polygon_numpy(px, py, concave_verts, concave_edges)
-        assert dist_fn(px, py, concave_verts, concave_edges) == pytest.approx(np_dist, abs=1e-3)
+        assert dist_fn(px, py, concave_verts, concave_edges) == pytest.approx(
+            np_dist, abs=1e-3
+        )
 
     # Empty polygon containment edge case
     empty_verts = np.zeros((0, 2), dtype=np.float32)
@@ -84,7 +91,9 @@ def _assert_polygon_backend_parity(pinp_fn, dist_fn) -> None:
 
 def test_buffer_extraction():
     """Verifies flat numeric array extraction from obstacles and targets."""
-    obs1 = Obstacle(x=100.0, y=200.0, width=40.0, height=60.0, obstacle_type=ObstacleType.STRUCTURE)
+    obs1 = Obstacle(
+        x=100.0, y=200.0, width=40.0, height=60.0, obstacle_type=ObstacleType.STRUCTURE
+    )
     obs2 = Obstacle(x=250.0, y=150.0, radius=25.0, obstacle_type=ObstacleType.FLOATING)
     tgt1 = Target(x=300.0, y=180.0, size=16.0)
     tgt2 = Target(x=400.0, y=220.0, size=16.0)
@@ -107,19 +116,25 @@ def test_point_in_polygon_and_distance():
     """Tests polygon containment and Euclidean distance routines."""
     # A 40x40 square centered at (100, 100)
     hw = 20.0
-    verts = np.array([
-        [100 - hw, 100 - hw],
-        [100 + hw, 100 - hw],
-        [100 + hw, 100 + hw],
-        [100 - hw, 100 + hw],
-    ], dtype=np.float32)
+    verts = np.array(
+        [
+            [100 - hw, 100 - hw],
+            [100 + hw, 100 - hw],
+            [100 + hw, 100 + hw],
+            [100 - hw, 100 + hw],
+        ],
+        dtype=np.float32,
+    )
 
-    edges = np.array([
-        [verts[0, 0], verts[0, 1], verts[1, 0], verts[1, 1]],
-        [verts[1, 0], verts[1, 1], verts[2, 0], verts[2, 1]],
-        [verts[2, 0], verts[2, 1], verts[3, 0], verts[3, 1]],
-        [verts[3, 0], verts[3, 1], verts[0, 0], verts[0, 1]],
-    ], dtype=np.float32)
+    edges = np.array(
+        [
+            [verts[0, 0], verts[0, 1], verts[1, 0], verts[1, 1]],
+            [verts[1, 0], verts[1, 1], verts[2, 0], verts[2, 1]],
+            [verts[2, 0], verts[2, 1], verts[3, 0], verts[3, 1]],
+            [verts[3, 0], verts[3, 1], verts[0, 0], verts[0, 1]],
+        ],
+        dtype=np.float32,
+    )
 
     # Inside point
     assert point_in_polygon_numpy(100.0, 100.0, verts) is True
@@ -149,8 +164,16 @@ def test_cast_rays_boundary_and_obstacle():
     obs_ranges = np.zeros((0, 2), dtype=np.int32)
 
     obs_d, obs_t, obs_e, tgt_d, tgt_t, tgt_e = cast_rays_numpy(
-        origin_x, origin_y, angles, max_range,
-        ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data
+        origin_x,
+        origin_y,
+        angles,
+        max_range,
+        ceil_y,
+        floor_y,
+        obs_meta,
+        obs_edges,
+        obs_ranges,
+        target_data,
     )
 
     # Ray 0: angle -45 deg (points up-right). Should hit ceiling y=50
@@ -198,22 +221,48 @@ def test_numba_parity_when_available():
 
     # Run NumPy
     d_np, t_np, e_np, td_np, tt_np, te_np = cast_rays_numpy(
-        origin_x, origin_y, angles, max_range,
-        ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data
+        origin_x,
+        origin_y,
+        angles,
+        max_range,
+        ceil_y,
+        floor_y,
+        obs_meta,
+        obs_edges,
+        obs_ranges,
+        target_data,
     )
 
     # Run Numba
     d_nb, t_nb, e_nb, td_nb, tt_nb, te_nb = cast_rays_numba(
-        origin_x, origin_y, angles, max_range,
-        ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data
+        origin_x,
+        origin_y,
+        angles,
+        max_range,
+        ceil_y,
+        floor_y,
+        obs_meta,
+        obs_edges,
+        obs_ranges,
+        target_data,
     )
 
-    np.testing.assert_allclose(d_np, d_nb, atol=1e-3, err_msg="Obstacle ray distance parity failed")
-    np.testing.assert_array_equal(t_np, t_nb, err_msg="Obstacle ray hit type parity failed")
-    np.testing.assert_allclose(e_np, e_nb, atol=1e-3, err_msg="Obstacle endpoint parity failed")
+    np.testing.assert_allclose(
+        d_np, d_nb, atol=1e-3, err_msg="Obstacle ray distance parity failed"
+    )
+    np.testing.assert_array_equal(
+        t_np, t_nb, err_msg="Obstacle ray hit type parity failed"
+    )
+    np.testing.assert_allclose(
+        e_np, e_nb, atol=1e-3, err_msg="Obstacle endpoint parity failed"
+    )
 
-    np.testing.assert_allclose(td_np, td_nb, atol=1e-3, err_msg="Target ray distance parity failed")
-    np.testing.assert_array_equal(tt_np, tt_nb, err_msg="Target ray hit type parity failed")
+    np.testing.assert_allclose(
+        td_np, td_nb, atol=1e-3, err_msg="Target ray distance parity failed"
+    )
+    np.testing.assert_array_equal(
+        tt_np, tt_nb, err_msg="Target ray hit type parity failed"
+    )
 
     _assert_polygon_backend_parity(point_in_polygon_numba, distance_to_polygon_numba)
 
@@ -248,22 +297,48 @@ def test_cpp_parity_when_available():
 
     # Run NumPy
     d_np, t_np, e_np, td_np, tt_np, te_np = cast_rays_numpy(
-        origin_x, origin_y, angles, max_range,
-        ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data
+        origin_x,
+        origin_y,
+        angles,
+        max_range,
+        ceil_y,
+        floor_y,
+        obs_meta,
+        obs_edges,
+        obs_ranges,
+        target_data,
     )
 
     # Run C++
     d_cpp, t_cpp, e_cpp, td_cpp, tt_cpp, te_cpp = cast_rays_cpp(
-        origin_x, origin_y, angles, max_range,
-        ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data
+        origin_x,
+        origin_y,
+        angles,
+        max_range,
+        ceil_y,
+        floor_y,
+        obs_meta,
+        obs_edges,
+        obs_ranges,
+        target_data,
     )
 
-    np.testing.assert_allclose(d_np, d_cpp, atol=1e-3, err_msg="C++ obstacle ray distance parity failed")
-    np.testing.assert_array_equal(t_np, t_cpp, err_msg="C++ obstacle ray hit type parity failed")
-    np.testing.assert_allclose(e_np, e_cpp, atol=1e-3, err_msg="C++ obstacle endpoint parity failed")
+    np.testing.assert_allclose(
+        d_np, d_cpp, atol=1e-3, err_msg="C++ obstacle ray distance parity failed"
+    )
+    np.testing.assert_array_equal(
+        t_np, t_cpp, err_msg="C++ obstacle ray hit type parity failed"
+    )
+    np.testing.assert_allclose(
+        e_np, e_cpp, atol=1e-3, err_msg="C++ obstacle endpoint parity failed"
+    )
 
-    np.testing.assert_allclose(td_np, td_cpp, atol=1e-3, err_msg="C++ target ray distance parity failed")
-    np.testing.assert_array_equal(tt_np, tt_cpp, err_msg="C++ target ray hit type parity failed")
+    np.testing.assert_allclose(
+        td_np, td_cpp, atol=1e-3, err_msg="C++ target ray distance parity failed"
+    )
+    np.testing.assert_array_equal(
+        tt_np, tt_cpp, err_msg="C++ target ray hit type parity failed"
+    )
 
     _assert_polygon_backend_parity(point_in_polygon_cpp, distance_to_polygon_cpp)
 
@@ -277,23 +352,53 @@ def test_cast_rays_empty_scene_parity():
     target_data = np.zeros((0, 3), dtype=np.float32)
 
     ref = cast_rays_numpy(
-        100.0, 200.0, angles, 400.0, 15.0, 385.0, obs_meta, obs_edges, obs_ranges, target_data
+        100.0,
+        200.0,
+        angles,
+        400.0,
+        15.0,
+        385.0,
+        obs_meta,
+        obs_edges,
+        obs_ranges,
+        target_data,
     )
 
     backend_fns = []
     if is_numba_available():
         from scrollswarm.geometry.numba_backend import cast_rays_numba
+
         backend_fns.append(("numba", cast_rays_numba))
     if is_cpp_available():
         from scrollswarm.geometry import cast_rays_cpp
+
         backend_fns.append(("cpp", cast_rays_cpp))
 
     for name, fn in backend_fns:
-        res = fn(100.0, 200.0, angles, 400.0, 15.0, 385.0, obs_meta, obs_edges, obs_ranges, target_data)
-        np.testing.assert_allclose(ref[0], res[0], atol=1e-3, err_msg=f"{name} empty obs dist mismatch")
-        np.testing.assert_array_equal(ref[1], res[1], err_msg=f"{name} empty obs type mismatch")
-        np.testing.assert_allclose(ref[3], res[3], atol=1e-3, err_msg=f"{name} empty tgt dist mismatch")
-        np.testing.assert_array_equal(ref[4], res[4], err_msg=f"{name} empty tgt type mismatch")
+        res = fn(
+            100.0,
+            200.0,
+            angles,
+            400.0,
+            15.0,
+            385.0,
+            obs_meta,
+            obs_edges,
+            obs_ranges,
+            target_data,
+        )
+        np.testing.assert_allclose(
+            ref[0], res[0], atol=1e-3, err_msg=f"{name} empty obs dist mismatch"
+        )
+        np.testing.assert_array_equal(
+            ref[1], res[1], err_msg=f"{name} empty obs type mismatch"
+        )
+        np.testing.assert_allclose(
+            ref[3], res[3], atol=1e-3, err_msg=f"{name} empty tgt dist mismatch"
+        )
+        np.testing.assert_array_equal(
+            ref[4], res[4], err_msg=f"{name} empty tgt type mismatch"
+        )
 
 
 def test_env_backend_configuration():
@@ -316,7 +421,9 @@ def test_env_multi_step_backend_parity():
     """Verifies 60-step seeded environment rollout parity across all operational backends."""
     backends = get_available_backends()
     if len(backends) < 2:
-        pytest.skip("Only one backend available; skipping cross-backend rollout parity.")
+        pytest.skip(
+            "Only one backend available; skipping cross-backend rollout parity."
+        )
 
     def _collect_rollout(backend_name: str):
         env = ScrollSwarmEnv(num_agents=4, max_cycles=100, backend=backend_name)
@@ -340,7 +447,12 @@ def test_env_multi_step_backend_parity():
         for step_i, (ref, cand) in enumerate(zip(baseline, candidate)):
             assert cand[0] == ref[0], f"{b} active agents diverged at step {step_i}"
             for a in ref[1]:
-                np.testing.assert_allclose(cand[1][a], ref[1][a], atol=1e-3, err_msg=f"{b} obs diverged at step {step_i}")
+                np.testing.assert_allclose(
+                    cand[1][a],
+                    ref[1][a],
+                    atol=1e-3,
+                    err_msg=f"{b} obs diverged at step {step_i}",
+                )
                 assert cand[2][a] == pytest.approx(ref[2][a], abs=1e-5)
                 assert cand[3][a] is ref[3][a]
                 assert cand[4][a] is ref[4][a]

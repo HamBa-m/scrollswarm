@@ -24,9 +24,10 @@ class ObstacleType(str, Enum):
         FLOATING: Mid-air debris or airborne obstacle with subtle epicyclic
             vertical oscillation.
     """
-    STRUCTURE = "structure"    # Ground-standing building / tower
-    OVERHEAD = "overhead"      # Suspended overhead structure / cable
-    FLOATING = "floating"      # Mid-air debris / airborne obstacle
+
+    STRUCTURE = "structure"  # Ground-standing building / tower
+    OVERHEAD = "overhead"  # Suspended overhead structure / cable
+    FLOATING = "floating"  # Mid-air debris / airborne obstacle
 
 
 @dataclass
@@ -37,6 +38,7 @@ class Obstacle:
         x(t) = x_0 - v_x * t
         y(t) = y_base + A * sin(omega * t + phase)
     """
+
     x: float
     y: float
     base_y: float = 0.0
@@ -56,7 +58,10 @@ class Obstacle:
             self.base_y = self.y
 
         if not self.vertices_rel:
-            if self.obstacle_type == ObstacleType.STRUCTURE or self.obstacle_type == ObstacleType.OVERHEAD:
+            if (
+                self.obstacle_type == ObstacleType.STRUCTURE
+                or self.obstacle_type == ObstacleType.OVERHEAD
+            ):
                 # Rectangular structure
                 hw = self.width / 2.0
                 hh = self.height / 2.0
@@ -80,7 +85,9 @@ class Obstacle:
         self.x -= self.vx
         self.step_count += 1
         if self.vy_amplitude > 0.0:
-            self.y = self.base_y + self.vy_amplitude * np.sin(self.omega * self.step_count + self.phase)
+            self.y = self.base_y + self.vy_amplitude * np.sin(
+                self.omega * self.step_count + self.phase
+            )
 
     @property
     def vertices(self) -> List[Tuple[float, float]]:
@@ -163,6 +170,7 @@ Asteroid = Obstacle
 @dataclass
 class Tree(Obstacle):
     """Backward compatibility alias for legacy Tree references."""
+
     outer_radius: int = 14
     inner_radius: int = 5
 
@@ -180,6 +188,7 @@ class Target:
         P_j = (1 - d_j / D_photo) * sensor_reliability
         P_team = 1 - Prod_j (1 - P_j)
     """
+
     x: float
     y: float
     size: int = 8
@@ -229,7 +238,7 @@ class Target:
             # Proximity factor: closer drones have higher capture probability
             p_drone = (1.0 - (dist / self.inspection_radius)) * self.sensor_reliability
             p_drone = float(np.clip(p_drone, 0.05, 0.95))
-            p_fail_team *= (1.0 - p_drone)
+            p_fail_team *= 1.0 - p_drone
 
         p_success_team = 1.0 - p_fail_team
         if rng.random() < p_success_team:

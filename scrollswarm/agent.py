@@ -24,6 +24,7 @@ class Action(IntEnum):
         STAY: Hold altitude — ``y`` unchanged (index ``1``).
         DOWN: Dive — increases ``y`` by ``step_size`` pixels (index ``2``).
     """
+
     UP = 0
     STAY = 1
     DOWN = 2
@@ -31,15 +32,15 @@ class Action(IntEnum):
 
 # Color palette for up to 10 distinct UAVs (RGB)
 AGENT_PALETTE: List[Tuple[int, int, int]] = [
-    (30, 144, 255),   # Dodger Blue
-    (255, 127, 80),   # Coral
+    (30, 144, 255),  # Dodger Blue
+    (255, 127, 80),  # Coral
     (147, 112, 219),  # Medium Purple
-    (255, 215, 0),    # Gold
-    (0, 206, 209),    # Dark Turquoise
+    (255, 215, 0),  # Gold
+    (0, 206, 209),  # Dark Turquoise
     (255, 105, 180),  # Hot Pink
-    (50, 205, 50),    # Lime Green
-    (255, 165, 0),    # Orange
-    (70, 130, 180),   # Steel Blue
+    (50, 205, 50),  # Lime Green
+    (255, 165, 0),  # Orange
+    (70, 130, 180),  # Steel Blue
     (218, 112, 214),  # Orchid
 ]
 
@@ -108,7 +109,9 @@ class Agent:
         self.step_size = step_size
         self.width = float(width)
         self.height = float(height)
-        self.color = color if color is not None else AGENT_PALETTE[agent_id % len(AGENT_PALETTE)]
+        self.color = (
+            color if color is not None else AGENT_PALETTE[agent_id % len(AGENT_PALETTE)]
+        )
         self.safe_proximity_dist = float(safe_proximity_dist)
         self.backend = backend
 

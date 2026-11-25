@@ -44,8 +44,12 @@ except ImportError as exc:
 
 def _has_compiled_cpp_artifact(geometry_dir: Optional[Path] = None) -> bool:
     """Returns True if a compiled C++ geometry extension binary exists on disk."""
-    target_dir = geometry_dir if geometry_dir is not None else Path(__file__).resolve().parent
-    return any(target_dir.glob("_geometry_cpp*.pyd")) or any(target_dir.glob("_geometry_cpp*.so"))
+    target_dir = (
+        geometry_dir if geometry_dir is not None else Path(__file__).resolve().parent
+    )
+    return any(target_dir.glob("_geometry_cpp*.pyd")) or any(
+        target_dir.glob("_geometry_cpp*.so")
+    )
 
 
 def _load_cpp_extension(geometry_dir: Optional[Path] = None) -> Optional[Any]:
@@ -170,11 +174,13 @@ def extract_geometry_buffers(
         ox = float(getattr(obs, "x", 0.0))
         oy = float(getattr(obs, "y", 0.0))
         radius = float(getattr(obs, "radius", 20.0))
-        max_dim = float(max(
-            radius,
-            getattr(obs, "width", 40.0),
-            getattr(obs, "height", 60.0),
-        ))
+        max_dim = float(
+            max(
+                radius,
+                getattr(obs, "width", 40.0),
+                getattr(obs, "height", 60.0),
+            )
+        )
         obs_meta[i] = [ox, oy, radius, max_dim]
 
         start_e = len(all_edges)

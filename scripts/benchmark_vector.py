@@ -41,7 +41,9 @@ def measure_vector_runner(
     )
 
     if mode == "async":
-        runner = AsyncVectorScrollSwarm(**common_kwargs, num_workers=min(num_envs, max_workers))
+        runner = AsyncVectorScrollSwarm(
+            **common_kwargs, num_workers=min(num_envs, max_workers)
+        )
     else:
         runner = SyncVectorScrollSwarm(**common_kwargs)
 
@@ -80,16 +82,23 @@ def run_vector_sweep(
 ) -> Dict[str, Dict[int, Tuple[float, float, float, float]]]:
     """Runs Sync vs Async scaling sweep across ``env_counts`` and plots results."""
     resolved = resolve_backend(backend)
-    results: Dict[str, Dict[int, Tuple[float, float, float, float]]] = {"sync": {}, "async": {}}
+    results: Dict[str, Dict[int, Tuple[float, float, float, float]]] = {
+        "sync": {},
+        "async": {},
+    }
 
     print("=" * 82)
     print("ScrollSwarm Vectorized Execution Benchmark (Pure Environment Stepping)")
-    print(f"Backend: {backend} -> {resolved} | Agents/Env (N): {num_agents} | Steps/Run: {steps}")
+    print(
+        f"Backend: {backend} -> {resolved} | Agents/Env (N): {num_agents} | Steps/Run: {steps}"
+    )
     print(f"Async Worker Cap: {max_workers} | Corridor Batch Sizes (E): {env_counts}")
     print("=" * 82)
 
     for e in env_counts:
-        print(f"\n--> Evaluating Batch Size E = {e} corridors ({e * num_agents} total UAVs)...")
+        print(
+            f"\n--> Evaluating Batch Size E = {e} corridors ({e * num_agents} total UAVs)..."
+        )
         for mode in ("sync", "async"):
             metrics = measure_vector_runner(
                 mode=mode,
@@ -112,7 +121,9 @@ def run_vector_sweep(
     # Print Markdown-ready table
     print("\n" + "=" * 82)
     print("### Empirical Vector Scaling Summary")
-    print("| Batch Size (E) | Total UAVs | Sync (env-steps/s) | Async (env-steps/s) | Async (agent-steps/s) | Async vs Sync |")
+    print(
+        "| Batch Size (E) | Total UAVs | Sync (env-steps/s) | Async (env-steps/s) | Async (agent-steps/s) | Async vs Sync |"
+    )
     print("| :---: | :---: | :---: | :---: | :---: | :---: |")
     for e in env_counts:
         s_env = results["sync"][e][1]
@@ -140,16 +151,31 @@ def run_vector_sweep(
 
         # Panel 1: Total Environment Steps/s
         ax1.plot(
-            x_pos, sync_env_sps,
+            x_pos,
+            sync_env_sps,
             label="SyncVectorScrollSwarm (1 Core)",
-            color="#d97706", marker="o", linestyle="--", linewidth=2.2, markersize=6,
+            color="#d97706",
+            marker="o",
+            linestyle="--",
+            linewidth=2.2,
+            markersize=6,
         )
         ax1.plot(
-            x_pos, async_env_sps,
+            x_pos,
+            async_env_sps,
             label=f"AsyncVectorScrollSwarm (<= {max_workers} Workers)",
-            color="#0284c7", marker="s", linestyle="-", linewidth=2.4, markersize=6,
+            color="#0284c7",
+            marker="s",
+            linestyle="-",
+            linewidth=2.4,
+            markersize=6,
         )
-        ax1.set_title("Aggregate Environment Throughput vs. Batch Size", fontsize=12, fontweight="bold", pad=12)
+        ax1.set_title(
+            "Aggregate Environment Throughput vs. Batch Size",
+            fontsize=12,
+            fontweight="bold",
+            pad=12,
+        )
         ax1.set_xlabel("Parallel Corridors (E)", fontsize=10, labelpad=8)
         ax1.set_ylabel("Total Environment Steps / Second", fontsize=10, labelpad=8)
         ax1.set_xticks(x_pos, x_labels)
@@ -158,18 +184,35 @@ def run_vector_sweep(
 
         # Panel 2: Aggregate Agent Transitions/s (thousands)
         ax2.plot(
-            x_pos, sync_agent_sps,
+            x_pos,
+            sync_agent_sps,
             label="SyncVectorScrollSwarm (1 Core)",
-            color="#d97706", marker="o", linestyle="--", linewidth=2.2, markersize=6,
+            color="#d97706",
+            marker="o",
+            linestyle="--",
+            linewidth=2.2,
+            markersize=6,
         )
         ax2.plot(
-            x_pos, async_agent_sps,
+            x_pos,
+            async_agent_sps,
             label=f"AsyncVectorScrollSwarm (<= {max_workers} Workers)",
-            color="#059669", marker="^", linestyle="-", linewidth=2.4, markersize=6,
+            color="#059669",
+            marker="^",
+            linestyle="-",
+            linewidth=2.4,
+            markersize=6,
         )
-        ax2.set_title(f"Aggregate Agent Transitions / Second (N = {num_agents} UAVs)", fontsize=12, fontweight="bold", pad=12)
+        ax2.set_title(
+            f"Aggregate Agent Transitions / Second (N = {num_agents} UAVs)",
+            fontsize=12,
+            fontweight="bold",
+            pad=12,
+        )
         ax2.set_xlabel("Parallel Corridors (E)", fontsize=10, labelpad=8)
-        ax2.set_ylabel("Agent Transitions / Second (thousands)", fontsize=10, labelpad=8)
+        ax2.set_ylabel(
+            "Agent Transitions / Second (thousands)", fontsize=10, labelpad=8
+        )
         ax2.set_xticks(x_pos, x_labels)
         ax2.grid(True, linestyle="--", alpha=0.35)
         ax2.legend(frameon=True, fontsize=9, loc="upper left")
@@ -191,7 +234,9 @@ def main() -> None:
     parser.add_argument("--warmup", type=int, default=20)
     parser.add_argument("--backend", type=str, default="auto")
     parser.add_argument("--max-workers", type=int, default=8)
-    parser.add_argument("--plot", type=str, default="docs/assets/benchmark_vector_scaling.png")
+    parser.add_argument(
+        "--plot", type=str, default="docs/assets/benchmark_vector_scaling.png"
+    )
     args = parser.parse_args()
 
     run_vector_sweep(

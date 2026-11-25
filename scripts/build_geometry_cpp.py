@@ -25,7 +25,9 @@ def build_extension():
     out_dir = project_root / "scrollswarm" / "geometry"
 
     source_file = cpp_dir / "bindings.cpp"
-    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX") or (".pyd" if os.name == "nt" else ".so")
+    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX") or (
+        ".pyd" if os.name == "nt" else ".so"
+    )
     output_file = out_dir / f"_geometry_cpp{ext_suffix}"
 
     print(f"Building ScrollSwarm C++ Geometry Kernel...")
@@ -55,17 +57,21 @@ def build_extension():
     ]
 
     if is_windows:
-        cmd.extend([
-            "-static-libgcc",
-            "-static-libstdc++",
-            "-static",
-        ])
+        cmd.extend(
+            [
+                "-static-libgcc",
+                "-static-libstdc++",
+                "-static",
+            ]
+        )
         lib_dir = os.path.join(sysconfig.get_config_var("installed_base"), "libs")
         py_ver_nodot = f"{sys.version_info.major}{sys.version_info.minor}"
-        cmd.extend([
-            f"-L{lib_dir}",
-            f"-lpython{py_ver_nodot}",
-        ])
+        cmd.extend(
+            [
+                f"-L{lib_dir}",
+                f"-lpython{py_ver_nodot}",
+            ]
+        )
     else:
         cmd.append("-fPIC")
 
@@ -73,7 +79,10 @@ def build_extension():
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        print(f"Compilation Failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}", file=sys.stderr)
+        print(
+            f"Compilation Failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}",
+            file=sys.stderr,
+        )
         sys.exit(result.returncode)
 
     print("Compilation successful!")
@@ -89,7 +98,10 @@ def build_extension():
 
     try:
         from scrollswarm.geometry import _geometry_cpp
-        print(f"Verification passed: successfully imported {getattr(_geometry_cpp, '__file__', '_geometry_cpp')}")
+
+        print(
+            f"Verification passed: successfully imported {getattr(_geometry_cpp, '__file__', '_geometry_cpp')}"
+        )
     except Exception as e:
         print(f"Verification warning: direct import check failed: {e}")
 

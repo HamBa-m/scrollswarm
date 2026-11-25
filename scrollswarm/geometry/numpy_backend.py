@@ -20,10 +20,10 @@ def cast_rays_numpy(
     max_range: float,
     ceil_y: float,
     floor_y: float,
-    obs_meta: np.ndarray,      # shape (N_obs, 4): [x, y, radius, max_dim]
-    obs_edges: np.ndarray,     # shape (N_edges, 4): [ax, ay, bx, by]
-    obs_edge_ranges: np.ndarray, # shape (N_obs, 2): [start_idx, end_idx]
-    target_data: np.ndarray,   # shape (N_tgts, 3): [x, y, radius]
+    obs_meta: np.ndarray,  # shape (N_obs, 4): [x, y, radius, max_dim]
+    obs_edges: np.ndarray,  # shape (N_edges, 4): [ax, ay, bx, by]
+    obs_edge_ranges: np.ndarray,  # shape (N_obs, 2): [start_idx, end_idx]
+    target_data: np.ndarray,  # shape (N_tgts, 3): [x, y, radius]
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Casts LiDAR rays from (origin_x, origin_y) across given angles using NumPy.

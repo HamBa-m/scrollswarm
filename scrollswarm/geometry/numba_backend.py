@@ -15,13 +15,16 @@ import numpy as np
 
 try:
     from numba import njit
+
     HAS_NUMBA = True
 except ImportError:
     HAS_NUMBA = False
+
     # Fallback no-op decorator if numba is not installed
     def njit(*args, **kwargs):
         def decorator(func):
             return func
+
         return decorator
 
 
@@ -29,14 +32,14 @@ except ImportError:
 def _numba_cast_rays_kernel(
     origin_x: float,
     origin_y: float,
-    angles: np.ndarray,          # (K,) float32/float64
+    angles: np.ndarray,  # (K,) float32/float64
     max_range: float,
     ceil_y: float,
     floor_y: float,
-    obs_meta: np.ndarray,        # (N_obs, 4): [x, y, radius, max_dim]
-    obs_edges: np.ndarray,       # (N_edges, 4): [ax, ay, bx, by]
-    obs_edge_ranges: np.ndarray, # (N_obs, 2): [start_idx, end_idx]
-    target_data: np.ndarray,     # (N_tgts, 3): [x, y, radius]
+    obs_meta: np.ndarray,  # (N_obs, 4): [x, y, radius, max_dim]
+    obs_edges: np.ndarray,  # (N_edges, 4): [ax, ay, bx, by]
+    obs_edge_ranges: np.ndarray,  # (N_obs, 2): [start_idx, end_idx]
+    target_data: np.ndarray,  # (N_tgts, 3): [x, y, radius]
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     LLVM-compiled kernel for multi-ray LiDAR rangefinder.

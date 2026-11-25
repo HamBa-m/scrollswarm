@@ -17,24 +17,27 @@ import numpy as np
 
 from scrollswarm.items import Obstacle, ObstacleType, Target, Asteroid, Tree
 
-
 # Aerial Corridor Color Palette (RGB)
-COLOR_AIRSPACE = (20, 26, 38)            # Deep atmospheric dusk sky
-COLOR_GRID_LINE = (30, 40, 58)           # Subtle altitude / survey grid lines
-COLOR_CEILING = (14, 18, 26)             # High altitude limit
-COLOR_GROUND = (18, 22, 32)              # Ground surface
-COLOR_BOUNDARY_RIM = (55, 80, 115)       # Boundary guidance edge
+COLOR_AIRSPACE = (20, 26, 38)  # Deep atmospheric dusk sky
+COLOR_GRID_LINE = (30, 40, 58)  # Subtle altitude / survey grid lines
+COLOR_CEILING = (14, 18, 26)  # High altitude limit
+COLOR_GROUND = (18, 22, 32)  # Ground surface
+COLOR_BOUNDARY_RIM = (55, 80, 115)  # Boundary guidance edge
 
 # Structural obstacles
-COLOR_BUILDING_FILL = (45, 58, 80)       # Concrete / metallic urban structure
+COLOR_BUILDING_FILL = (45, 58, 80)  # Concrete / metallic urban structure
 COLOR_BUILDING_OUTLINE = (75, 100, 135)  # Structural edge highlight
-COLOR_BUILDING_SPECULAR = (110, 145, 190)# Structural beam accent
-COLOR_HAZARD_FILL = (85, 60, 68)         # Hazardous debris fill
-COLOR_HAZARD_OUTLINE = (180, 75, 70)     # Hazardous debris warning border
+COLOR_BUILDING_SPECULAR = (110, 145, 190)  # Structural beam accent
+COLOR_HAZARD_FILL = (85, 60, 68)  # Hazardous debris fill
+COLOR_HAZARD_OUTLINE = (180, 75, 70)  # Hazardous debris warning border
 
 # Targets
-COLOR_TARGET = (255, 195, 30)            # Active uninspected target (golden glow)
-COLOR_TARGET_INSPECTED = (50, 215, 130)  # Photographed / completed target (emerald green)
+COLOR_TARGET = (255, 195, 30)  # Active uninspected target (golden glow)
+COLOR_TARGET_INSPECTED = (
+    50,
+    215,
+    130,
+)  # Photographed / completed target (emerald green)
 
 # Backward compatibility color aliases
 COLOR_SPACE_VOID = COLOR_AIRSPACE
@@ -77,6 +80,7 @@ class MapConfig:
             and targets before the first ``step()`` call.
         seed: Optional integer seed for deterministic environment generation.
     """
+
     width: int = 800
     height: int = 400
     fps: int = 30
@@ -85,12 +89,12 @@ class MapConfig:
     # Corridor boundaries
     ceiling_y: int = 15
     floor_margin: int = 15
-    min_corridor_gap: int = 110          # Guaranteed navigable passage (px)
-    min_ridge_height: int = 15          # Backward compatibility alias
+    min_corridor_gap: int = 110  # Guaranteed navigable passage (px)
+    min_ridge_height: int = 15  # Backward compatibility alias
 
     # Obstacle scale and spawn intervals
-    obstacle_spawn_interval: int = 55   # Minimum steps between obstacle spawns
-    target_spawn_interval: int = 75     # Minimum steps between target spawns
+    obstacle_spawn_interval: int = 55  # Minimum steps between obstacle spawns
+    target_spawn_interval: int = 75  # Minimum steps between target spawns
 
     # Backward compatibility aliases
     asteroid_min_radius: float = 14.0
@@ -100,7 +104,7 @@ class MapConfig:
     # Safe inter-agent proximity distance
     safe_proximity_dist: float = 28.0
 
-    preseed: bool = True                 # Pre-populate screen at step 0
+    preseed: bool = True  # Pre-populate screen at step 0
     seed: Optional[int] = None
 
 
@@ -148,7 +152,9 @@ class ScrollingMap:
 
         # Boundary arrays (for backward compatibility with column-based checks)
         self.top_heights = np.full(self.width, self.ceiling_y, dtype=np.float32)
-        self.bot_heights = np.full(self.width, self.config.floor_margin, dtype=np.float32)
+        self.bot_heights = np.full(
+            self.width, self.config.floor_margin, dtype=np.float32
+        )
 
         # Active dynamic entities
         self.obstacles: List[Obstacle] = []
@@ -159,7 +165,9 @@ class ScrollingMap:
         self._steps_since_target = 30
 
         # Cached contiguous geometry buffers for current step
-        self._geo_cache: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = None
+        self._geo_cache: Optional[
+            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        ] = None
 
         if getattr(self.config, "preseed", True):
             self._preseed_corridor()
@@ -246,7 +254,10 @@ class ScrollingMap:
         max_structure_h = (self.floor_y - self.ceiling_y) - self.min_corridor_gap - 10.0
         max_structure_h = max(35.0, max_structure_h)
 
-        obs_kind = self.rng.choice([ObstacleType.STRUCTURE, ObstacleType.OVERHEAD, ObstacleType.FLOATING], p=[0.45, 0.35, 0.20])
+        obs_kind = self.rng.choice(
+            [ObstacleType.STRUCTURE, ObstacleType.OVERHEAD, ObstacleType.FLOATING],
+            p=[0.45, 0.35, 0.20],
+        )
 
         if obs_kind == ObstacleType.STRUCTURE:
             return self._create_ground_structure(spawn_x, max_structure_h)
@@ -312,10 +323,13 @@ class ScrollingMap:
         # Invalidate geometry buffer cache on step
         self._geo_cache = None
 
-    def get_geometry_buffers(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def get_geometry_buffers(
+        self,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Returns cached contiguous NumPy geometry buffers for current map step."""
         if self._geo_cache is None:
             from scrollswarm.geometry import extract_geometry_buffers
+
             self._geo_cache = extract_geometry_buffers(self.obstacles, self.targets)
         return self._geo_cache
 

@@ -109,13 +109,17 @@ def _step_and_autoreset(
             terminations[i] = bool(raw_terms[agent_id])
             truncations[i] = bool(raw_truncs[agent_id])
 
-    step_obs, step_state, step_alive, step_adj, step_edge_attr = _snapshot_env_state(env, raw_obs)
+    step_obs, step_state, step_alive, step_adj, step_edge_attr = _snapshot_env_state(
+        env, raw_obs
+    )
     episode_done = len(env.agents) == 0
 
     if episode_done:
         final_obs = step_obs
         final_state = step_state
-        obs, state, alive_mask, adj, edge_attr, reset_info = _reset_single_env(env, autoreset_seed)
+        obs, state, alive_mask, adj, edge_attr, reset_info = _reset_single_env(
+            env, autoreset_seed
+        )
         env_info = {
             "final_info": raw_infos,
             "agents": reset_info["agents"],
@@ -231,7 +235,9 @@ def _worker_loop(
     """Subprocess worker loop managing ``env_count`` headless ``ScrollSwarmEnv`` instances."""
     envs: List[ScrollSwarmEnv] = []
     try:
-        envs = [ScrollSwarmEnv(**env_kwargs, render_mode=None) for _ in range(env_count)]
+        envs = [
+            ScrollSwarmEnv(**env_kwargs, render_mode=None) for _ in range(env_count)
+        ]
         while True:
             cmd, payload = conn.recv()
             if cmd == "reset":
@@ -357,7 +363,10 @@ class BaseVectorScrollSwarm(ABC):
         """Generates fresh deterministic seeds for any environments that auto-reset."""
         if self._base_seed is None:
             return [None] * self.num_envs
-        seeds = [int(self._base_seed) + self._episode_counter + e for e in range(self.num_envs)]
+        seeds = [
+            int(self._base_seed) + self._episode_counter + e
+            for e in range(self.num_envs)
+        ]
         self._episode_counter += self.num_envs
         return seeds
 
@@ -400,7 +409,9 @@ class BaseVectorScrollSwarm(ABC):
             src_flat = offset + src_idx.astype(np.int64)
             tgt_flat = offset + tgt_idx.astype(np.int64)
             edge_index = np.stack([src_flat, tgt_flat], axis=0)
-            edge_attr_flat = edge_attr[env_idx, tgt_idx, src_idx].astype(np.float32, copy=False)
+            edge_attr_flat = edge_attr[env_idx, tgt_idx, src_idx].astype(
+                np.float32, copy=False
+            )
 
         batch = np.repeat(np.arange(num_envs, dtype=np.int64), num_agents)
         return edge_index, edge_attr_flat, batch
@@ -492,7 +503,9 @@ class AsyncVectorScrollSwarm(BaseVectorScrollSwarm):
     ):
         super().__init__(num_envs=num_envs, **env_kwargs)
         cpu_count = os.cpu_count() or 1
-        requested_workers = min(self.num_envs, cpu_count) if num_workers is None else int(num_workers)
+        requested_workers = (
+            min(self.num_envs, cpu_count) if num_workers is None else int(num_workers)
+        )
         if requested_workers < 1:
             raise ValueError(f"num_workers must be >= 1, got {requested_workers}")
         self.num_workers = min(self.num_envs, requested_workers)

@@ -4,7 +4,11 @@ Unit tests for rocket probe sprite loading, recoloring, and caching.
 
 import pytest
 import pygame
-from scrollswarm.sprites import get_rocket_sprite, get_quadcopter_sprite, DEFAULT_SPRITE_SIZE
+from scrollswarm.sprites import (
+    get_rocket_sprite,
+    get_quadcopter_sprite,
+    DEFAULT_SPRITE_SIZE,
+)
 from scrollswarm.agent import AGENT_PALETTE, COLOR_AGENT_DEAD
 
 

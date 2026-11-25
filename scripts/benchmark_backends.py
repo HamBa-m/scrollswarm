@@ -91,18 +91,42 @@ def benchmark_raycasting_kernel(
 
     if backend == "cpp":
         from scrollswarm.geometry import cast_rays_cpp
+
         fn = cast_rays_cpp
     elif backend == "numba":
         from scrollswarm.geometry.numba_backend import cast_rays_numba
+
         fn = cast_rays_numba
         # Warmup JIT
-        fn(origin_x, origin_y, angles, max_range, ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data)
+        fn(
+            origin_x,
+            origin_y,
+            angles,
+            max_range,
+            ceil_y,
+            floor_y,
+            obs_meta,
+            obs_edges,
+            obs_ranges,
+            target_data,
+        )
     else:
         fn = cast_rays_numpy
 
     start = time.perf_counter()
     for _ in range(num_calls):
-        fn(origin_x, origin_y, angles, max_range, ceil_y, floor_y, obs_meta, obs_edges, obs_ranges, target_data)
+        fn(
+            origin_x,
+            origin_y,
+            angles,
+            max_range,
+            ceil_y,
+            floor_y,
+            obs_meta,
+            obs_edges,
+            obs_ranges,
+            target_data,
+        )
     elapsed = time.perf_counter() - start
 
     us_per_call = (elapsed / num_calls) * 1e6
@@ -137,14 +161,20 @@ def benchmark_agent_scaling(
                 backend=b, steps=steps, num_agents=n, seed=seed, warmup=warmup
             )
             results[b][n] = (sps, ms)
-            print(f"    [{b.upper():<7}] Throughput: {sps:8.1f} steps/s | Latency: {ms:6.3f} ms/step")
+            print(
+                f"    [{b.upper():<7}] Throughput: {sps:8.1f} steps/s | Latency: {ms:6.3f} ms/step"
+            )
 
     # Print summary Markdown table
     print("\n" + "=" * 78)
     print("### Empirical Swarm Scaling Summary Table (Steps / Second)")
-    header = "| Swarm Size (N) | " + " | ".join(f"{b.upper()} (steps/s)" for b in backends)
+    header = "| Swarm Size (N) | " + " | ".join(
+        f"{b.upper()} (steps/s)" for b in backends
+    )
     if "numpy" in backends:
-        header += " | " + " | ".join(f"{b.upper()} Speedup" for b in backends if b != "numpy")
+        header += " | " + " | ".join(
+            f"{b.upper()} Speedup" for b in backends if b != "numpy"
+        )
     header += " |"
     print(header)
     print("| :---: " * (len(header.split("|")) - 2) + "|")
@@ -155,7 +185,9 @@ def benchmark_agent_scaling(
         if "numpy" in backends:
             np_sps = results["numpy"][n][0]
             row += " | " + " | ".join(
-                f"**{results[b][n][0] / np_sps:.2f}x**" for b in backends if b != "numpy"
+                f"**{results[b][n][0] / np_sps:.2f}x**"
+                for b in backends
+                if b != "numpy"
             )
         row += " |"
         print(row)
@@ -169,7 +201,7 @@ def benchmark_agent_scaling(
 
         colors = {
             "numpy": "#e11d48",  # Vibrant Red
-            "cpp": "#0284c7",    # Sky Blue
+            "cpp": "#0284c7",  # Sky Blue
             "numba": "#d97706",  # Amber Orange
         }
         markers = {
@@ -202,20 +234,37 @@ def benchmark_agent_scaling(
                 markersize=6,
             )
 
-        ax1.set_title("Stepping Throughput vs. Swarm Cardinality", fontsize=12, fontweight="bold", pad=12)
-        ax1.set_xlabel("Swarm Cardinality (Number of UAVs $N$)", fontsize=10, labelpad=8)
-        ax1.set_ylabel("Environment Throughput (steps / second)", fontsize=10, labelpad=8)
+        ax1.set_title(
+            "Stepping Throughput vs. Swarm Cardinality",
+            fontsize=12,
+            fontweight="bold",
+            pad=12,
+        )
+        ax1.set_xlabel(
+            "Swarm Cardinality (Number of UAVs $N$)", fontsize=10, labelpad=8
+        )
+        ax1.set_ylabel(
+            "Environment Throughput (steps / second)", fontsize=10, labelpad=8
+        )
         ax1.set_xticks(agent_counts)
         ax1.grid(True, linestyle="--", alpha=0.35)
         ax1.legend(frameon=True, fontsize=9, loc="upper right")
 
         # Subplot 2: Relative Speedup vs NumPy Baseline
         if "numpy" in backends and len(backends) > 1:
-            ax2.axhline(1.0, color="#64748b", linestyle=":", linewidth=1.5, label="NumPy Baseline (1.0x)")
+            ax2.axhline(
+                1.0,
+                color="#64748b",
+                linestyle=":",
+                linewidth=1.5,
+                label="NumPy Baseline (1.0x)",
+            )
             for b in backends:
                 if b == "numpy":
                     continue
-                speedups = [results[b][n][0] / results["numpy"][n][0] for n in agent_counts]
+                speedups = [
+                    results[b][n][0] / results["numpy"][n][0] for n in agent_counts
+                ]
                 ax2.plot(
                     agent_counts,
                     speedups,
@@ -226,9 +275,20 @@ def benchmark_agent_scaling(
                     markersize=6,
                 )
 
-            ax2.set_title("Computational Speedup Multiplier vs. Baseline", fontsize=12, fontweight="bold", pad=12)
-            ax2.set_xlabel("Swarm Cardinality (Number of UAVs $N$)", fontsize=10, labelpad=8)
-            ax2.set_ylabel("Speedup Factor ($T_{\\mathrm{numpy}} / T_{\\mathrm{backend}}$)", fontsize=10, labelpad=8)
+            ax2.set_title(
+                "Computational Speedup Multiplier vs. Baseline",
+                fontsize=12,
+                fontweight="bold",
+                pad=12,
+            )
+            ax2.set_xlabel(
+                "Swarm Cardinality (Number of UAVs $N$)", fontsize=10, labelpad=8
+            )
+            ax2.set_ylabel(
+                "Speedup Factor ($T_{\\mathrm{numpy}} / T_{\\mathrm{backend}}$)",
+                fontsize=10,
+                labelpad=8,
+            )
             ax2.set_xticks(agent_counts)
             ax2.grid(True, linestyle="--", alpha=0.35)
             ax2.legend(frameon=True, fontsize=9, loc="lower right")
@@ -247,8 +307,17 @@ def main():
     parser.add_argument("--num-agents", type=int, default=4, help="Number of UAVs")
     parser.add_argument("--seed", type=int, default=42, help="RNG seed")
     parser.add_argument("--warmup", type=int, default=50, help="JIT warmup steps")
-    parser.add_argument("--sweep-agents", action="store_true", help="Run full swarm cardinality scaling sweep (N=1..10)")
-    parser.add_argument("--plot", type=str, default="docs/assets/benchmark_agent_scaling.png", help="Path to save scaling plot")
+    parser.add_argument(
+        "--sweep-agents",
+        action="store_true",
+        help="Run full swarm cardinality scaling sweep (N=1..10)",
+    )
+    parser.add_argument(
+        "--plot",
+        type=str,
+        default="docs/assets/benchmark_agent_scaling.png",
+        help="Path to save scaling plot",
+    )
     args = parser.parse_args()
 
     available = get_available_backends()
@@ -269,7 +338,9 @@ def main():
         )
         return
 
-    print(f"Configuration: {args.num_agents} UAVs, {args.steps} steps, Seed {args.seed}")
+    print(
+        f"Configuration: {args.num_agents} UAVs, {args.steps} steps, Seed {args.seed}"
+    )
     print("=" * 70)
 
     print("\n--- 1. Pure Raycasting Micro-Benchmark (Isolated Geometry Kernel) ---")
@@ -288,10 +359,16 @@ def main():
     step_results = {}
     for b in available:
         sps, ms = benchmark_stepping_throughput(
-            b, steps=args.steps, num_agents=args.num_agents, seed=args.seed, warmup=args.warmup
+            b,
+            steps=args.steps,
+            num_agents=args.num_agents,
+            seed=args.seed,
+            warmup=args.warmup,
         )
         step_results[b] = (sps, ms)
-        print(f"  [{b.upper():<8}] Throughput: {sps:8.1f} steps/s | Latency: {ms:6.3f} ms/step")
+        print(
+            f"  [{b.upper():<8}] Throughput: {sps:8.1f} steps/s | Latency: {ms:6.3f} ms/step"
+        )
 
     baseline_sps = step_results.get("numpy", (1.0, 1.0))[0]
     for b, (sps, _) in step_results.items():

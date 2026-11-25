@@ -95,7 +95,9 @@ def test_vector_partial_death_and_autoreset():
         # Step until max_cycles=8 triggers auto-reset in both corridors
         last_infos = infos
         for _ in range(7):
-            obs, rewards, terms, truncs, last_infos = vec.step(np.ones((2, 3), dtype=np.int64))
+            obs, rewards, terms, truncs, last_infos = vec.step(
+                np.ones((2, 3), dtype=np.int64)
+            )
 
         assert np.all(truncs[:, 1])  # surviving agents truncated at step 8
         assert np.all(last_infos["episode_done"])
@@ -115,6 +117,7 @@ def test_batch_graphs_block_diagonal_isolation():
         # Disable agent 1 in corridor 1 and verify edge pruning persists in batched graph
         vec.envs[1]._agent_map["agent_1"].alive = False
         from scrollswarm.vector import _extract_dense_graph
+
         adj1, attr1 = _extract_dense_graph(vec.envs[1])
         infos["adj"][1] = adj1
         infos["edge_attr"][1] = attr1
@@ -123,7 +126,9 @@ def test_batch_graphs_block_diagonal_isolation():
             infos["adj"], infos["edge_attr"]
         )
         assert batch.shape == (12,)
-        np.testing.assert_array_equal(batch, np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]))
+        np.testing.assert_array_equal(
+            batch, np.array([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
+        )
         assert edge_index.shape[0] == 2
         assert edge_attr_flat.shape == (edge_index.shape[1], 3)
 
@@ -137,11 +142,14 @@ def test_batch_graphs_block_diagonal_isolation():
 
 def test_async_matches_sync_deterministically():
     """Verifies AsyncVectorScrollSwarm matches SyncVectorScrollSwarm bit-exactly across auto-reset."""
-    kwargs = dict(num_envs=4, num_agents=3, max_cycles=10, comm_topology="chain", backend="numpy")
+    kwargs = dict(
+        num_envs=4, num_agents=3, max_cycles=10, comm_topology="chain", backend="numpy"
+    )
 
-    with SyncVectorScrollSwarm(**kwargs) as sync_vec, AsyncVectorScrollSwarm(
-        **kwargs, num_workers=2
-    ) as async_vec:
+    with (
+        SyncVectorScrollSwarm(**kwargs) as sync_vec,
+        AsyncVectorScrollSwarm(**kwargs, num_workers=2) as async_vec,
+    ):
         sync_obs, sync_info = sync_vec.reset(seed=123)
         async_obs, async_info = async_vec.reset(seed=123)
 
@@ -158,5 +166,13 @@ def test_async_matches_sync_deterministically():
             np.testing.assert_array_equal(a_out[1], s_out[1])
             np.testing.assert_array_equal(a_out[2], s_out[2])
             np.testing.assert_array_equal(a_out[3], s_out[3])
-            for key in ("state", "alive_mask", "adj", "edge_attr", "episode_done", "final_observation", "final_state"):
+            for key in (
+                "state",
+                "alive_mask",
+                "adj",
+                "edge_attr",
+                "episode_done",
+                "final_observation",
+                "final_state",
+            ):
                 np.testing.assert_array_equal(a_out[4][key], s_out[4][key])

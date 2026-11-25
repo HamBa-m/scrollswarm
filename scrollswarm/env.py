@@ -137,10 +137,7 @@ class ScrollSwarmEnv(ParallelEnv):
             a: spaces.Box(low=-1.0, high=1.0, shape=(16,), dtype=np.float32)
             for a in self.possible_agents
         }
-        self.action_spaces = {
-            a: spaces.Discrete(3)
-            for a in self.possible_agents
-        }
+        self.action_spaces = {a: spaces.Discrete(3) for a in self.possible_agents}
 
         # Step counter for truncation
         self.step_count = 0
@@ -298,14 +295,14 @@ class ScrollSwarmEnv(ParallelEnv):
             step_size=5,
             backend=self.backend,
         )
-        self._agent_map = {
-            f"agent_{i}": agent_list[i] for i in range(self._num_agents)
-        }
+        self._agent_map = {f"agent_{i}": agent_list[i] for i in range(self._num_agents)}
 
         # Build initial observations and telemetry infos
         all_agents = list(self._agent_map.values())
         observations = {
-            a: self._agent_map[a].get_observation(self.scrolling_map, other_agents=all_agents)
+            a: self._agent_map[a].get_observation(
+                self.scrolling_map, other_agents=all_agents
+            )
             for a in self.agents
         }
         infos = {
@@ -392,7 +389,9 @@ class ScrollSwarmEnv(ParallelEnv):
 
         # 4. Stochastic target inspection under action uncertainty
         # Evaluate all targets against living drones
-        living_agents = [self._agent_map[a] for a in self.agents if self._agent_map[a].alive]
+        living_agents = [
+            self._agent_map[a] for a in self.agents if self._agent_map[a].alive
+        ]
         targets_photographed_this_step = 0
         for target in self.scrolling_map.targets:
             if target.collected:
@@ -401,8 +400,10 @@ class ScrollSwarmEnv(ParallelEnv):
                 targets_photographed_this_step += 1
                 # Find which drones contributed to the photo
                 contributing_drones = [
-                    d for d in living_agents
-                    if np.sqrt((d.x - target.x) ** 2 + (d.y - target.y) ** 2) <= target.inspection_radius
+                    d
+                    for d in living_agents
+                    if np.sqrt((d.x - target.x) ** 2 + (d.y - target.y) ** 2)
+                    <= target.inspection_radius
                 ]
                 for d in contributing_drones:
                     d.score += 1
@@ -427,14 +428,15 @@ class ScrollSwarmEnv(ParallelEnv):
         # 7. Build observation vectors
         all_agents = list(self._agent_map.values())
         observations: Dict[str, np.ndarray] = {
-            a: self._agent_map[a].get_observation(self.scrolling_map, other_agents=all_agents)
+            a: self._agent_map[a].get_observation(
+                self.scrolling_map, other_agents=all_agents
+            )
             for a in self.agents
         }
 
         # 8. Cull terminated or truncated agents from active list
         self.agents = [
-            a for a in self.agents
-            if not terminations[a] and not truncations[a]
+            a for a in self.agents if not terminations[a] and not truncations[a]
         ]
 
         return observations, rewards, terminations, truncations, infos
@@ -450,12 +452,17 @@ class ScrollSwarmEnv(ParallelEnv):
 
         if not self._pygame_initialized:
             import pygame
+
             pygame.init()
             if self.render_mode == "human":
-                self._screen = pygame.display.set_mode((self.map_config.width, self.map_config.height))
+                self._screen = pygame.display.set_mode(
+                    (self.map_config.width, self.map_config.height)
+                )
                 pygame.display.set_caption("ScrollSwarm - UAV Swarm Reconnaissance")
             else:
-                self._screen = pygame.Surface((self.map_config.width, self.map_config.height))
+                self._screen = pygame.Surface(
+                    (self.map_config.width, self.map_config.height)
+                )
             self._clock = pygame.time.Clock()
             self._font = pygame.font.SysFont("Consolas", 13)
             self._id_font = pygame.font.SysFont("Consolas", 10, bold=True)
@@ -469,7 +476,13 @@ class ScrollSwarmEnv(ParallelEnv):
         # A. Airspace background & survey grid
         self._screen.fill(COLOR_AIRSPACE)
         for offset_lane in (60, 120, 180, 240, 300, 360):
-            pygame.draw.line(self._screen, COLOR_GRID_LINE, (0, offset_lane), (w, offset_lane), width=1)
+            pygame.draw.line(
+                self._screen,
+                COLOR_GRID_LINE,
+                (0, offset_lane),
+                (w, offset_lane),
+                width=1,
+            )
 
         # B. Ceiling and Ground boundaries
         ceil_y = int(self.scrolling_map.ceiling_y)
@@ -477,18 +490,30 @@ class ScrollSwarmEnv(ParallelEnv):
         pygame.draw.rect(self._screen, COLOR_CEILING, (0, 0, w, ceil_y))
         pygame.draw.rect(self._screen, COLOR_GROUND, (0, floor_y, w, h - floor_y))
         pygame.draw.line(self._screen, COLOR_BOUNDARY_RIM, (0, ceil_y), (w, ceil_y), 2)
-        pygame.draw.line(self._screen, COLOR_BOUNDARY_RIM, (0, floor_y), (w, floor_y), 2)
+        pygame.draw.line(
+            self._screen, COLOR_BOUNDARY_RIM, (0, floor_y), (w, floor_y), 2
+        )
 
         # C. Multi-scale obstacles (buildings, overhead towers, floating hazards)
         for obs in self.scrolling_map.obstacles:
             verts = [(int(vx), int(vy)) for vx, vy in obs.vertices]
             if len(verts) >= 3:
-                fill_color = COLOR_HAZARD_FILL if obs.obstacle_type == ObstacleType.FLOATING else COLOR_BUILDING_FILL
-                edge_color = COLOR_HAZARD_OUTLINE if obs.obstacle_type == ObstacleType.FLOATING else COLOR_BUILDING_OUTLINE
+                fill_color = (
+                    COLOR_HAZARD_FILL
+                    if obs.obstacle_type == ObstacleType.FLOATING
+                    else COLOR_BUILDING_FILL
+                )
+                edge_color = (
+                    COLOR_HAZARD_OUTLINE
+                    if obs.obstacle_type == ObstacleType.FLOATING
+                    else COLOR_BUILDING_OUTLINE
+                )
                 pygame.draw.polygon(self._screen, fill_color, verts)
                 pygame.draw.polygon(self._screen, edge_color, verts, width=2)
                 if obs.obstacle_type != ObstacleType.FLOATING:
-                    pygame.draw.line(self._screen, COLOR_BUILDING_SPECULAR, verts[0], verts[2], 1)
+                    pygame.draw.line(
+                        self._screen, COLOR_BUILDING_SPECULAR, verts[0], verts[2], 1
+                    )
 
         # D. Inspection targets (with photo radius halos)
         for tgt in self.scrolling_map.targets:
@@ -498,16 +523,32 @@ class ScrollSwarmEnv(ParallelEnv):
                 pygame.draw.circle(self._screen, (255, 255, 255), (cx, cy), 2)
             else:
                 # Translucent photo inspection radius ring
-                pygame.draw.circle(self._screen, (255, 215, 0), (cx, cy), int(tgt.inspection_radius), width=1)
+                pygame.draw.circle(
+                    self._screen,
+                    (255, 215, 0),
+                    (cx, cy),
+                    int(tgt.inspection_radius),
+                    width=1,
+                )
                 pygame.draw.circle(self._screen, COLOR_TARGET, (cx, cy), s)
-                pygame.draw.circle(self._screen, (255, 240, 150), (cx, cy), s + 3, width=1)
+                pygame.draw.circle(
+                    self._screen, (255, 240, 150), (cx, cy), s + 3, width=1
+                )
                 pygame.draw.circle(self._screen, (255, 255, 255), (cx, cy), 2)
 
         # E. Communication graph links
-        living_agents = [self._agent_map[a] for a in self.possible_agents if self._agent_map[a].alive]
+        living_agents = [
+            self._agent_map[a] for a in self.possible_agents if self._agent_map[a].alive
+        ]
         comm_edges = self.comm_graph.get_communication_edges(living_agents)
         for p1, p2 in comm_edges:
-            pygame.draw.line(self._screen, (70, 140, 230), (int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1])), 1)
+            pygame.draw.line(
+                self._screen,
+                (70, 140, 230),
+                (int(p1[0]), int(p1[1])),
+                (int(p2[0]), int(p2[1])),
+                1,
+            )
 
         # F. UAV Quadcopters
         for agent_id in self.possible_agents:
@@ -518,8 +559,12 @@ class ScrollSwarmEnv(ParallelEnv):
             self._screen.blit(sprite, (int(agent.x - sw // 2), int(agent.y - sh // 2)))
 
             # Agent ID label
-            tag_surf = self._id_font.render(f"#{agent.agent_id + 1}", True, (255, 255, 255))
-            self._screen.blit(tag_surf, (int(agent.x - tag_surf.get_width() // 2), int(agent.y - 18)))
+            tag_surf = self._id_font.render(
+                f"#{agent.agent_id + 1}", True, (255, 255, 255)
+            )
+            self._screen.blit(
+                tag_surf, (int(agent.x - tag_surf.get_width() // 2), int(agent.y - 18))
+            )
 
         # Update display or export rgb array
         if self.render_mode == "human":
@@ -536,6 +581,7 @@ class ScrollSwarmEnv(ParallelEnv):
         """Closes any open Pygame window and cleans up resources."""
         if self._pygame_initialized:
             import pygame
+
             pygame.quit()
             self._pygame_initialized = False
             logger.debug("Closed ScrollSwarmEnv Pygame display resources.")

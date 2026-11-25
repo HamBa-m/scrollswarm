@@ -210,19 +210,44 @@ def evaluate_heuristic_policy(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ScrollSwarm Heuristic Policy Evaluator & GIF Recorder")
-    parser.add_argument("--episodes", type=int, default=1, help="Number of benchmark episodes to run")
-    parser.add_argument("--max-cycles", type=int, default=300, help="Maximum simulation steps per episode")
-    parser.add_argument("--num-agents", type=int, default=5, help="Number of UAVs in the swarm (1-10)")
+    parser = argparse.ArgumentParser(
+        description="ScrollSwarm Heuristic Policy Evaluator & GIF Recorder"
+    )
+    parser.add_argument(
+        "--episodes", type=int, default=1, help="Number of benchmark episodes to run"
+    )
+    parser.add_argument(
+        "--max-cycles",
+        type=int,
+        default=300,
+        help="Maximum simulation steps per episode",
+    )
+    parser.add_argument(
+        "--num-agents", type=int, default=5, help="Number of UAVs in the swarm (1-10)"
+    )
     parser.add_argument("--seed", type=int, default=42, help="Initial random seed")
-    parser.add_argument("--record-gif", action=argparse.BooleanOptionalAction, default=True, help="Record animated GIF")
-    parser.add_argument("--gif-path", type=str, default="assets/heuristic_policy.gif", help="Output GIF path")
-    parser.add_argument("--step-skip", type=int, default=2, help="Frame recording sub-sample rate")
+    parser.add_argument(
+        "--record-gif",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Record animated GIF",
+    )
+    parser.add_argument(
+        "--gif-path",
+        type=str,
+        default="assets/heuristic_policy.gif",
+        help="Output GIF path",
+    )
+    parser.add_argument(
+        "--step-skip", type=int, default=2, help="Frame recording sub-sample rate"
+    )
     args = parser.parse_args()
 
     policy = ReactiveSwarmPolicy()
 
-    print(f"=== Running Reactive Heuristic Policy Evaluation ({args.episodes} Episode(s)) ===")
+    print(
+        f"=== Running Reactive Heuristic Policy Evaluation ({args.episodes} Episode(s)) ==="
+    )
     all_returns = []
     all_survivals = []
     all_targets = []
@@ -250,19 +275,33 @@ def main():
 
         print(f"\n[Episode {ep + 1}/{args.episodes} | Seed {ep_seed}]")
         print(f"  Team Return:        {res['total_return']:8.2f}")
-        print(f"  Mean Survival:      {res['mean_survival']:8.1f} / {args.max_cycles} steps")
+        print(
+            f"  Mean Survival:      {res['mean_survival']:8.1f} / {args.max_cycles} steps"
+        )
         print(f"  Targets Captured:   {res['total_targets']:8d}")
         print(f"  Drone Crashes:      {res['crashes']}/{res['total_drones']}")
         for agent_id, d in res["details"].items():
-            status = "SURVIVED" if d["collision"] is None else f"CRASHED ({d['collision']})"
-            print(f"    {agent_id:8s} | Steps: {d['steps_survived']:3d} | Return: {d['cumulative_reward']:6.2f} | Status: {status}")
+            status = (
+                "SURVIVED" if d["collision"] is None else f"CRASHED ({d['collision']})"
+            )
+            print(
+                f"    {agent_id:8s} | Steps: {d['steps_survived']:3d} | Return: {d['cumulative_reward']:6.2f} | Status: {status}"
+            )
 
     if args.episodes > 1:
         print("\n=== Aggregate Benchmark Summary ===")
-        print(f"  Mean Return:      {np.mean(all_returns):8.2f} ± {np.std(all_returns):.2f}")
-        print(f"  Mean Survival:    {np.mean(all_survivals):8.1f} ± {np.std(all_survivals):.1f} / {args.max_cycles} steps")
-        print(f"  Mean Targets:     {np.mean(all_targets):8.2f} ± {np.std(all_targets):.2f}")
-        print(f"  Crash Rate:       {total_crashes / total_drones * 100:7.1f}% ({total_crashes}/{total_drones})")
+        print(
+            f"  Mean Return:      {np.mean(all_returns):8.2f} ± {np.std(all_returns):.2f}"
+        )
+        print(
+            f"  Mean Survival:    {np.mean(all_survivals):8.1f} ± {np.std(all_survivals):.1f} / {args.max_cycles} steps"
+        )
+        print(
+            f"  Mean Targets:     {np.mean(all_targets):8.2f} ± {np.std(all_targets):.2f}"
+        )
+        print(
+            f"  Crash Rate:       {total_crashes / total_drones * 100:7.1f}% ({total_crashes}/{total_drones})"
+        )
 
 
 if __name__ == "__main__":

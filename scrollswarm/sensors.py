@@ -45,9 +45,10 @@ class RayHit:
             structure), or ``"none"`` (ray reached max range without contact).
         endpoint: Absolute ``(x, y)`` coordinate of the ray terminus in pixels.
     """
-    distance: float            # In pixels [0, max_range]
-    norm_distance: float       # Normalized [0.0, 1.0]
-    hit_type: str              # "boundary", "obstacle", or "none"
+
+    distance: float  # In pixels [0, max_range]
+    norm_distance: float  # Normalized [0.0, 1.0]
+    hit_type: str  # "boundary", "obstacle", or "none"
     endpoint: Tuple[float, float]
 
 
@@ -69,8 +70,8 @@ class RaySensor:
     def __init__(
         self,
         num_rays: int = 7,
-        max_range: float = 400.0,      # Default: forward half of 800px screen
-        fov_degrees: float = 120.0,     # Spans -60° (up-forward) to +60° (down-forward)
+        max_range: float = 400.0,  # Default: forward half of 800px screen
+        fov_degrees: float = 120.0,  # Spans -60° (up-forward) to +60° (down-forward)
         photo_radius: float = 45.0,
         comm_range: float = 180.0,
         safe_proximity_dist: float = 28.0,
@@ -133,25 +134,59 @@ class RaySensor:
         targets = getattr(scrolling_map, "targets", [])
 
         if hasattr(scrolling_map, "get_geometry_buffers"):
-            obs_meta, obs_edges, obs_edge_ranges, target_data = scrolling_map.get_geometry_buffers()
+            obs_meta, obs_edges, obs_edge_ranges, target_data = (
+                scrolling_map.get_geometry_buffers()
+            )
         else:
-            obs_meta, obs_edges, obs_edge_ranges, target_data = extract_geometry_buffers(obstacles, targets)
+            obs_meta, obs_edges, obs_edge_ranges, target_data = (
+                extract_geometry_buffers(obstacles, targets)
+            )
 
         backend_name = resolve_backend(self.backend)
         if backend_name == "cpp" and is_cpp_available():
-            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = cast_rays_cpp(
-                origin_x, origin_y, self.angles, self.max_range,
-                ceil_y, floor_y, obs_meta, obs_edges, obs_edge_ranges, target_data
+            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = (
+                cast_rays_cpp(
+                    origin_x,
+                    origin_y,
+                    self.angles,
+                    self.max_range,
+                    ceil_y,
+                    floor_y,
+                    obs_meta,
+                    obs_edges,
+                    obs_edge_ranges,
+                    target_data,
+                )
             )
         elif backend_name == "numba" and is_numba_available():
-            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = cast_rays_numba(
-                origin_x, origin_y, self.angles, self.max_range,
-                ceil_y, floor_y, obs_meta, obs_edges, obs_edge_ranges, target_data
+            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = (
+                cast_rays_numba(
+                    origin_x,
+                    origin_y,
+                    self.angles,
+                    self.max_range,
+                    ceil_y,
+                    floor_y,
+                    obs_meta,
+                    obs_edges,
+                    obs_edge_ranges,
+                    target_data,
+                )
             )
         else:
-            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = cast_rays_numpy(
-                origin_x, origin_y, self.angles, self.max_range,
-                ceil_y, floor_y, obs_meta, obs_edges, obs_edge_ranges, target_data
+            obs_dists, obs_types, obs_ends, tgt_dists, tgt_types, tgt_ends = (
+                cast_rays_numpy(
+                    origin_x,
+                    origin_y,
+                    self.angles,
+                    self.max_range,
+                    ceil_y,
+                    floor_y,
+                    obs_meta,
+                    obs_edges,
+                    obs_edge_ranges,
+                    target_data,
+                )
             )
 
         obs_type_labels = {0: "none", 1: "boundary", 2: "obstacle"}
@@ -159,20 +194,24 @@ class RaySensor:
 
         for k in range(self.num_rays):
             d = float(obs_dists[k])
-            obs_hits.append(RayHit(
-                distance=d,
-                norm_distance=d / self.max_range,
-                hit_type=obs_type_labels.get(int(obs_types[k]), "none"),
-                endpoint=(float(obs_ends[k, 0]), float(obs_ends[k, 1])),
-            ))
+            obs_hits.append(
+                RayHit(
+                    distance=d,
+                    norm_distance=d / self.max_range,
+                    hit_type=obs_type_labels.get(int(obs_types[k]), "none"),
+                    endpoint=(float(obs_ends[k, 0]), float(obs_ends[k, 1])),
+                )
+            )
 
             td = float(tgt_dists[k])
-            tgt_hits.append(RayHit(
-                distance=td,
-                norm_distance=td / self.max_range,
-                hit_type=tgt_type_labels.get(int(tgt_types[k]), "none"),
-                endpoint=(float(tgt_ends[k, 0]), float(tgt_ends[k, 1])),
-            ))
+            tgt_hits.append(
+                RayHit(
+                    distance=td,
+                    norm_distance=td / self.max_range,
+                    hit_type=tgt_type_labels.get(int(tgt_types[k]), "none"),
+                    endpoint=(float(tgt_ends[k, 0]), float(tgt_ends[k, 1])),
+                )
+            )
 
         return obs_hits, tgt_hits
 
@@ -247,5 +286,7 @@ class RaySensor:
                         in_comm,
                     ]
 
-        obs_array = np.array([self_y_norm] + obs_dists + target_vec + nbr_vec, dtype=np.float32)
+        obs_array = np.array(
+            [self_y_norm] + obs_dists + target_vec + nbr_vec, dtype=np.float32
+        )
         return obs_array

@@ -36,6 +36,7 @@ class TopologyType(str, Enum):
         CAPPED: Degree-capped k-nearest-neighbor — each drone connects to its
             ``max_degree`` closest neighbors by Euclidean distance.
     """
+
     CHAIN = "chain"
     RING = "ring"
     FULL = "full"
@@ -128,14 +129,14 @@ class CommunicationGraph:
         elif self.topology == TopologyType.RADIUS:
             # Spatial distance graph
             diff = positions[:, np.newaxis, :] - positions[np.newaxis, :, :]
-            dist = np.sqrt(np.sum(diff ** 2, axis=-1))
+            dist = np.sqrt(np.sum(diff**2, axis=-1))
             adj = (dist <= self.radius) & (dist > 1e-4)
             adj = adj.astype(np.float32)
 
         elif self.topology == TopologyType.CAPPED:
             # k-nearest spatial neighbors (max_degree)
             diff = positions[:, np.newaxis, :] - positions[np.newaxis, :, :]
-            dist = np.sqrt(np.sum(diff ** 2, axis=-1))
+            dist = np.sqrt(np.sum(diff**2, axis=-1))
             np.fill_diagonal(dist, np.inf)
 
             k = min(self.max_degree, max(0, n - 1))
@@ -183,14 +184,20 @@ class CommunicationGraph:
             return edge_index, np.zeros((0, 3), dtype=np.float32)
 
         positions = np.array([[a.x, a.y] for a in agents], dtype=np.float32)
-        diag = np.sqrt(map_width ** 2 + map_height ** 2)
+        diag = np.sqrt(map_width**2 + map_height**2)
 
         src_pos = positions[source_indices]
         tgt_pos = positions[target_indices]
 
         dx = (src_pos[:, 0] - tgt_pos[:, 0]) / map_width
         dy = (src_pos[:, 1] - tgt_pos[:, 1]) / map_height
-        dist = np.sqrt((src_pos[:, 0] - tgt_pos[:, 0]) ** 2 + (src_pos[:, 1] - tgt_pos[:, 1]) ** 2) / diag
+        dist = (
+            np.sqrt(
+                (src_pos[:, 0] - tgt_pos[:, 0]) ** 2
+                + (src_pos[:, 1] - tgt_pos[:, 1]) ** 2
+            )
+            / diag
+        )
 
         edge_attr = np.stack([dx, dy, dist], axis=-1).astype(np.float32)
         return edge_index, edge_attr
@@ -302,5 +309,7 @@ class CommunicationGraph:
             for j in range(i + 1, n):
                 # If connected in either direction
                 if adj[i, j] > 0.5 or adj[j, i] > 0.5:
-                    edges.append(((agents[i].x, agents[i].y), (agents[j].x, agents[j].y)))
+                    edges.append(
+                        ((agents[i].x, agents[i].y), (agents[j].x, agents[j].y))
+                    )
         return edges

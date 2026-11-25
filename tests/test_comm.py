@@ -18,13 +18,16 @@ def test_chain_topology():
     assert np.all(np.diag(adj) == 0.0)
 
     # Chain connections: (0,1), (1,2), (2,3), (3,4)
-    expected = np.array([
-        [0, 1, 0, 0, 0],
-        [1, 0, 1, 0, 0],
-        [0, 1, 0, 1, 0],
-        [0, 0, 1, 0, 1],
-        [0, 0, 0, 1, 0],
-    ], dtype=np.float32)
+    expected = np.array(
+        [
+            [0, 1, 0, 0, 0],
+            [1, 0, 1, 0, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 1, 0, 1],
+            [0, 0, 0, 1, 0],
+        ],
+        dtype=np.float32,
+    )
     np.testing.assert_allclose(adj, expected)
 
 
@@ -34,13 +37,16 @@ def test_ring_topology():
     adj = comm.get_adjacency_matrix(agents)
 
     # Ring connections: chain + (0, 4) wrap-around
-    expected = np.array([
-        [0, 1, 0, 0, 1],
-        [1, 0, 1, 0, 0],
-        [0, 1, 0, 1, 0],
-        [0, 0, 1, 0, 1],
-        [1, 0, 0, 1, 0],
-    ], dtype=np.float32)
+    expected = np.array(
+        [
+            [0, 1, 0, 0, 1],
+            [1, 0, 1, 0, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 1, 0, 1],
+            [1, 0, 0, 1, 0],
+        ],
+        dtype=np.float32,
+    )
     np.testing.assert_allclose(adj, expected)
     # Every node in ring has degree 2
     assert np.all(np.sum(adj, axis=1) == 2.0)
@@ -103,7 +109,9 @@ def test_pyg_edge_index_and_attributes():
     agents = create_agents(num_agents=4)
     comm = CommunicationGraph(topology=TopologyType.CHAIN)
 
-    edge_index, edge_attr = comm.get_edge_index_and_attributes(agents, map_width=800.0, map_height=400.0)
+    edge_index, edge_attr = comm.get_edge_index_and_attributes(
+        agents, map_width=800.0, map_height=400.0
+    )
 
     # In 4-agent chain: 3 bidirectional edges = 6 directed edges
     assert edge_index.shape == (2, 6)
@@ -181,11 +189,15 @@ def test_message_routing_max_concat_and_invalid():
 
     inbox_max = comm.route_messages(messages, agents, aggregation="max")
     # Agent 1 neighbors are 0 and 2 -> element-wise max([1, 5], [4, 1]) = [4, 5]
-    np.testing.assert_allclose(inbox_max["agent_1"], np.array([4.0, 5.0], dtype=np.float32))
+    np.testing.assert_allclose(
+        inbox_max["agent_1"], np.array([4.0, 5.0], dtype=np.float32)
+    )
 
     inbox_concat = comm.route_messages(messages, agents, aggregation="concat")
     # Agent 1 neighbors are 0 and 2 -> concatenated [1, 5, 4, 1]
-    np.testing.assert_allclose(inbox_concat["agent_1"], np.array([1.0, 5.0, 4.0, 1.0], dtype=np.float32))
+    np.testing.assert_allclose(
+        inbox_concat["agent_1"], np.array([1.0, 5.0, 4.0, 1.0], dtype=np.float32)
+    )
 
     with pytest.raises(ValueError):
         comm.route_messages(messages, agents, aggregation="invalid_op")

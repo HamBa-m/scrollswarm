@@ -3,6 +3,7 @@ import shutil
 import pygame
 from scrollswarm.env import ScrollSwarmEnv
 
+
 def main():
     os.environ["SDL_VIDEODRIVER"] = "dummy"
     env = ScrollSwarmEnv(num_agents=5, max_cycles=500, render_mode="rgb_array")
@@ -25,6 +26,7 @@ def main():
     shutil.copyfile("assets/screenshot.png", "docs/assets/screenshot.png")
     print("Screenshot saved to assets/screenshot.png and docs/assets/screenshot.png")
     env.close()
+
 
 if __name__ == "__main__":
     main()

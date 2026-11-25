@@ -50,7 +50,9 @@ def test_boundary_detection_by_rays():
 
     # Place origin right below the ceiling
     top_h = m.ceiling_y
-    obs_hits, _ = sensor.cast_rays(origin_x=100.0, origin_y=top_h + 10.0, scrolling_map=m)
+    obs_hits, _ = sensor.cast_rays(
+        origin_x=100.0, origin_y=top_h + 10.0, scrolling_map=m
+    )
 
     # The steepest upward ray (ray 0) should hit the ceiling within a very short distance
     assert obs_hits[0].hit_type == "boundary"
@@ -58,7 +60,9 @@ def test_boundary_detection_by_rays():
 
     # Place origin right above ground
     bot_y = m.floor_y
-    obs_hits_bot, _ = sensor.cast_rays(origin_x=100.0, origin_y=bot_y - 10.0, scrolling_map=m)
+    obs_hits_bot, _ = sensor.cast_rays(
+        origin_x=100.0, origin_y=bot_y - 10.0, scrolling_map=m
+    )
 
     # The steepest downward ray (ray 6) should hit the ground within a very short distance
     assert obs_hits_bot[6].hit_type == "boundary"
@@ -127,7 +131,9 @@ def test_observation_target_and_neighbor_feature_slices():
     self_agent = Agent(agent_id=0, x=100.0, y=200.0)
     dead_near = Agent(agent_id=1, x=110.0, y=200.0)
     dead_near.alive = False
-    alive_nbr = Agent(agent_id=2, x=180.0, y=140.0)  # dx=+80, dy=-60, dist=100 <= comm_range (150)
+    alive_nbr = Agent(
+        agent_id=2, x=180.0, y=140.0
+    )  # dx=+80, dy=-60, dist=100 <= comm_range (150)
 
     sensor = RaySensor(num_rays=7, max_range=400.0, photo_radius=50.0, comm_range=150.0)
     obs = sensor.observe(
@@ -138,8 +144,8 @@ def test_observation_target_and_neighbor_feature_slices():
         agent_id=0,
     )
 
-    diag = float(np.sqrt(800.0 ** 2 + 400.0 ** 2))
-    expected_tgt_dist = float(np.sqrt(40.0 ** 2 + 20.0 ** 2))
+    diag = float(np.sqrt(800.0**2 + 400.0**2))
+    expected_tgt_dist = float(np.sqrt(40.0**2 + 20.0**2))
     assert obs[8] == pytest.approx(40.0 / 800.0, abs=1e-5)
     assert obs[9] == pytest.approx(20.0 / 400.0, abs=1e-5)
     assert obs[10] == pytest.approx(expected_tgt_dist / diag, abs=1e-5)

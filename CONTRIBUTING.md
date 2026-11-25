@@ -38,7 +38,11 @@ uv run mkdocs serve
 
 ### 4. Code Standards
 
-- **Formatting & Typing:** Write clean, modular Python with standard PEP 8 conventions and clear type annotations.
+- **Formatting & Typing:** Code formatting is enforced with [Black](https://github.com/psf/black) (`line-length = 88`, Python 3.12+) along with clear type annotations. Before committing, run:
+  ```bash
+  uv run black .
+  uv run black --check .
+  ```
 - **White-Box Clarity:** Avoid hidden assumptions or undocumented dependencies.
 - **Test Coverage:** Accompany new features, environment mechanics, or mathematical models with corresponding unit tests in `tests/`.
 

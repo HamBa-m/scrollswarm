@@ -330,8 +330,8 @@ xychart-beta
 1. **Micro-Kernel Acceleration:** Both C++20 and Numba eliminate the Python interpreter loop overhead during line-segment intersection checks, achieving **$33\times$ to $50\times$ faster** isolated raycasting.
 2. **End-to-End Stepping Speedup:** In full PettingZoo simulation, the environment step rate increases from $\sim 690\text{ steps/s}$ to over **$1,700\text{ steps/s}$** on a single CPU thread ($2.5\times$ overall speedup). The remaining time is consumed by Python dictionary creation, PyG graph assembly, and PyTorch tensor allocations.
 3. **Warmup vs. Instant Start:**
-   - **Numba** delivers slightly higher peak micro-throughput thanks to LLVM loop optimization, but incurs an initial $\sim 1.5\,\text{s}$ compilation lag on first invocation.
-   - **C++20** achieves comparable high throughput with **zero warmup latency**, making it ideal for distributed Ray/SubprocVec workers where processes restart frequently.
+    - **Numba** delivers slightly higher peak micro-throughput thanks to LLVM loop optimization, but incurs an initial $\sim 1.5\,\text{s}$ compilation lag on first invocation.
+    - **C++20** achieves comparable high throughput with **zero warmup latency**, making it ideal for distributed Ray/SubprocVec workers where processes restart frequently.
 
 ### Swarm Cardinality Scaling
 

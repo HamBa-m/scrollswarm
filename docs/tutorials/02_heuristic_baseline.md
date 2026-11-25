@@ -33,14 +33,14 @@ Observation Vector: [0: Altitude | 1-7: LiDAR Rays | 8-11: Target | 12-15: Neigh
                      Index 0       Indices 1 to 7     Indices 8-11    Indices 12-15
 ```
 
-### 1. Normalized Flight Altitude (Index `0`)
+### 1. Normalized Flight Altitude
 $$y_{\text{norm}} = \frac{y_i}{H} \in [0.0, 1.0]$$
 
 - $y_{\text{norm}} \approx 0.0$ indicates dangerous proximity to the upper ceiling ($y_{\text{ceiling}} = 15\text{ px}$).
 - $y_{\text{norm}} \approx 1.0$ indicates dangerous proximity to the ground base plane ($y_{\text{floor}} = 385\text{ px}$).
 - $y_{\text{norm}} \approx 0.5$ represents the vertical median of the corridor.
 
-### 2. Forward 7-Ray LiDAR Rangefinder (Indices `1` to `7`)
+### 2. Forward 7-Ray LiDAR Rangefinder
 The rangefinder casts 7 rays across a $120^\circ$ forward field of view ($-60^\circ$ up-forward to $+60^\circ$ down-forward) up to $R_{\max} = 400\text{ px}$. Each feature reports normalized distance $d_k^* / R_{\max} \in [0.0, 1.0]$:
 
 | Feature Index | Ray Index | Polar Angle $\theta_k$ | Orientation | Primary Hazard Detected |
@@ -53,7 +53,7 @@ The rangefinder casts 7 rays across a $120^\circ$ forward field of view ($-60^\c
 | **`6`** | Ray 5 | $+40^\circ$ | Moderate down-forward | Ground structures, building edges |
 | **`7`** | Ray 6 | $+60^\circ$ | Steep down-forward | Ground surface, low structural bases |
 
-### 3. Nearest Target Waypoint (Indices `8` to `11`)
+### 3. Nearest Target Waypoint 
 - **`obs[8]` ($\Delta x_{\text{tgt}} / W$)**: Relative horizontal distance. Positive when target is ahead (to the right).
 - **`obs[9]` ($\Delta y_{\text{tgt}} / H$)**: Relative vertical distance $(y_{\text{tgt}} - y_i) / H$.
   - $\Delta y_{\text{tgt}} > 0 \implies$ Target is **below** the drone $\implies$ descend (`Action.DOWN`).
@@ -61,7 +61,7 @@ The rangefinder casts 7 rays across a $120^\circ$ forward field of view ($-60^\c
 - **`obs[10]` ($d_{\text{tgt}} / \text{diag}$)**: Normalized Euclidean distance to target.
 - **`obs[11]` ($\mathbf{1}_{\text{in_range}}$)**: Binary flag ($1.0$ if $d_{\text{tgt}} \le 45\text{ px}$, else $0.0$).
 
-### 4. Nearest Neighbor Teammate (Indices `12` to `15`)
+### 4. Nearest Neighbor Teammate 
 - Relative spatial displacement $[\Delta x_{\text{nbr}} / W, \Delta y_{\text{nbr}} / H, d_{\text{nbr}} / \text{diag}]$ and binary communication link flag $\mathbf{1}_{\text{in_comm}}$ ($1.0$ if $d_{\text{nbr}} \le 180\text{ px}$).
 
 ---
@@ -81,10 +81,10 @@ flowchart TD
     F -- No --> H["Tier 4: Corridor Centering<br/>Gently drift toward y_norm ≈ 0.5"]
 ```
 
-### Tier 1: Emergency Boundary Avoidance (Hard Safety)
+### Tier 1: Emergency Boundary Avoidance
 If the drone penetrates the ceiling buffer zone ($y_{\text{norm}} \le 0.15$), it must immediately dive (`Action.DOWN`). If it penetrates the floor buffer zone ($y_{\text{norm}} \ge 0.85$), it must immediately climb (`Action.UP`).
 
-### Tier 2: LiDAR Obstacle Evasion (Dynamic Obstacles)
+### Tier 2: LiDAR Obstacle Evasion
 If any LiDAR ray detects an obstacle closer than a critical safety distance $d_{\text{crit}} = 0.35$ ($140\text{ px}$):
 
 1. Compute aggregate **upper clearance**: $\bar{d}_{\text{upper}} = \frac{1}{3}(d_0 + d_1 + d_2)$.
@@ -92,14 +92,14 @@ If any LiDAR ray detects an obstacle closer than a critical safety distance $d_{
 3. If $\bar{d}_{\text{upper}} > \bar{d}_{\text{lower}}$, climb (`Action.UP`) toward open airspace.
 4. Otherwise, dive (`Action.DOWN`) toward lower open airspace.
 
-### Tier 3: Target Interception (Mission Objective)
+### Tier 3: Target Interception
 When no immediate structural collision threatens the drone, align vertical altitude with the target waypoint:
 
 - If $\Delta y_{\text{tgt}} > +0.03$, target is below: select `Action.DOWN`.
 - If $\Delta y_{\text{tgt}} < -0.03$, target is above: select `Action.UP`.
 - If $|\Delta y_{\text{tgt}}| \le 0.03$, altitude matches: maintain level flight (`Action.STAY`).
 
-### Tier 4: Corridor Median Centering (Equilibrium)
+### Tier 4: Corridor Median Centering
 If no target is in sight or the path is clear, maintain altitude near the vertical corridor center ($y_{\text{norm}} \approx 0.5$) to maximize defensive reaction buffers against future procedural obstacles.
 
 ---
@@ -317,9 +317,9 @@ Running the evaluation script across 5 independent seeds (seeds 100 to 104) over
 1. **Survival Gain**: The heuristic's Tier 1 boundary avoidance and Tier 2 LiDAR clearance voting prevent premature collisions against simple barriers, increasing mean survival from 257.9 steps to 356.7 steps.
 2. **Reconnaissance Yield**: Target tracking (Tier 3) successfully aligns vertical altitude with nearby target waypoints, tripling the mean photo acquisition from 0.60 to 1.80 targets per episode.
 3. **The Limits of Memoryless Reactive Control**: Despite outperforming random exploration, the reactive policy still experiences a 60% crash rate over 500 steps. Because it is a memoryless, 1-step reactive heuristic without lookahead planning or inter-agent coordination:
-   - Drones cannot anticipate bottlenecks where procedural obstacles require multi-step coordinated evasive maneuvers.
-   - Without inter-agent communication, drones cannot coordinate spatial dispersion across the corridor gap.
-   - This performance gap establishes a meaningful benchmark lower bound that cooperative multi-agent RL (e.g., MAPPO, QMIX, GNN policies) must learn to surpass.
+       - Drones cannot anticipate bottlenecks where procedural obstacles require multi-step coordinated evasive maneuvers.
+       - Without inter-agent communication, drones cannot coordinate spatial dispersion across the corridor gap.
+       - This performance gap establishes a meaningful benchmark lower bound that cooperative multi-agent RL (e.g., MAPPO, QMIX, GNN policies) must learn to surpass.
 
 ---
 

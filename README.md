@@ -146,6 +146,7 @@ Step-by-step guides are hosted on the [Documentation Site](https://hambam.top/sc
 1. **[Tutorial 01: PettingZoo ParallelEnv Loop](https://hambam.top/scrollswarm/tutorials/01_parallel_env/):** The synchronous Dec-POMDP multi-agent simulation loop, handling agent life/death culling, and CTDE global state extraction (`env.state()`).
 2. **[Tutorial 02: Heuristic Reactive Policy](https://hambam.top/scrollswarm/tutorials/02_heuristic_baseline/):** Designing an explainable 4-tier rule-based baseline using the 7-ray LiDAR rangefinder and target tracking.
 3. **[Tutorial 03: PyG & GNN Integration](https://hambam.top/scrollswarm/tutorials/03_gnn_pyg/):** Extracting graph tensors (`edge_index`, `edge_attr`), packaging into `torch_geometric.data.Data`, and executing native message passing.
+4. **[Tutorial 04: Computational Geometry Acceleration](https://hambam.top/scrollswarm/tutorials/04_acceleration_backends/):** Compiling the native C++20 kernel, enabling Numba JIT, invoking standalone geometry kernels, and benchmarking swarm scaling ($N \in [1, 10]$).
 
 ---
 

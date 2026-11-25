@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scrollswarm"
-version = "0.1.0"
+version = "0.2.0"
 description = "A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication."
 readme = "README.md"
 license = "MIT"

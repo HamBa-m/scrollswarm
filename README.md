@@ -1,6 +1,6 @@
 # ScrollSwarm
 
-[![Release](https://img.shields.io/badge/release-v0.1.0-blue.svg?logo=github)](https://github.com/HamBa-m/scrollswarm/releases)
+[![Release](https://img.shields.io/badge/release-v0.2.0-blue.svg?logo=github)](https://github.com/HamBa-m/scrollswarm/releases)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-00599C.svg?logo=c%2B%2B&logoColor=white)](scrollswarm/geometry/cpp/)
 [![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)

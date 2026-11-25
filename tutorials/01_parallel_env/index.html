@@ -1,0 +1,1970 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.">
+      
+      
+        <meta name="author" content="Hamza Ba-mohammed">
+      
+      
+        <link rel="canonical" href="https://hambam.top/scrollswarm/tutorials/01_parallel_env/">
+      
+      
+        <link rel="prev" href="../../environment/reward/">
+      
+      
+        <link rel="next" href="../02_heuristic_baseline/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>01: PettingZoo ParallelEnv Loop - ScrollSwarm</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-01-pettingzoo-parallelenv-multi-agent-loop" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ScrollSwarm" class="md-header__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ScrollSwarm
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              01: PettingZoo ParallelEnv Loop
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../environment/overview/" class="md-tabs__link">
+          
+  
+  
+  Environment Specification
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/env/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ScrollSwarm" class="md-nav__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ScrollSwarm
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration & Telemetry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Environment Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/communication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/reward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: PettingZoo ParallelEnv Loop
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: PettingZoo ParallelEnv Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-multi-agent-execution-model-the-parallelenv-paradigm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Multi-Agent Execution Model: The ParallelEnv Paradigm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Multi-Agent Execution Model: The ParallelEnv Paradigm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent-lifecycle-possible_agents-vs-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Lifecycle: possible_agents vs. agents
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-environment-initialization-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Environment Initialization &amp; Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Environment Initialization &amp; Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#action-and-observation-spaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action and Observation Spaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-synchronous-stepping-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Synchronous Stepping Loop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The Synchronous Stepping Loop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unpacking-the-step-return" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unpacking the Step Return
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-centralized-state-for-ctde-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Centralized State for CTDE Algorithms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Centralized State for CTDE Algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#static-dimension-dead-agent-zero-masking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static Dimension &amp; Dead-Agent Zero-Masking
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-headless-rendering-image-array-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Headless Rendering &amp; Image Array Export
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-complete-end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Complete End-to-End Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_heuristic_baseline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02: Heuristic Reactive Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_gnn_pyg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03: PyG & GNN Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_acceleration_backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: Computational Acceleration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_vectorized_marl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05: Vectorized MARL & Scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ScrollSwarmEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/vector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vectorized Runners
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent & Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensors & Raycasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/comm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Map & Entities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sprites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprites & Rendering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-multi-agent-execution-model-the-parallelenv-paradigm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Multi-Agent Execution Model: The ParallelEnv Paradigm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Multi-Agent Execution Model: The ParallelEnv Paradigm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent-lifecycle-possible_agents-vs-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Lifecycle: possible_agents vs. agents
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-environment-initialization-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Environment Initialization &amp; Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Environment Initialization &amp; Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#action-and-observation-spaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Action and Observation Spaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-synchronous-stepping-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The Synchronous Stepping Loop
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. The Synchronous Stepping Loop">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unpacking-the-step-return" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unpacking the Step Return
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-centralized-state-for-ctde-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Centralized State for CTDE Algorithms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Centralized State for CTDE Algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#static-dimension-dead-agent-zero-masking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Static Dimension &amp; Dead-Agent Zero-Masking
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-headless-rendering-image-array-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Headless Rendering &amp; Image Array Export
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-complete-end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Complete End-to-End Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="tutorial-01-pettingzoo-parallelenv-multi-agent-loop">Tutorial 01: PettingZoo ParallelEnv Multi-Agent Loop</h1>
+<p>This tutorial walks through building a complete MARL training loop in ScrollSwarm using Farama Foundation's <strong>PettingZoo <code>ParallelEnv</code></strong> standard.</p>
+<p>You will learn how to:</p>
+<ol>
+<li>Understand the synchronous Dec-POMDP multi-agent execution model.</li>
+<li>Configure environment parameters, corridor geometries, and communication networks.</li>
+<li>Manage the dynamic agent lifecycle: active vs. terminated vs. truncated agents.</li>
+<li>Extract centralized state tensors for Centralized Training with Decentralized Execution (CTDE).</li>
+<li>Capture rendered RGB frames for headless logging and video generation.</li>
+</ol>
+<hr />
+<h2 id="1-multi-agent-execution-model-the-parallelenv-paradigm">1. Multi-Agent Execution Model: The ParallelEnv Paradigm</h2>
+<p>In single-agent reinforcement learning (Gymnasium), the interaction follows a sequential loop: the agent receives observation <span class="arithmatex">\(s_t\)</span>, takes action <span class="arithmatex">\(a_t\)</span>, and receives <span class="arithmatex">\(s_{t+1}, r_t, d_t\)</span>.</p>
+<p>In cooperative Multi-Agent Reinforcement Learning modeled as a <strong>Decentralized Partially Observable Markov Decision Process (Dec-POMDP)</strong>, all living agents observe their individual perspectives and submit actions <strong>simultaneously</strong> at each time step <span class="arithmatex">\(t\)</span>.</p>
+<p>PettingZoo provides two distinct paradigms for multi-agent interaction:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Paradigm</th>
+<th style="text-align: left;">Interface</th>
+<th style="text-align: left;">Execution Order</th>
+<th style="text-align: left;">Typical Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Agent-Environment Cycle (AEC)</strong></td>
+<td style="text-align: left;"><code>env.observe()</code>, <code>env.step()</code></td>
+<td style="text-align: left;">Turn-based, sequential</td>
+<td style="text-align: left;">Turn-based board games (e.g., Chess, Go)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Parallel Environment (<code>ParallelEnv</code>)</strong></td>
+<td style="text-align: left;"><code>env.step(actions_dict)</code></td>
+<td style="text-align: left;">Synchronous, parallel</td>
+<td style="text-align: left;">Real-time swarms, robotics, simultaneous games</td>
+</tr>
+</tbody>
+</table>
+<p>ScrollSwarm inherits from <code>pettingzoo.ParallelEnv</code>. At every discrete time step <span class="arithmatex">\(t\)</span>:</p>
+<div class="arithmatex">\[\mathbf{a}_t = \big( a_t^1, a_t^2, \dots, a_t^N \big) \in \pmb{\mathcal{A}} = \prod_{i=1}^N \mathcal{A}_i\]</div>
+<p>All actions are dispatched in parallel via Python dictionaries keyed by agent identifier strings (<code>"agent_0"</code>, <code>"agent_1"</code>, etc.).</p>
+<h3 id="agent-lifecycle-possible_agents-vs-agents">Agent Lifecycle: <code>possible_agents</code> vs. <code>agents</code></h3>
+<p>ScrollSwarm maintains two distinct agent lists conforming to PettingZoo specifications:</p>
+<ul>
+<li><strong><code>env.possible_agents</code></strong>: The immutable, static list of all potential agents that could exist in the environment (e.g., <code>["agent_0", "agent_1", "agent_2", "agent_3", "agent_4"]</code>). This set never shrinks or changes during an episode.</li>
+<li><strong><code>env.agents</code></strong>: The dynamic list of agents currently active (alive and un-truncated). When a drone collides with an obstacle or boundary, it crashes (<code>alive = False</code>), is penalized, and is removed from <code>env.agents</code> on the subsequent step.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Important: Active Agent Set</p>
+<p>The action dictionary passed to <code>env.step(actions)</code> must contain keys for <strong>all</strong> currently active agents in <code>env.agents</code>. Attempting to submit actions for dead agents is ignored, while omitting active agents will skip their physical updates.</p>
+</div>
+<hr />
+<h2 id="2-environment-initialization-configuration">2. Environment Initialization &amp; Configuration</h2>
+<p>Instantiating <code>ScrollSwarmEnv</code> allows fine-grained control over swarm cardinality, reward balance, communication topologies, and rendering:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScrollSwarmEnv</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.map</span><span class="w"> </span><span class="kn">import</span> <span class="n">MapConfig</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.comm</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopologyType</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Optional: Customize corridor dimensions and safety passage</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">custom_map</span> <span class="o">=</span> <span class="n">MapConfig</span><span class="p">(</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">scroll_speed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">min_corridor_gap</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span>   <span class="c1"># Guaranteed clearance passage (pixels)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">ceiling_y</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>           <span class="c1"># Upper boundary buffer</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">floor_margin</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>        <span class="c1"># Lower boundary buffer</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">)</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># Initialize the multi-agent environment</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">env</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">num_agents</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>                           <span class="c1"># Swarm cardinality N (1 to 10)</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">max_cycles</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>                        <span class="c1"># Maximum episode horizon (T_max)</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">map_config</span><span class="o">=</span><span class="n">custom_map</span><span class="p">,</span>                  <span class="c1"># Corridor geometry</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">comm_topology</span><span class="o">=</span><span class="n">TopologyType</span><span class="o">.</span><span class="n">CHAIN</span><span class="p">,</span>       <span class="c1"># Communication graph network</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">target_reward</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>                      <span class="c1"># Photo acquisition reward</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">crash_penalty</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>                     <span class="c1"># Crash penalty</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="n">step_reward</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>                       <span class="c1"># Per-step survival incentive</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="n">team_reward</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>                      <span class="c1"># Individual vs. team-shared rewards</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="n">render_mode</span><span class="o">=</span><span class="s2">"human"</span><span class="p">,</span>                    <span class="c1"># "human", "rgb_array", or None</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="action-and-observation-spaces">Action and Observation Spaces</h3>
+<p>For any agent <code>agent_id</code> in <code>env.possible_agents</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">obs_space</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="p">(</span><span class="s2">"agent_0"</span><span class="p">)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">act_space</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="s2">"agent_0"</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Observation space: </span><span class="si">{</span><span class="n">obs_space</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># Box(-1.0, 1.0, (16,), float32)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Action space:      </span><span class="si">{</span><span class="n">act_space</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># Discrete(3)</span>
+</span></code></pre></div>
+<p>The discrete action indices map directly to vertical thrust kinematics:</p>
+<ul>
+<li><strong><code>0</code> (<code>Action.UP</code>)</strong>: Ascends (climbs) <span class="arithmatex">\(\Delta y = -k\)</span> pixels (<span class="arithmatex">\(k = 5\text{ px}\)</span>).</li>
+<li><strong><code>1</code> (<code>Action.STAY</code>)</strong>: Maintains current flight altitude <span class="arithmatex">\(\Delta y = 0\text{ px}\)</span>.</li>
+<li><strong><code>2</code> (<code>Action.DOWN</code>)</strong>: Descends (dives) <span class="arithmatex">\(\Delta y = +k\)</span> pixels (<span class="arithmatex">\(k = 5\text{ px}\)</span>).</li>
+</ul>
+<hr />
+<h2 id="3-the-synchronous-stepping-loop">3. The Synchronous Stepping Loop</h2>
+<p>The standard execution loop consists of resetting the environment, querying policies, executing synchronous steps, and handling terminations:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">observations</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">while</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="c1"># 1. Query policies or sample random actions for all living drones</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="c1"># 2. Advance the environment by one synchronized step</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">observations</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">terminations</span><span class="p">,</span> <span class="n">truncations</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="unpacking-the-step-return">Unpacking the Step Return</h3>
+<p><code>env.step()</code> returns five synchronized dictionaries, keyed by active agent identifiers:</p>
+<ol>
+<li><strong><code>observations</code></strong> (<code>Dict[str, np.ndarray]</code>):
+   Each value is a normalized 16-dimensional float vector:
+   $<span class="arithmatex">\(\mathbf{o}_i = [y_{\text{norm}}, \; d_{\text{LiDAR}, 0\dots 6}, \; \mathbf{v}_{\text{tgt}}, \; \mathbf{v}_{\text{nbr}}] \in [-1.0, 1.0]^{16}\)</span>$</li>
+<li><strong><code>rewards</code></strong> (<code>Dict[str, float]</code>):
+   Scalar feedback received by each drone during this transition:
+   $<span class="arithmatex">\(r_i(t) = r_{\text{step}} + r_{\text{target}} \cdot \mathbf{1}_{\text{photo}} - r_{\text{crash}} \cdot \mathbf{1}_{\text{collision}}\)</span>$</li>
+<li><strong><code>terminations</code></strong> (<code>Dict[str, bool]</code>):
+   <code>True</code> if the agent suffered a fatal collision (boundary or obstacle contact) at this step.</li>
+<li><strong><code>truncations</code></strong> (<code>Dict[str, bool]</code>):
+   <code>True</code> for all agents when <code>step_count &gt;= max_cycles</code>.</li>
+<li><strong><code>infos</code></strong> (<code>Dict[str, Dict[str, Any]]</code>):
+   Diagnostic telemetry containing:</li>
+<li><code>"targets_photographed"</code>: Cumulative count of targets successfully photographed by this agent.</li>
+<li><code>"collision"</code>: Contact cause (<code>"boundary"</code>, <code>"obstacle"</code>, or <code>None</code>).</li>
+<li><code>"steps_alive"</code>: Cumulative time steps this UAV has survived.</li>
+</ol>
+<div class="admonition danger">
+<p class="admonition-title">Caution: Avoiding KeyError on Agent Death</p>
+<p>Once an agent terminates (<code>terminations[a] = True</code>), it is removed from <code>env.agents</code> on the next step. As a result, subsequent <code>observations</code>, <code>rewards</code>, and <code>infos</code> will <strong>no longer contain keys</strong> for that agent. Always check <code>if agent in observations</code> or track cumulative metrics in an external dictionary across <code>env.possible_agents</code>.</p>
+</div>
+<hr />
+<h2 id="4-centralized-state-for-ctde-algorithms">4. Centralized State for CTDE Algorithms</h2>
+<p>State-of-the-art Multi-Agent Actor-Critic frameworks (e.g., MAPPO, MADDPG, QMIX) require access to a global centralized state <span class="arithmatex">\(\mathbf{s} \in \mathcal{S}\)</span> during training, while decentralized actors select actions conditioned only on local observations <span class="arithmatex">\(\mathbf{o}_i\)</span>.</p>
+<p>ScrollSwarm exposes this centralized representation through <code>env.state()</code> and <code>env.state_space</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Access the centralized global state vector</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">global_state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Global state shape: </span><span class="si">{</span><span class="n">global_state</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># (16 * N,) -&gt; (80,) for N=5</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"State space:        </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">state_space</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>      <span class="c1"># Box(-1.0, 1.0, (80,), float32)</span>
+</span></code></pre></div>
+<h3 id="static-dimension-dead-agent-zero-masking">Static Dimension &amp; Dead-Agent Zero-Masking</h3>
+<p>A critical requirement for neural networks is fixed input dimensionality. In ScrollSwarm:</p>
+<div class="arithmatex">\[\mathbf{s}(t) = \big[ \mathbf{o}_1(t)^\top, \; \mathbf{o}_2(t)^\top, \; \dots, \; \mathbf{o}_N(t)^\top \big]^\top \in \mathbb{R}^{16N}\]</div>
+<p>When drone <span class="arithmatex">\(j\)</span> crashes and terminates:</p>
+<div class="arithmatex">\[\mathbf{o}_j(t) = \mathbf{0}_{16}\]</div>
+<p>The environment automatically zero-masks the feature slices of dead agents, preserving the static shape <span class="arithmatex">\((16N,)\)</span> throughout the entire episode.</p>
+<hr />
+<h2 id="5-headless-rendering-image-array-export">5. Headless Rendering &amp; Image Array Export</h2>
+<p>When training on headless servers or computing clusters without an X11/Wayland display server, set <code>render_mode="rgb_array"</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">env</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span><span class="n">num_agents</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_cycles</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="s2">"rgb_array"</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Advance simulation</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># Capture frame as uint8 NumPy image array</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">frame</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Frame shape: </span><span class="si">{</span><span class="n">frame</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, dtype: </span><span class="si">{</span><span class="n">frame</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1"># Output: Frame shape: (400, 800, 3), dtype: uint8</span>
+</span></code></pre></div>
+<p>You can feed these frame arrays directly into <code>imageio</code> or <code>matplotlib</code> to render episode replays or visual telemetry logs.</p>
+<hr />
+<h2 id="6-complete-end-to-end-example">6. Complete End-to-End Example</h2>
+<p>The script below demonstrates a full, robust rollout loop: initializing 5 UAVs, managing the agent lifecycle, recording episodic telemetry without <code>KeyError</code>, and safely terminating resources.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="sd">"""</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="sd">Tutorial 01: Complete PettingZoo ParallelEnv Rollout Script.</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="sd">"""</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScrollSwarmEnv</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.comm</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopologyType</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_episode</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="c1"># 1. Initialize environment</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">env</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>        <span class="n">num_agents</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>        <span class="n">max_cycles</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>        <span class="n">comm_topology</span><span class="o">=</span><span class="n">TopologyType</span><span class="o">.</span><span class="n">CHAIN</span><span class="p">,</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>        <span class="n">target_reward</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>        <span class="n">crash_penalty</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>        <span class="n">step_reward</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>        <span class="n">render_mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Set to "human" for live Pygame window</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>    <span class="p">)</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>    <span class="n">observations</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>    <span class="c1"># 2. Initialize persistent metric tracker for all possible agents</span>
+</span><span id="__span-5-26"><a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>    <span class="n">telemetry</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-5-27"><a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>        <span class="n">agent_id</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-5-28"><a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>            <span class="s2">"cumulative_reward"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+</span><span id="__span-5-29"><a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>            <span class="s2">"steps_survived"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-5-30"><a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>            <span class="s2">"targets_photographed"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-5-31"><a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a>            <span class="s2">"collision_cause"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-5-32"><a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>        <span class="p">}</span>
+</span><span id="__span-5-33"><a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a>        <span class="k">for</span> <span class="n">agent_id</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">possible_agents</span>
+</span><span id="__span-5-34"><a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a>    <span class="p">}</span>
+</span><span id="__span-5-35"><a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a>
+</span><span id="__span-5-36"><a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a>    <span class="n">step_idx</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-5-37"><a id="__codelineno-5-37" name="__codelineno-5-37" href="#__codelineno-5-37"></a>    <span class="k">while</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
+</span><span id="__span-5-38"><a id="__codelineno-5-38" name="__codelineno-5-38" href="#__codelineno-5-38"></a>        <span class="n">step_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-5-39"><a id="__codelineno-5-39" name="__codelineno-5-39" href="#__codelineno-5-39"></a>
+</span><span id="__span-5-40"><a id="__codelineno-5-40" name="__codelineno-5-40" href="#__codelineno-5-40"></a>        <span class="c1"># 3. Formulate joint action dictionary</span>
+</span><span id="__span-5-41"><a id="__codelineno-5-41" name="__codelineno-5-41" href="#__codelineno-5-41"></a>        <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+</span><span id="__span-5-42"><a id="__codelineno-5-42" name="__codelineno-5-42" href="#__codelineno-5-42"></a>
+</span><span id="__span-5-43"><a id="__codelineno-5-43" name="__codelineno-5-43" href="#__codelineno-5-43"></a>        <span class="c1"># 4. Synchronous environment transition</span>
+</span><span id="__span-5-44"><a id="__codelineno-5-44" name="__codelineno-5-44" href="#__codelineno-5-44"></a>        <span class="n">observations</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">terminations</span><span class="p">,</span> <span class="n">truncations</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+</span><span id="__span-5-45"><a id="__codelineno-5-45" name="__codelineno-5-45" href="#__codelineno-5-45"></a>
+</span><span id="__span-5-46"><a id="__codelineno-5-46" name="__codelineno-5-46" href="#__codelineno-5-46"></a>        <span class="c1"># 5. Safely record telemetry for living and newly-terminated agents</span>
+</span><span id="__span-5-47"><a id="__codelineno-5-47" name="__codelineno-5-47" href="#__codelineno-5-47"></a>        <span class="k">for</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">reward</span> <span class="ow">in</span> <span class="n">rewards</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-5-48"><a id="__codelineno-5-48" name="__codelineno-5-48" href="#__codelineno-5-48"></a>            <span class="n">telemetry</span><span class="p">[</span><span class="n">agent_id</span><span class="p">][</span><span class="s2">"cumulative_reward"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">reward</span>
+</span><span id="__span-5-49"><a id="__codelineno-5-49" name="__codelineno-5-49" href="#__codelineno-5-49"></a>
+</span><span id="__span-5-50"><a id="__codelineno-5-50" name="__codelineno-5-50" href="#__codelineno-5-50"></a>        <span class="k">for</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">infos</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-5-51"><a id="__codelineno-5-51" name="__codelineno-5-51" href="#__codelineno-5-51"></a>            <span class="n">telemetry</span><span class="p">[</span><span class="n">agent_id</span><span class="p">][</span><span class="s2">"steps_survived"</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">"steps_alive"</span><span class="p">]</span>
+</span><span id="__span-5-52"><a id="__codelineno-5-52" name="__codelineno-5-52" href="#__codelineno-5-52"></a>            <span class="n">telemetry</span><span class="p">[</span><span class="n">agent_id</span><span class="p">][</span><span class="s2">"targets_photographed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">"targets_photographed"</span><span class="p">]</span>
+</span><span id="__span-5-53"><a id="__codelineno-5-53" name="__codelineno-5-53" href="#__codelineno-5-53"></a>            <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s2">"collision"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-5-54"><a id="__codelineno-5-54" name="__codelineno-5-54" href="#__codelineno-5-54"></a>                <span class="n">telemetry</span><span class="p">[</span><span class="n">agent_id</span><span class="p">][</span><span class="s2">"collision_cause"</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">"collision"</span><span class="p">]</span>
+</span><span id="__span-5-55"><a id="__codelineno-5-55" name="__codelineno-5-55" href="#__codelineno-5-55"></a>
+</span><span id="__span-5-56"><a id="__codelineno-5-56" name="__codelineno-5-56" href="#__codelineno-5-56"></a>        <span class="c1"># Optional: Inspect centralized CTDE state</span>
+</span><span id="__span-5-57"><a id="__codelineno-5-57" name="__codelineno-5-57" href="#__codelineno-5-57"></a>        <span class="k">if</span> <span class="n">step_idx</span> <span class="o">%</span> <span class="mi">50</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="__span-5-58"><a id="__codelineno-5-58" name="__codelineno-5-58" href="#__codelineno-5-58"></a>            <span class="n">ctde_state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">state</span><span class="p">()</span>
+</span><span id="__span-5-59"><a id="__codelineno-5-59" name="__codelineno-5-59" href="#__codelineno-5-59"></a>            <span class="n">active_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">)</span>
+</span><span id="__span-5-60"><a id="__codelineno-5-60" name="__codelineno-5-60" href="#__codelineno-5-60"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Step </span><span class="si">{</span><span class="n">step_idx</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> | Active UAVs: </span><span class="si">{</span><span class="n">active_count</span><span class="si">}</span><span class="s2">/5 | CTDE State Norm: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ctde_state</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-5-61"><a id="__codelineno-5-61" name="__codelineno-5-61" href="#__codelineno-5-61"></a>
+</span><span id="__span-5-62"><a id="__codelineno-5-62" name="__codelineno-5-62" href="#__codelineno-5-62"></a>    <span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="__span-5-63"><a id="__codelineno-5-63" name="__codelineno-5-63" href="#__codelineno-5-63"></a>
+</span><span id="__span-5-64"><a id="__codelineno-5-64" name="__codelineno-5-64" href="#__codelineno-5-64"></a>    <span class="c1"># 6. Aggregate episode metrics</span>
+</span><span id="__span-5-65"><a id="__codelineno-5-65" name="__codelineno-5-65" href="#__codelineno-5-65"></a>    <span class="n">total_team_reward</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">"cumulative_reward"</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">telemetry</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+</span><span id="__span-5-66"><a id="__codelineno-5-66" name="__codelineno-5-66" href="#__codelineno-5-66"></a>    <span class="n">total_targets</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">"targets_photographed"</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">telemetry</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+</span><span id="__span-5-67"><a id="__codelineno-5-67" name="__codelineno-5-67" href="#__codelineno-5-67"></a>    <span class="n">mean_survival</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s2">"steps_survived"</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">telemetry</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+</span><span id="__span-5-68"><a id="__codelineno-5-68" name="__codelineno-5-68" href="#__codelineno-5-68"></a>
+</span><span id="__span-5-69"><a id="__codelineno-5-69" name="__codelineno-5-69" href="#__codelineno-5-69"></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="__span-5-70"><a id="__codelineno-5-70" name="__codelineno-5-70" href="#__codelineno-5-70"></a>        <span class="s2">"total_team_reward"</span><span class="p">:</span> <span class="n">total_team_reward</span><span class="p">,</span>
+</span><span id="__span-5-71"><a id="__codelineno-5-71" name="__codelineno-5-71" href="#__codelineno-5-71"></a>        <span class="s2">"total_targets"</span><span class="p">:</span> <span class="n">total_targets</span><span class="p">,</span>
+</span><span id="__span-5-72"><a id="__codelineno-5-72" name="__codelineno-5-72" href="#__codelineno-5-72"></a>        <span class="s2">"mean_survival_steps"</span><span class="p">:</span> <span class="n">mean_survival</span><span class="p">,</span>
+</span><span id="__span-5-73"><a id="__codelineno-5-73" name="__codelineno-5-73" href="#__codelineno-5-73"></a>        <span class="s2">"details"</span><span class="p">:</span> <span class="n">telemetry</span><span class="p">,</span>
+</span><span id="__span-5-74"><a id="__codelineno-5-74" name="__codelineno-5-74" href="#__codelineno-5-74"></a>    <span class="p">}</span>
+</span><span id="__span-5-75"><a id="__codelineno-5-75" name="__codelineno-5-75" href="#__codelineno-5-75"></a>
+</span><span id="__span-5-76"><a id="__codelineno-5-76" name="__codelineno-5-76" href="#__codelineno-5-76"></a>
+</span><span id="__span-5-77"><a id="__codelineno-5-77" name="__codelineno-5-77" href="#__codelineno-5-77"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+</span><span id="__span-5-78"><a id="__codelineno-5-78" name="__codelineno-5-78" href="#__codelineno-5-78"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Executing ScrollSwarm PettingZoo ParallelEnv Rollout..."</span><span class="p">)</span>
+</span><span id="__span-5-79"><a id="__codelineno-5-79" name="__codelineno-5-79" href="#__codelineno-5-79"></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">run_episode</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
+</span><span id="__span-5-80"><a id="__codelineno-5-80" name="__codelineno-5-80" href="#__codelineno-5-80"></a>
+</span><span id="__span-5-81"><a id="__codelineno-5-81" name="__codelineno-5-81" href="#__codelineno-5-81"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">--- Episode Summary ---"</span><span class="p">)</span>
+</span><span id="__span-5-82"><a id="__codelineno-5-82" name="__codelineno-5-82" href="#__codelineno-5-82"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Total Team Return:       </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">'total_team_reward'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-5-83"><a id="__codelineno-5-83" name="__codelineno-5-83" href="#__codelineno-5-83"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Total Targets Surveyed:  </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">'total_targets'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-5-84"><a id="__codelineno-5-84" name="__codelineno-5-84" href="#__codelineno-5-84"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Mean Survival Steps:     </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">'mean_survival_steps'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-5-85"><a id="__codelineno-5-85" name="__codelineno-5-85" href="#__codelineno-5-85"></a>
+</span><span id="__span-5-86"><a id="__codelineno-5-86" name="__codelineno-5-86" href="#__codelineno-5-86"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">--- Per-Agent Diagnostics ---"</span><span class="p">)</span>
+</span><span id="__span-5-87"><a id="__codelineno-5-87" name="__codelineno-5-87" href="#__codelineno-5-87"></a>    <span class="k">for</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">results</span><span class="p">[</span><span class="s2">"details"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="__span-5-88"><a id="__codelineno-5-88" name="__codelineno-5-88" href="#__codelineno-5-88"></a>        <span class="n">status</span> <span class="o">=</span> <span class="s2">"SURVIVED"</span> <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="s2">"collision_cause"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"CRASHED (</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">'collision_cause'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
+</span><span id="__span-5-89"><a id="__codelineno-5-89" name="__codelineno-5-89" href="#__codelineno-5-89"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">agent_id</span><span class="si">:</span><span class="s2">8s</span><span class="si">}</span><span class="s2"> | Return: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">'cumulative_reward'</span><span class="p">]</span><span class="si">:</span><span class="s2">6.2f</span><span class="si">}</span><span class="s2"> | Steps: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">'steps_survived'</span><span class="p">]</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2"> | Status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<p>Now that you have mastered the basic multi-agent simulation loop:</p>
+<ul>
+<li>Proceed to <a href="../02_heuristic_baseline/">Tutorial 02: Heuristic Reactive Policy</a> to build an explainable, rule-based controller using the 7-ray LiDAR and target tracker.</li>
+<li>Explore <a href="../03_gnn_pyg/">Tutorial 03: PyG &amp; GNN Integration</a> to leverage relational graph neural networks for inter-drone message passing.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

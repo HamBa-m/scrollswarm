@@ -1,0 +1,2438 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.">
+      
+      
+        <meta name="author" content="Hamza Ba-mohammed">
+      
+      
+        <link rel="canonical" href="https://hambam.top/scrollswarm/tutorials/04_acceleration_backends/">
+      
+      
+        <link rel="prev" href="../03_gnn_pyg/">
+      
+      
+        <link rel="next" href="../05_vectorized_marl/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>04: Computational Acceleration - ScrollSwarm</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-04-computational-geometry-acceleration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ScrollSwarm" class="md-header__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ScrollSwarm
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              04: Computational Acceleration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../environment/overview/" class="md-tabs__link">
+          
+  
+  
+  Environment Specification
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../01_parallel_env/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/env/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ScrollSwarm" class="md-nav__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ScrollSwarm
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration & Telemetry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Environment Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/communication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/reward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_parallel_env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: PettingZoo ParallelEnv Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_heuristic_baseline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02: Heuristic Reactive Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_gnn_pyg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03: PyG & GNN Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: Computational Acceleration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: Computational Acceleration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-computational-bottleneck-why-geometry-dominates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Computational Bottleneck: Why Geometry Dominates?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-multi-backend-architecture-pluggable-hardware-abstraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Multi-Backend Architecture: Pluggable Hardware Abstraction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Multi-Backend Architecture: Pluggable Hardware Abstraction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contiguous-buffer-flattening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contiguous Buffer Flattening
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-installation-compilation-of-acceleration-kernels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Installation &amp; Compilation of Acceleration Kernels
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Installation &amp; Compilation of Acceleration Kernels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-numba-llvm-jit-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Numba LLVM JIT Acceleration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-native-c20-kernel-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Native C++20 Kernel Compilation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-configuring-backends-in-scrollswarmenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Configuring Backends in ScrollSwarmEnv
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configuring Backends in ScrollSwarmEnv">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complete-end-to-end-stepping-profiling-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete End-to-End Stepping &amp; Profiling Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-direct-micro-kernel-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Direct Micro-Kernel Invocation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Direct Micro-Kernel Invocation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lidar-raycasting-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiDAR Raycasting Kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#point-in-polygon-distance-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point-in-Polygon &amp; Distance Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-empirical-benchmarks-micro-latency-step-throughput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Empirical Benchmarks: Micro-Latency &amp; Step Throughput
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Empirical Benchmarks: Micro-Latency &amp; Step Throughput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#benchmark-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-analytical-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Analytical Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swarm-cardinality-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swarm Cardinality Scaling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Swarm Cardinality Scaling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#empirical-scaling-results-intel-core-i7-11850h-250-ghz-500-steps-seed-42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Empirical Scaling Results (Intel Core i7-11850H @ 2.50 GHz, 500 Steps, Seed 42)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analytical-observations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analytical Observations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-numerical-parity-float32-precision-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Numerical Parity &amp; Float32 Precision Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Numerical Parity &amp; Float32 Precision Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastmath-reassociation-machine-epsilon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastMath Reassociation &amp; Machine Epsilon
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-summary-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Summary &amp; Best Practices
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Summary &amp; Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_vectorized_marl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05: Vectorized MARL & Scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ScrollSwarmEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/vector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vectorized Runners
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent & Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensors & Raycasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/comm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Map & Entities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sprites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprites & Rendering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-computational-bottleneck-why-geometry-dominates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The Computational Bottleneck: Why Geometry Dominates?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-multi-backend-architecture-pluggable-hardware-abstraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Multi-Backend Architecture: Pluggable Hardware Abstraction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Multi-Backend Architecture: Pluggable Hardware Abstraction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contiguous-buffer-flattening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contiguous Buffer Flattening
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-installation-compilation-of-acceleration-kernels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Installation &amp; Compilation of Acceleration Kernels
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Installation &amp; Compilation of Acceleration Kernels">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-numba-llvm-jit-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Numba LLVM JIT Acceleration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-native-c20-kernel-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Native C++20 Kernel Compilation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-configuring-backends-in-scrollswarmenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Configuring Backends in ScrollSwarmEnv
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configuring Backends in ScrollSwarmEnv">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complete-end-to-end-stepping-profiling-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete End-to-End Stepping &amp; Profiling Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-direct-micro-kernel-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Direct Micro-Kernel Invocation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Direct Micro-Kernel Invocation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lidar-raycasting-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LiDAR Raycasting Kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#point-in-polygon-distance-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point-in-Polygon &amp; Distance Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-empirical-benchmarks-micro-latency-step-throughput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Empirical Benchmarks: Micro-Latency &amp; Step Throughput
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Empirical Benchmarks: Micro-Latency &amp; Step Throughput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#benchmark-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-analytical-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Analytical Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#swarm-cardinality-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swarm Cardinality Scaling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Swarm Cardinality Scaling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#empirical-scaling-results-intel-core-i7-11850h-250-ghz-500-steps-seed-42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Empirical Scaling Results (Intel Core i7-11850H @ 2.50 GHz, 500 Steps, Seed 42)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analytical-observations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analytical Observations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-numerical-parity-float32-precision-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Numerical Parity &amp; Float32 Precision Analysis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Numerical Parity &amp; Float32 Precision Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fastmath-reassociation-machine-epsilon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FastMath Reassociation &amp; Machine Epsilon
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-summary-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Summary &amp; Best Practices
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Summary &amp; Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="tutorial-04-computational-geometry-acceleration">Tutorial 04: Computational Geometry Acceleration</h1>
+<p>Training MARL algorithms (MAPPO, QMIX, HAPPO) requires millions of environment steps, so environment throughput directly limits how fast you can iterate.</p>
+<p>In 2D aerial simulations involving LiDAR sensor emulation and complex procedural terrain, <strong>analytical geometric calculations</strong> (raycasting, line-segment intersections, and point-in-polygon queries) represent the vast majority of CPU execution time.</p>
+<p>This tutorial guides you through:</p>
+<ol>
+<li><strong>Profiling the Computational Bottleneck:</strong> Analyzing why analytical 2D raycasting dominates simulation cycles.</li>
+<li><strong>The Hardware Abstraction Layer:</strong> Understanding the multi-backend dispatch architecture (<code>numpy</code>, <code>numba</code>, <code>cpp</code>, <code>auto</code>).</li>
+<li><strong>Compilation &amp; Installation:</strong> Building the high-performance C++20 native kernel and enabling Numba LLVM JIT.</li>
+<li><strong>Environment Integration:</strong> Seamlessly selecting and hot-swapping acceleration backends in <code>ScrollSwarmEnv</code>.</li>
+<li><strong>Direct Micro-Kernel Invocation:</strong> Using the geometry subsystem directly for custom raycasting and trajectory planning.</li>
+<li><strong>Empirical Benchmarks:</strong> Evaluating micro-latency (<span class="arithmatex">\(\mu\text{s}\)</span>), stepping throughput (<span class="arithmatex">\(\text{steps/s}\)</span>), and scaling properties.</li>
+<li><strong>Numerical Equivalence &amp; Float32 Parity:</strong> Understanding cross-backend precision guarantees and fast-math tolerances.</li>
+</ol>
+<hr />
+<h2 id="1-the-computational-bottleneck-why-geometry-dominates">1. The Computational Bottleneck: Why Geometry Dominates?</h2>
+<p>In ScrollSwarm, each active UAV continuously perceives its local airspace through forward-facing LiDAR sensor rays. </p>
+<p>At every discrete environment step <span class="arithmatex">\(t\)</span>:</p>
+<ul>
+<li><span class="arithmatex">\(N\)</span> active drones in the fleet.</li>
+<li><span class="arithmatex">\(K = 7\)</span> forward ray beams per drone (spanning a <span class="arithmatex">\(120^\circ\)</span> field of view).</li>
+<li><span class="arithmatex">\(M\)</span> procedural polygon obstacles, each with <span class="arithmatex">\(V_m\)</span> vertices and bounding edges.</li>
+<li>Upper ceiling and lower floor piecewise linear terrain segments.</li>
+</ul>
+<div class="arithmatex">\[\text{Ray Tests per Step} = N \times K \times \sum_{m=1}^M V_m + \text{Boundary Intersections}\]</div>
+<p>For a standard swarm of <span class="arithmatex">\(N=4\)</span> drones operating near 5 polygonal obstacles with 4–6 vertices each, every step performs <strong>hundreds of parametric line-segment intersection tests</strong>:</p>
+<div class="arithmatex">\[\mathbf{p} + t \mathbf{r} = \mathbf{q} + u \mathbf{s} \implies t = \frac{(\mathbf{q} - \mathbf{p}) \times \mathbf{s}}{\mathbf{r} \times \mathbf{s}}\]</div>
+<p>In addition, micro-step kinematic integration validates whether drone hitboxes penetrate any obstacle polygon (via ray-crossing parity tests) or violate the minimum clearance margin (via point-to-polygon distance queries).</p>
+<pre class="mermaid"><code>pie title CPU Step Execution Time Breakdown (Pure Python Baseline)
+    "Raycasting &amp; LiDAR Geometry" : 79.3
+    "Collision Hitbox &amp; Boundaries" : 9.8
+    "Relational Graph (PyG edge_index)" : 5.4
+    "PettingZoo State &amp; Dict Packaging" : 3.6
+    "Kinematics &amp; Drift Dynamics" : 1.9</code></pre>
+<p>When evaluated using pure Python and standard NumPy loops, analytical geometry accounts for <strong><span class="arithmatex">\(79.3\%\)</span> of total step latency</strong>. Accelerating these geometric routines produces dramatic, order-of-magnitude improvements in overall environment throughput.</p>
+<hr />
+<h2 id="2-multi-backend-architecture-pluggable-hardware-abstraction">2. Multi-Backend Architecture: Pluggable Hardware Abstraction</h2>
+<p>ScrollSwarm decouples high-level PettingZoo environment logic from low-level geometric computations via a unified dispatch layer in <code>scrollswarm.geometry</code>.</p>
+<pre class="mermaid"><code>flowchart TD
+    ENV["&lt;b&gt;ScrollSwarmEnv / MultiRayLiDAR&lt;/b&gt;&lt;br/&gt;High-Level Environment &amp; Sensors"]
+    DISPATCH["&lt;b&gt;Geometry Dispatch Layer&lt;/b&gt;&lt;br/&gt;scrollswarm.geometry.resolve_backend()"]
+
+    subgraph BACKENDS ["Pluggable Computational Engines"]
+        direction TB
+        CPP["&lt;b&gt;Native C++20 Kernel&lt;/b&gt;&lt;br/&gt;• pybind11 Zero-Copy Array Views&lt;br/&gt;• Static Runtime Linkage (-O3)"]
+        NUMBA["&lt;b&gt;Numba LLVM JIT&lt;/b&gt;&lt;br/&gt;• Automatic CPU Vectorization&lt;br/&gt;• ~1.5s Initial Compilation"]
+        NUMPY["&lt;b&gt;Pure NumPy Baseline&lt;/b&gt;&lt;br/&gt;• Vectorized Analytical Trigonometry&lt;br/&gt;• Zero Compilation / Dependency Free"]
+    end
+
+    ENV --&gt;|Passes Flattened Geometry Buffers| DISPATCH
+    DISPATCH --&gt;|backend='cpp'| CPP
+    DISPATCH --&gt;|backend='numba'| NUMBA
+    DISPATCH --&gt;|backend='numpy'| NUMPY
+
+    classDef envStyle fill:#1a2332,stroke:#38bdf8,stroke-width:1.5px,color:#f1f5f9;
+    classDef dispatchStyle fill:#1a2332,stroke:#818cf8,stroke-width:1.5px,color:#f1f5f9;
+    classDef backendStyle fill:#111827,stroke:#34d399,stroke-width:1.5px,color:#f1f5f9;
+
+    class ENV envStyle;
+    class DISPATCH dispatchStyle;
+    class CPP,NUMBA,NUMPY backendStyle;</code></pre>
+<h3 id="contiguous-buffer-flattening">Contiguous Buffer Flattening</h3>
+<p>To enable zero-copy passing into compiled native kernels (C++ and LLVM machine code), ScrollSwarm provides <code>extract_geometry_buffers()</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_geometry_buffers</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Transforms dynamic Python polygon objects into flat contiguous C-arrays</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">obs_meta</span><span class="p">,</span> <span class="n">obs_edges</span><span class="p">,</span> <span class="n">obs_edge_ranges</span><span class="p">,</span> <span class="n">target_data</span> <span class="o">=</span> <span class="n">extract_geometry_buffers</span><span class="p">(</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">obstacles</span><span class="o">=</span><span class="n">scrolling_map</span><span class="o">.</span><span class="n">obstacles</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">targets</span><span class="o">=</span><span class="n">scrolling_map</span><span class="o">.</span><span class="n">targets</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
+</span></code></pre></div>
+<ul>
+<li><strong><code>obs_meta</code></strong> (<code>np.ndarray[np.float32]</code>, shape <code>(N_{\text{obs}}, 4)</code>): Obstacle bounding parameters <code>[x, y, radius, max_dim]</code>.</li>
+<li><strong><code>obs_edges</code></strong> (<code>np.ndarray[np.float32]</code>, shape <code>(N_{\text{edges}}, 4)</code>): Flat segment coordinates <code>[ax, ay, bx, by]</code> for all polygon facets.</li>
+<li><strong><code>obs_edge_ranges</code></strong> (<code>np.ndarray[np.int32]</code>, shape <code>(N_{\text{obs}}, 2)</code>): Index slice <code>[start_idx, end_idx]</code> mapping each obstacle to its range in <code>obs_edges</code>.</li>
+<li><strong><code>target_data</code></strong> (<code>np.ndarray[np.float32]</code>, shape <code>(N_{\text{tgts}}, 3)</code>): Active target parameters <code>[x, y, radius]</code>.</li>
+</ul>
+<hr />
+<h2 id="3-installation-compilation-of-acceleration-kernels">3. Installation &amp; Compilation of Acceleration Kernels</h2>
+<p>ScrollSwarm requires <strong>zero compiler tools</strong> to run out-of-the-box using the NumPy baseline. Depending on your computing cluster or workstation setup, you can enable either Numba or C++20 acceleration.</p>
+<h3 id="option-a-numba-llvm-jit-acceleration">Option A: Numba LLVM JIT Acceleration</h3>
+<p><em>(Recommended for Quick Setup)</em> Numba compiles Python functions directly into optimized machine instructions via LLVM without requiring an external C++ toolchain:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Add Numba to your active virtual environment</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>uv<span class="w"> </span>add<span class="w"> </span>numba
+</span></code></pre></div>
+<p>Once installed, ScrollSwarm automatically detects Numba and activates the <code>@njit(fastmath=True, nogil=True)</code> execution kernels.</p>
+<h3 id="option-b-native-c20-kernel-compilation">Option B: Native C++20 Kernel Compilation</h3>
+<p>For production training clusters where compilation warmup latency is undesirable, ScrollSwarm includes a header-only C++20 geometry kernel (<code>scrollswarm/geometry/cpp/geometry.hpp</code>) bound via <code>pybind11</code>.</p>
+<p>To build the native binary on your machine:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/build_geometry_cpp.py
+</span></code></pre></div>
+<p>The build script automatically detects the host C++ toolchain (GCC, Clang, or MSVC) and compiles <code>_geometry_cpp</code> with high-performance optimization flags:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Example MinGW GCC compile command executed by the builder:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>g++<span class="w"> </span>-O3<span class="w"> </span>-DNDEBUG<span class="w"> </span>-std<span class="o">=</span>c++20<span class="w"> </span>-shared<span class="w"> </span>-fPIC<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>-march<span class="o">=</span>native<span class="w"> </span>-ffast-math<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>-static-libgcc<span class="w"> </span>-static-libstdc++<span class="w"> </span>-static<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span>-I&lt;python-include&gt;<span class="w"> </span>-I&lt;pybind11-include&gt;<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span>scrollswarm/geometry/cpp/bindings.cpp<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span>-o<span class="w"> </span>scrollswarm/geometry/_geometry_cpp.pyd
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Static Runtime Linkage</p>
+<p>The build script uses <code>-static-libgcc -static-libstdc++ -static</code> on Windows/MinGW. This embeds all C++ runtime symbols directly into the shared library, ensuring portability without external runtime <code>.dll</code> or <code>.so</code> dependencies.</p>
+</div>
+<hr />
+<h2 id="4-configuring-backends-in-scrollswarmenv">4. Configuring Backends in <code>ScrollSwarmEnv</code></h2>
+<p>You can specify the desired backend when creating the environment using the <code>backend</code> keyword argument:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScrollSwarmEnv</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_available_backends</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Check which backends are operational on the host system</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"Available backends:"</span><span class="p">,</span> <span class="n">get_available_backends</span><span class="p">())</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Output: ['numpy', 'numba', 'cpp']</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># 1. Automatic Selection (Default: selects fastest available: cpp -&gt; numba -&gt; numpy)</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">env</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span><span class="n">num_agents</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">)</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1"># 2. Explicit C++20 Native Kernel</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">env_cpp</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span><span class="n">num_agents</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">"cpp"</span><span class="p">)</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1"># 3. Explicit Numba LLVM JIT</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="n">env_numba</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span><span class="n">num_agents</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">"numba"</span><span class="p">)</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># 4. Explicit Pure NumPy Portable Baseline</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="n">env_numpy</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span><span class="n">num_agents</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">"numpy"</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="complete-end-to-end-stepping-profiling-script">Complete End-to-End Stepping &amp; Profiling Script</h3>
+<p>The following script initializes environments across all available backends, steps them through identical random policies, and logs the execution duration:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScrollSwarmEnv</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_available_backends</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">benchmark_env</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">num_agents</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">env</span> <span class="o">=</span> <span class="n">ScrollSwarmEnv</span><span class="p">(</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        <span class="n">num_agents</span><span class="o">=</span><span class="n">num_agents</span><span class="p">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        <span class="n">max_cycles</span><span class="o">=</span><span class="n">num_steps</span> <span class="o">+</span> <span class="mi">100</span><span class="p">,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="c1"># Warmup step</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>    <span class="c1"># Measured run</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>    <span class="n">steps_completed</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>    <span class="k">while</span> <span class="n">steps_completed</span> <span class="o">&lt;</span> <span class="n">num_steps</span> <span class="ow">and</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>        <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>        <span class="n">obs</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">terminations</span><span class="p">,</span> <span class="n">truncations</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>        <span class="n">steps_completed</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>
+</span><span id="__span-5-26"><a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+</span><span id="__span-5-27"><a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a>    <span class="n">steps_per_sec</span> <span class="o">=</span> <span class="n">steps_completed</span> <span class="o">/</span> <span class="n">elapsed</span>
+</span><span id="__span-5-28"><a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>    <span class="n">ms_per_step</span> <span class="o">=</span> <span class="p">(</span><span class="n">elapsed</span> <span class="o">/</span> <span class="n">steps_completed</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1000.0</span>
+</span><span id="__span-5-29"><a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a>
+</span><span id="__span-5-30"><a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Backend [</span><span class="si">{</span><span class="n">backend</span><span class="si">:</span><span class="s2">5s</span><span class="si">}</span><span class="s2">]: </span><span class="si">{</span><span class="n">steps_completed</span><span class="si">:</span><span class="s2">4d</span><span class="si">}</span><span class="s2"> steps | "</span>
+</span><span id="__span-5-31"><a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a>          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">steps_per_sec</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> steps/s | </span><span class="si">{</span><span class="n">ms_per_step</span><span class="si">:</span><span class="s2">6.3f</span><span class="si">}</span><span class="s2"> ms/step"</span><span class="p">)</span>
+</span><span id="__span-5-32"><a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>    <span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="__span-5-33"><a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a>
+</span><span id="__span-5-34"><a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+</span><span id="__span-5-35"><a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a>    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">get_available_backends</span><span class="p">():</span>
+</span><span id="__span-5-36"><a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a>        <span class="n">benchmark_env</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">b</span><span class="p">,</span> <span class="n">num_steps</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="5-direct-micro-kernel-invocation">5. Direct Micro-Kernel Invocation</h2>
+<p>Researchers building custom trajectory optimizers, model-predictive control (MPC) loops, or non-PettingZoo simulators can invoke the optimized geometry kernels directly.</p>
+<h3 id="lidar-raycasting-kernel">LiDAR Raycasting Kernel</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast_rays_cpp</span><span class="p">,</span> <span class="n">extract_geometry_buffers</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.map</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScrollingMap</span><span class="p">,</span> <span class="n">MapConfig</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># 1. Initialize map and extract flattened geometry buffers</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">map_cfg</span> <span class="o">=</span> <span class="n">MapConfig</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">scrolling_map</span> <span class="o">=</span> <span class="n">ScrollingMap</span><span class="p">(</span><span class="n">map_cfg</span><span class="p">)</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">obs_meta</span><span class="p">,</span> <span class="n">obs_edges</span><span class="p">,</span> <span class="n">obs_edge_ranges</span><span class="p">,</span> <span class="n">target_data</span> <span class="o">=</span> <span class="n">extract_geometry_buffers</span><span class="p">(</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="n">scrolling_map</span><span class="o">.</span><span class="n">obstacles</span><span class="p">,</span> <span class="n">scrolling_map</span><span class="o">.</span><span class="n">targets</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="p">)</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="c1"># 2. Define LiDAR sensor beam configuration</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">origin_x</span> <span class="o">=</span> <span class="mf">100.0</span>   <span class="c1"># Drone x position</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="n">origin_y</span> <span class="o">=</span> <span class="mf">200.0</span>   <span class="c1"># Drone y position</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">num_rays</span> <span class="o">=</span> <span class="mi">7</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="n">fov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">120.0</span><span class="p">)</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="n">ray_angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">fov</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">fov</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">num_rays</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="n">max_range</span> <span class="o">=</span> <span class="mf">400.0</span>  <span class="c1"># Max sensor range in pixels</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="c1"># 3. Call native C++ kernel directly</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="n">obs_dists</span><span class="p">,</span> <span class="n">obs_types</span><span class="p">,</span> <span class="n">obs_endpoints</span><span class="p">,</span> <span class="n">tgt_dists</span><span class="p">,</span> <span class="n">tgt_types</span><span class="p">,</span> <span class="n">tgt_endpoints</span> <span class="o">=</span> <span class="n">cast_rays_cpp</span><span class="p">(</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>    <span class="n">origin_x</span><span class="p">,</span>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>    <span class="n">origin_y</span><span class="p">,</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>    <span class="n">ray_angles</span><span class="p">,</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>    <span class="n">max_range</span><span class="p">,</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>    <span class="nb">float</span><span class="p">(</span><span class="n">scrolling_map</span><span class="o">.</span><span class="n">ceiling_y</span><span class="p">),</span>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>    <span class="nb">float</span><span class="p">(</span><span class="n">scrolling_map</span><span class="o">.</span><span class="n">floor_y</span><span class="p">),</span>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>    <span class="n">obs_meta</span><span class="p">,</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>    <span class="n">obs_edges</span><span class="p">,</span>
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>    <span class="n">obs_edge_ranges</span><span class="p">,</span>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>    <span class="n">target_data</span><span class="p">,</span>
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="p">)</span>
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a>
+</span><span id="__span-6-34"><a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Obstacle Hit Distances (pixels):</span><span class="se">\n</span><span class="si">{</span><span class="n">obs_dists</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-6-35"><a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Obstacle Surface Hit Types (0=None, 1=Boundary, 2=Obstacle):</span><span class="se">\n</span><span class="si">{</span><span class="n">obs_types</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-6-36"><a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Target Hit Distances (pixels):</span><span class="se">\n</span><span class="si">{</span><span class="n">tgt_dists</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-6-37"><a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Target Hit Types (0=None, 1=Target):</span><span class="se">\n</span><span class="si">{</span><span class="n">tgt_types</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="point-in-polygon-distance-testing">Point-in-Polygon &amp; Distance Testing</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">scrollswarm.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">point_in_polygon_cpp</span><span class="p">,</span> <span class="n">distance_to_polygon_cpp</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Define a square obstacle centered at (150, 200) with half-width 20 px</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">hw</span> <span class="o">=</span> <span class="mf">20.0</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="p">[</span><span class="mf">150.0</span> <span class="o">-</span> <span class="n">hw</span><span class="p">,</span> <span class="mf">200.0</span> <span class="o">-</span> <span class="n">hw</span><span class="p">],</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="p">[</span><span class="mf">150.0</span> <span class="o">+</span> <span class="n">hw</span><span class="p">,</span> <span class="mf">200.0</span> <span class="o">-</span> <span class="n">hw</span><span class="p">],</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="p">[</span><span class="mf">150.0</span> <span class="o">+</span> <span class="n">hw</span><span class="p">,</span> <span class="mf">200.0</span> <span class="o">+</span> <span class="n">hw</span><span class="p">],</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="p">[</span><span class="mf">150.0</span> <span class="o">-</span> <span class="n">hw</span><span class="p">,</span> <span class="mf">200.0</span> <span class="o">+</span> <span class="n">hw</span><span class="p">],</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>    <span class="p">[</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="p">[</span><span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>    <span class="p">[</span><span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>    <span class="p">[</span><span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="c1"># Test point containment (e.g., test if drone coordinate is inside polygon)</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="n">test_x</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="mf">150.0</span><span class="p">,</span> <span class="mf">200.0</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="n">is_inside</span> <span class="o">=</span> <span class="n">point_in_polygon_cpp</span><span class="p">(</span><span class="n">test_x</span><span class="p">,</span> <span class="n">test_y</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"Penetration violation:"</span><span class="p">,</span> <span class="n">is_inside</span><span class="p">)</span>  <span class="c1"># True</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="c1"># Compute Euclidean distance to polygon boundary from outside point (180, 200)</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="n">dist</span> <span class="o">=</span> <span class="n">distance_to_polygon_cpp</span><span class="p">(</span><span class="mf">180.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Proximity clearance: </span><span class="si">{</span><span class="n">dist</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> pixels"</span><span class="p">)</span>  <span class="c1"># 10.00 pixels</span>
+</span></code></pre></div>
+<hr />
+<h2 id="6-empirical-benchmarks-micro-latency-step-throughput">6. Empirical Benchmarks: Micro-Latency &amp; Step Throughput</h2>
+<p>The empirical benchmark suite (<a href="https://github.com/HamBa-m/scrollswarm/blob/main/scripts/benchmark_backends.py"><code>scripts/benchmark_backends.py</code></a>) tests both isolated kernel micro-latency and macro environment stepping throughput under standardized conditions.</p>
+<p>To run the benchmark on your local machine:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/benchmark_backends.py<span class="w"> </span>--steps<span class="w"> </span><span class="m">500</span><span class="w"> </span>--num-agents<span class="w"> </span><span class="m">4</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span>
+</span></code></pre></div>
+<h3 id="benchmark-results">Benchmark Results</h3>
+<p>The following results were obtained on a personal workstation with the following specs:</p>
+<ul>
+<li>CPU: Intel Core i7-11850H @ 2.50 GHz, 8 cores, 16 threads</li>
+<li>RAM: 32 GB</li>
+<li>Seed: 42</li>
+<li>Num agents: 4</li>
+<li>Number of env steps: 500</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Backend Engine</th>
+<th style="text-align: left;">Isolated Raycast Latency</th>
+<th style="text-align: left;">Raycast Speedup</th>
+<th style="text-align: left;">Stepping Throughput</th>
+<th style="text-align: left;">Stepping Latency</th>
+<th style="text-align: left;">End-to-End Speedup</th>
+<th style="text-align: left;">JIT Warmup Overhead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>NumPy Baseline</strong></td>
+<td style="text-align: left;"><span class="arithmatex">\(214.24\,\mu\text{s}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(1.00\times\)</span> (ref)</td>
+<td style="text-align: left;"><span class="arithmatex">\(691.4\text{ steps/s}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(1.446\text{ ms/step}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(1.00\times\)</span> (ref)</td>
+<td style="text-align: left;"><strong><span class="arithmatex">\(0.0\,\text{s}\)</span> (None)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>C++20 Kernel</strong></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{6.41\,\mu\text{s}}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{33.44\times}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{1,652.3\text{ steps/s}}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{0.605\text{ ms/step}}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{2.39\times}\)</span></td>
+<td style="text-align: left;"><strong><span class="arithmatex">\(0.0\,\text{s}\)</span> (None)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Numba LLVM JIT</strong></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{4.28\,\mu\text{s}}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{50.08\times}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{1,740.2\text{ steps/s}}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{0.575\text{ ms/step}}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\mathbf{2.52\times}\)</span></td>
+<td style="text-align: left;"><span class="arithmatex">\(\approx 1.5\,\text{s}\)</span></td>
+</tr>
+</tbody>
+</table>
+<pre class="mermaid"><code>xychart-beta
+    title "Isolated Raycasting Latency (Microseconds, Lower is Better)"
+    x-axis ["NumPy Baseline", "C++20 Native", "Numba LLVM JIT"]
+    y-axis "Latency (μs)" 0 --&gt; 250
+    bar [214.24, 6.41, 4.28]</code></pre>
+<h3 id="key-analytical-takeaways">Key Analytical Takeaways</h3>
+<ol>
+<li><strong>Micro-Kernel Acceleration:</strong> Both C++20 and Numba eliminate the Python interpreter loop overhead during line-segment intersection checks, achieving <strong><span class="arithmatex">\(33\times\)</span> to <span class="arithmatex">\(50\times\)</span> faster</strong> isolated raycasting.</li>
+<li><strong>End-to-End Stepping Speedup:</strong> In full PettingZoo simulation, the environment step rate increases from <span class="arithmatex">\(\sim 690\text{ steps/s}\)</span> to over <strong><span class="arithmatex">\(1,700\text{ steps/s}\)</span></strong> on a single CPU thread (<span class="arithmatex">\(2.5\times\)</span> overall speedup). The remaining time is consumed by Python dictionary creation, PyG graph assembly, and PyTorch tensor allocations.</li>
+<li><strong>Warmup vs. Instant Start:</strong><ul>
+<li><strong>Numba</strong> delivers slightly higher peak micro-throughput thanks to LLVM loop optimization, but incurs an initial <span class="arithmatex">\(\sim 1.5\,\text{s}\)</span> compilation lag on first invocation.</li>
+<li><strong>C++20</strong> achieves comparable high throughput with <strong>zero warmup latency</strong>, making it ideal for distributed Ray/SubprocVec workers where processes restart frequently.</li>
+</ul>
+</li>
+</ol>
+<h3 id="swarm-cardinality-scaling">Swarm Cardinality Scaling</h3>
+<p>To characterize how environment throughput and computational speedup scale with fleet size, ScrollSwarm provides an automated swarm cardinality sweep:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/benchmark_backends.py<span class="w"> </span>--sweep-agents<span class="w"> </span>--steps<span class="w"> </span><span class="m">500</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span>
+</span></code></pre></div>
+<p><img alt="Swarm Cardinality Scaling" src="../../assets/benchmark_agent_scaling.png" /></p>
+<h4 id="empirical-scaling-results-intel-core-i7-11850h-250-ghz-500-steps-seed-42">Empirical Scaling Results (Intel Core i7-11850H @ 2.50 GHz, 500 Steps, Seed 42)</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Swarm Cardinality (<span class="arithmatex">\(N\)</span>)</th>
+<th style="text-align: center;">NumPy Baseline</th>
+<th style="text-align: center;">Native C++20</th>
+<th style="text-align: center;">Numba LLVM JIT</th>
+<th style="text-align: center;">C++20 Speedup</th>
+<th style="text-align: center;">Numba Speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 1\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(2,186.6\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(5,441.5\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(5,790.5\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.49\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.65\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 2\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(1,258.7\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(2,764.3\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(2,756.7\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.20\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.19\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 3\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(829.0\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(2,153.8\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(2,115.5\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.60\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.55\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 4\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(553.1\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(1,641.2\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(1,645.3\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.97\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.97\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 5\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(558.1\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(1,314.4\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(1,381.4\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.35\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.47\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 6\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(392.4\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(1,087.1\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(1,137.3\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.77\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.90\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 7\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(387.8\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(763.8\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(624.6\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(1.97\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(1.61\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 8\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(332.6\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(588.1\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(689.1\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(1.77\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.07\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 9\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(271.4\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(559.7\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(585.1\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.06\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.16\times\)</span></strong></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><span class="arithmatex">\(N = 10\)</span></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(266.6\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(581.1\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(605.3\text{ steps/s}\)</span></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.18\times\)</span></strong></td>
+<td style="text-align: center;"><strong><span class="arithmatex">\(2.27\times\)</span></strong></td>
+</tr>
+</tbody>
+</table>
+<h4 id="analytical-observations">Analytical Observations</h4>
+<ol>
+<li><strong>Sustained <span class="arithmatex">\(2.0\times\text{-}3.0\times\)</span> Real-World Speedup:</strong> Across all swarm cardinalities <span class="arithmatex">\(N \in [1, 10]\)</span>, the compiled C++20 and Numba kernels consistently deliver <strong><span class="arithmatex">\(2.0\times\)</span> to <span class="arithmatex">\(3.0\times\)</span> faster environment execution</strong> than pure NumPy.</li>
+<li><strong>Single-Agent Peak Rate:</strong> For <span class="arithmatex">\(N=1\)</span>, environment execution exceeds <strong><span class="arithmatex">\(5,400\text{--}5,700\text{ steps/second}\)</span></strong> (<span class="arithmatex">\(&lt;0.19\text{ ms/step}\)</span>), making single-drone policy debugging near instantaneous.</li>
+<li><strong>Decoupled Scaling with Vectorized Workers:</strong> Because a single corridor realistically bounds swarm density to <span class="arithmatex">\(N \le 10\)</span>, large-scale distributed MARL architectures scale linearly across CPU cores by instantiating <span class="arithmatex">\(\mathcal{E}\)</span> vectorized environment workers via PettingZoo / SubprocVec, maintaining high per-worker throughput without artificial crowding.</li>
+</ol>
+<hr />
+<h2 id="7-numerical-parity-float32-precision-analysis">7. Numerical Parity &amp; Float32 Precision Analysis</h2>
+<p>A critical requirement in scientific RL research is <strong>numerical reproducibility</strong>: swapping acceleration backends must not alter the mathematical semantics of the environment or skew observation distributions.</p>
+<p>ScrollSwarm includes an automated cross-backend verification suite in <a href="https://github.com/HamBa-m/scrollswarm/blob/main/tests/test_geometry.py"><code>tests/test_geometry.py</code></a> that asserts mathematical parity across all backends:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/test_geometry.py<span class="w"> </span>-v
+</span></code></pre></div>
+<h3 id="fastmath-reassociation-machine-epsilon">FastMath Reassociation &amp; Machine Epsilon</h3>
+<p>Due to compiler fast-math optimizations (<code>-ffast-math</code> in C++ and <code>fastmath=True</code> in Numba), floating-point arithmetic reassociates operations:</p>
+<div class="arithmatex">\[(a + b) + c \neq a + (b + c) \quad \text{(in IEEE 754 float32)}\]</div>
+<p>When calculating ray intersections near acute polygon vertices at grazing angles (<span class="arithmatex">\(400\text{ px}\)</span> ray distance), trigonometric reassociation induces a negligible variance:</p>
+<div class="arithmatex">\[\max |\mathbf{d}_{\text{cpp}} - \mathbf{d}_{\text{numpy}}| \le 1.37 \times 10^{-4}\text{ pixels}\]</div>
+<p>Because <span class="arithmatex">\(10^{-4}\text{ px}\)</span> is three orders of magnitude smaller than individual pixel coordinates, the test suite asserts strict parity at <span class="arithmatex">\(\text{atol} = 10^{-3}\)</span>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">distances_cpp</span><span class="p">,</span> <span class="n">distances_numpy</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_array_equal</span><span class="p">(</span><span class="n">hits_cpp</span><span class="p">,</span> <span class="n">hits_numpy</span><span class="p">)</span>
+</span></code></pre></div>
+<p>All backends produce identical discrete hit classifications (0=None, 1=Obstacle, 2=Boundary, 3=Target) and indistinguishable continuous normalized distances.</p>
+<hr />
+<h2 id="8-summary-best-practices">8. Summary &amp; Best Practices</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Deployment Scenario</th>
+<th style="text-align: left;">Recommended Backend</th>
+<th style="text-align: left;">Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Local Prototyping &amp; CI Pipelines</strong></td>
+<td style="text-align: left;"><code>backend="auto"</code> (or <code>"numpy"</code>)</td>
+<td style="text-align: left;">Runs immediately out of the box on any machine with zero build setup.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>High-Throughput MARL Training</strong></td>
+<td style="text-align: left;"><code>backend="cpp"</code></td>
+<td style="text-align: left;">Maximum sustained throughput with zero JIT compilation pause when launching multi-process workers.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Environments without C++ Toolchains</strong></td>
+<td style="text-align: left;"><code>backend="numba"</code></td>
+<td style="text-align: left;">Highest per-core execution rate via pure <code>uv add numba</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="next-steps">Next Steps</h3>
+<ul>
+<li>Explore <a href="../01_parallel_env/">Tutorial 01: PettingZoo ParallelEnv Loop</a> to integrate accelerated environments with custom multi-agent loops.</li>
+<li>Review <a href="../03_gnn_pyg/">Tutorial 03: PyG &amp; GNN Integration</a> to process dynamic relational swarm graphs alongside accelerated observations.</li>
+<li>Consult the <a href="../../api/geometry/">Geometry API Reference</a> for full function signatures and buffer structures.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

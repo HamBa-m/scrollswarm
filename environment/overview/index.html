@@ -1,0 +1,1758 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.">
+      
+      
+        <meta name="author" content="Hamza Ba-mohammed">
+      
+      
+        <link rel="canonical" href="https://hambam.top/scrollswarm/environment/overview/">
+      
+      
+        <link rel="prev" href="../../getting-started/config/">
+      
+      
+        <link rel="next" href="../dynamics/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Overview - ScrollSwarm</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#decision-theoretic-formulations" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ScrollSwarm" class="md-header__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ScrollSwarm
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Environment Specification
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/01_parallel_env/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/env/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ScrollSwarm" class="md-nav__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ScrollSwarm
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration & Telemetry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Environment Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-decision-theoretic-framework-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Decision-Theoretic Framework Taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-formal-mathematical-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Formal Mathematical Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Formal Mathematical Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-markov-decision-process-mdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Markov Decision Process (MDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-partially-observable-markov-decision-process-pomdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Partially Observable Markov Decision Process (POMDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-multi-agent-mdp-mmdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Multi-Agent MDP (MMDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-decentralized-pomdp-dec-pomdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Decentralized POMDP (Dec-POMDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-decentralized-pomdp-with-communication-dec-pomdp-comm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Decentralized POMDP with Communication (Dec-POMDP-Comm)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-joint-observability-the-dec-mdp-property" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Joint Observability &amp; The Dec-MDP Property
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-references-academic-citations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. References &amp; Academic Citations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../communication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_parallel_env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: PettingZoo ParallelEnv Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_heuristic_baseline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02: Heuristic Reactive Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_gnn_pyg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03: PyG & GNN Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_acceleration_backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: Computational Acceleration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_vectorized_marl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05: Vectorized MARL & Scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ScrollSwarmEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/vector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vectorized Runners
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent & Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensors & Raycasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/comm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Map & Entities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sprites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprites & Rendering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-decision-theoretic-framework-taxonomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Decision-Theoretic Framework Taxonomy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-formal-mathematical-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Formal Mathematical Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Formal Mathematical Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-markov-decision-process-mdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Markov Decision Process (MDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-partially-observable-markov-decision-process-pomdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Partially Observable Markov Decision Process (POMDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-multi-agent-mdp-mmdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Multi-Agent MDP (MMDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-decentralized-pomdp-dec-pomdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Decentralized POMDP (Dec-POMDP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-decentralized-pomdp-with-communication-dec-pomdp-comm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Decentralized POMDP with Communication (Dec-POMDP-Comm)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-joint-observability-the-dec-mdp-property" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Joint Observability &amp; The Dec-MDP Property
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-references-academic-citations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. References &amp; Academic Citations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="decision-theoretic-formulations">Decision-Theoretic Formulations</h1>
+<p>ScrollSwarm is a multi-agent reinforcement learning (MARL) benchmark that supports multiple formal decision-theoretic frameworks depending on team size, observability, and communication settings.</p>
+<hr />
+<h2 id="1-decision-theoretic-framework-taxonomy">1. Decision-Theoretic Framework Taxonomy</h2>
+<p>The following matrix summarizes the fundamental decision-theoretic models formalized in the reinforcement learning literature (<a href="https://doi.org/10.1002/9780470316887">Puterman, 1994</a>; <a href="https://doi.org/10.1016/S0004-3702(98)00023-X">Kaelbling et al., 1998</a>; <a href="https://doi.org/10.1007/978-3-319-28929-8">Oliehoek &amp; Amato, 2016</a>). All listed models are natively supported by ScrollSwarm:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Model</th>
+<th style="text-align: center;">Scale</th>
+<th style="text-align: center;">Observability</th>
+<th style="text-align: center;">Communication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>MDP</strong></td>
+<td style="text-align: center;">Single</td>
+<td style="text-align: center;">Full</td>
+<td style="text-align: center;">None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>POMDP</strong></td>
+<td style="text-align: center;">Single</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MMDP</strong></td>
+<td style="text-align: center;">Multi</td>
+<td style="text-align: center;">Full</td>
+<td style="text-align: center;">None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Dec-MDP</strong></td>
+<td style="text-align: center;">Multi</td>
+<td style="text-align: center;">Jointly Full</td>
+<td style="text-align: center;">None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Dec-POMDP</strong></td>
+<td style="text-align: center;">Multi</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">None</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Dec-POMDP-Comm</strong></td>
+<td style="text-align: center;">Multi</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">Integrated (Graph <span class="arithmatex">\(\mathcal{G}\)</span>)</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">ScrollSwarm Support</p>
+<p>By configuring swarm size (<code>num_agents=1</code> vs. <span class="arithmatex">\(N \ge 2\)</span>), enabling or bypassing graph communication (<code>comm_topology</code>), and selecting decentralized observations vs. centralized state vectors (<code>env.state()</code>), ScrollSwarm seamlessly maps to any of these six formulations.</p>
+</div>
+<hr />
+<h2 id="2-formal-mathematical-definitions">2. Formal Mathematical Definitions</h2>
+<h3 id="21-markov-decision-process-mdp">2.1 Markov Decision Process (MDP)</h3>
+<p>When ScrollSwarm is configured with a single UAV (<span class="arithmatex">\(N=1\)</span>) having access to the complete environment state, the problem reduces to a classical MDP (<a href="https://doi.org/10.1512/iumj.1957.6.56038">Bellman, 1957</a>; <a href="https://doi.org/10.1002/9780470316887">Puterman, 1994</a>):</p>
+<div class="arithmatex">\[\mathcal{M}_{\text{MDP}} = \langle \mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \gamma \rangle\]</div>
+<ul>
+<li><span class="arithmatex">\(\mathcal{S}\)</span>: The set of all global environmental states, including UAV coordinates <span class="arithmatex">\((x, y)\)</span>, active obstacle coordinates and geometry, and target states.</li>
+<li><span class="arithmatex">\(\mathcal{A}\)</span>: The discrete vertical action set <span class="arithmatex">\(\mathcal{A} = \{0: \text{UP}, 1: \text{STAY}, 2: \text{DOWN}\}\)</span>.</li>
+<li><span class="arithmatex">\(\mathcal{T}(s' \mid s, a)\)</span>: State transition probability function <span class="arithmatex">\(P(s_{t+1} = s' \mid s_t = s, a_t = a)\)</span>, deterministic for kinematics and stochastic for target spawning.</li>
+<li><span class="arithmatex">\(\mathcal{R}(s, a)\)</span>: Real-valued scalar reward function evaluating step survival, obstacle collision, and target photography.</li>
+<li><span class="arithmatex">\(\gamma \in [0, 1)\)</span>: The discount factor for future returns.</li>
+</ul>
+<h3 id="22-partially-observable-markov-decision-process-pomdp">2.2 Partially Observable Markov Decision Process (POMDP)</h3>
+<p>In realistic single-UAV operations, the agent cannot perceive the global state <span class="arithmatex">\(\mathcal{S}\)</span> directly; it must act based on its local, bounded sensor readings (<a href="https://doi.org/10.1016/S0004-3702(98)00023-X">Kaelbling, Littman, &amp; Cassandra, 1998</a>; <a href="https://mitpress.mit.edu/9780262029254/decision-making-under-uncertainty/">Kochenderfer et al., 2015</a>):</p>
+<div class="arithmatex">\[\mathcal{M}_{\text{POMDP}} = \langle \mathcal{S}, \mathcal{A}, \mathcal{T}, \mathcal{R}, \Omega, \mathcal{O}, \gamma \rangle\]</div>
+<ul>
+<li><span class="arithmatex">\(\Omega\)</span>: The observation space, represented by the 16-dimensional continuous feature vector <span class="arithmatex">\(\mathbf{o} \in [-1.0, 1.0]^{16}\)</span>.</li>
+<li><span class="arithmatex">\(\mathcal{O}(o \mid s', a)\)</span>: The observation emission probability distribution <span class="arithmatex">\(P(o_{t+1} = o \mid s_{t+1} = s', a_t = a)\)</span>, capturing forward 7-ray LiDAR rangefinder intersections and bearing measurements.</li>
+</ul>
+<h3 id="23-multi-agent-mdp-mmdp">2.3 Multi-Agent MDP (MMDP)</h3>
+<p>When <span class="arithmatex">\(N\)</span> cooperative UAVs share full state information and are controlled by a centralized decision-maker (<a href="https://dl.acm.org/doi/10.5555/237170.237197">Boutilier, 1996</a>):</p>
+<div class="arithmatex">\[\mathcal{M}_{\text{MMDP}} = \langle \mathcal{I}, \mathcal{S}, \{\mathcal{A}_i\}, \mathcal{T}, \mathcal{R}, \gamma \rangle\]</div>
+<ul>
+<li><span class="arithmatex">\(\mathcal{I} = \{1, \dots, N\}\)</span>: The finite set of <span class="arithmatex">\(N\)</span> UAV agents.</li>
+<li><span class="arithmatex">\(\mathcal{A} = \prod_{i \in \mathcal{I}} \mathcal{A}_i\)</span>: The joint action space of size <span class="arithmatex">\(|\mathcal{A}| = 3^N\)</span>.</li>
+<li><span class="arithmatex">\(\mathcal{R}(s, \mathbf{a})\)</span>: Shared global team reward evaluating the collective performance of all UAVs.</li>
+</ul>
+<h3 id="24-decentralized-pomdp-dec-pomdp">2.4 Decentralized POMDP (Dec-POMDP)</h3>
+<p>When <span class="arithmatex">\(N\)</span> agents must choose actions independently based solely on their individual, local action-observation histories without communication (<a href="https://doi.org/10.1287/moor.27.4.819.297">Bernstein et al., 2002</a>; <a href="https://doi.org/10.1007/978-3-319-28929-8">Oliehoek &amp; Amato, 2016</a>):</p>
+<div class="arithmatex">\[\mathcal{M}_{\text{Dec-POMDP}} = \langle \mathcal{I}, \mathcal{S}, \{\mathcal{A}_i\}, \mathcal{T}, \mathcal{R}, \{\Omega_i\}, \mathcal{O}, \gamma \rangle\]</div>
+<ul>
+<li><span class="arithmatex">\(\Omega_i\)</span>: The local observation space of agent <span class="arithmatex">\(i\)</span> (<span class="arithmatex">\(\mathbb{R}^{16}\)</span>).</li>
+<li><span class="arithmatex">\(\mathcal{O}(o_1, \dots, o_N \mid s', \mathbf{a})\)</span>: The joint observation emission probability function <span class="arithmatex">\(P(\mathbf{o} \mid s', \mathbf{a})\)</span>.</li>
+<li>Each agent <span class="arithmatex">\(i\)</span> executes a decentralized policy <span class="arithmatex">\(\pi_i(a_i \mid \tau_i)\)</span>, where <span class="arithmatex">\(\tau_i = (o_i^0, a_i^0, \dots, o_i^t) \in (\Omega_i \times \mathcal{A}_i)^* \times \Omega_i\)</span> is the agent's private history.</li>
+<li>The collective objective is to find a joint policy <span class="arithmatex">\(\pi^* = \langle \pi_1^*, \dots, \pi_N^* \rangle\)</span> that maximizes expected discounted cumulative team return:
+  $<span class="arithmatex">\(J(\pi) = \mathbb{E}\left[ \sum_{t=0}^{\infty} \gamma^t \mathcal{R}(s_t, \mathbf{a}_t) \;\Bigg|\; \mathbf{a}_t \sim \pi(\cdot \mid \pmb{\tau}_t) \right]\)</span>$</li>
+</ul>
+<h3 id="25-decentralized-pomdp-with-communication-dec-pomdp-comm">2.5 Decentralized POMDP with Communication (Dec-POMDP-Comm)</h3>
+<p>The canonical formulation of ScrollSwarm incorporates explicit inter-agent communication channels over a dynamic network graph <span class="arithmatex">\(\mathcal{G} = (\mathcal{V}, \mathcal{E})\)</span> (<a href="https://doi.org/10.1145/375735.376435">Xuan, Lesser, &amp; Zilberstein, 2001</a>; <a href="https://doi.org/10.5555/1018430.1018453">Goldman &amp; Zilberstein, 2004</a>; <a href="https://doi.org/10.1007/978-3-319-28929-8">Oliehoek &amp; Amato, 2016</a>):</p>
+<div class="arithmatex">\[\mathcal{M}_{\text{Dec-POMDP-Comm}} = \langle \mathcal{I}, \mathcal{S}, \{\mathcal{A}_i\}, \mathcal{T}, \mathcal{R}, \{\Omega_i\}, \mathcal{O}, \Sigma, \mathcal{C}, \mathcal{G}, \gamma \rangle\]</div>
+<ul>
+<li><span class="arithmatex">\(\Sigma\)</span>: The communication message alphabet (or continuous latent vector space <span class="arithmatex">\(\mathbb{R}^M\)</span>).</li>
+<li><span class="arithmatex">\(\mathcal{C}\)</span>: Optional communication cost function (in ScrollSwarm, <span class="arithmatex">\(\mathcal{C} = 0\)</span>, modeling free localized broadcast).</li>
+<li><span class="arithmatex">\(\mathcal{G} = (\mathcal{V}, \mathcal{E})\)</span>: Dynamic communication topology (Chain, Ring, Radius, Capped, Full) determining allowed communication links between living agents.</li>
+</ul>
+<p>In each decision epoch, agents execute a two-stage step:</p>
+<ol>
+<li><strong>Communication Phase:</strong> Every agent <span class="arithmatex">\(i\)</span> broadcasts message <span class="arithmatex">\(m_i \in \Sigma\)</span> to its graph neighbors <span class="arithmatex">\(\mathcal{N}(i)\)</span>.</li>
+<li><strong>Action Phase:</strong> Agent <span class="arithmatex">\(i\)</span> receives aggregated neighbor messages <span class="arithmatex">\(\tilde{m}_i = \bigoplus_{j \in \mathcal{N}(i)} m_j\)</span> and selects physical action <span class="arithmatex">\(a_i \sim \pi_i(a_i \mid \tau_i, \tilde{m}_i)\)</span>.</li>
+</ol>
+<hr />
+<h2 id="3-joint-observability-the-dec-mdp-property">3. Joint Observability &amp; The Dec-MDP Property</h2>
+<p>A critical question in multi-agent reinforcement learning is whether the collection of local observations across all agents is sufficient to reconstruct the full underlying state of the environment.</p>
+<p>According to Oliehoek &amp; Amato (<a href="https://doi.org/10.1007/978-3-319-28929-8">2016, Definition 2.4</a>), a Dec-POMDP is <strong>jointly fully observable</strong> (and thus constitutes a <strong>Dec-MDP</strong>) if the joint observation vector <span class="arithmatex">\(\mathbf{o} = \langle o_1, \dots, o_N \rangle\)</span> uniquely determines the global state:</p>
+<div class="arithmatex">\[\forall \mathbf{o} \in \Omega_1 \times \dots \times \Omega_N, \quad \exists s \in \mathcal{S} \quad \text{such that} \quad P(s \mid \mathbf{o}) = 1\]</div>
+<p>In ScrollSwarm, the global state vector provided by <code>env.state()</code> concatenates individual observations:</p>
+<div class="arithmatex">\[\mathbf{s} = \big[ \mathbf{o}_1^\top, \;\mathbf{o}_2^\top, \;\dots, \;\mathbf{o}_N^\top \big]^\top \in \mathbb{R}^{16\times N}\]</div>
+<p>This property directly enables <strong>Centralized Training with Decentralized Execution (CTDE)</strong> frameworks such as <strong>MAPPO</strong> (<a href="https://doi.org/10.1609/aaai.v36i8.20857">Yu et al., 2022</a>), <strong>QMIX</strong> (<a href="https://proceedings.mlr.press/v80/rashid18a.html">Rashid et al., 2018</a>), and <strong>MADDPG</strong> (<a href="https://proceedings.neurips.cc/paper/2017/hash/68a9750337a418a86fe06c1991a1d64c-Abstract.html">Lowe et al., 2017</a>), where a centralized value function <span class="arithmatex">\(V(s)\)</span> or centralized action-value critic <span class="arithmatex">\(Q_{\text{tot}}(s, \mathbf{a})\)</span> conditions on the joint observation during offline training, while decentralized actors <span class="arithmatex">\(\pi_i(a_i \mid o_i)\)</span> operate strictly on local observations during execution.</p>
+<hr />
+<h2 id="4-references-academic-citations">4. References &amp; Academic Citations</h2>
+<ol>
+<li><strong>Bellman, R. (1957).</strong> <em>A Markovian Decision Process.</em> Journal of Mathematics and Mechanics, 6(5), 679–684. <a href="https://doi.org/10.1512/iumj.1957.6.56038">DOI: 10.1512/iumj.1957.6.56038</a>.</li>
+<li><strong>Puterman, M. L. (1994).</strong> <em>Markov Decision Processes: Discrete Stochastic Dynamic Programming.</em> John Wiley &amp; Sons. <a href="https://doi.org/10.1002/9780470316887">DOI: 10.1002/9780470316887</a>.</li>
+<li><strong>Kaelbling, L. P., Littman, M. L., &amp; Cassandra, A. R. (1998).</strong> <em>Planning and acting in partially observable stochastic domains.</em> Artificial Intelligence, 101(1-2), 99–134. <a href="https://doi.org/10.1016/S0004-3702(98)00023-X">DOI: 10.1016/S0004-3702(98)00023-X</a>.</li>
+<li><strong>Boutilier, C. (1996).</strong> <em>Planning, learning and coordination in multiagent decision processes.</em> In Proceedings of the 6th Conference on Theoretical Aspects of Rationality and Knowledge (TARK), pp. 195–210. <a href="https://dl.acm.org/doi/10.5555/237170.237197">ACM DL: 237197</a>.</li>
+<li><strong>Bernstein, D. S., Givan, R., Immerman, N., &amp; Zilberstein, S. (2002).</strong> <em>The complexity of decentralized control of Markov decision processes.</em> Mathematics of Operations Research, 27(4), 819–840. <a href="https://doi.org/10.1287/moor.27.4.819.297">DOI: 10.1287/moor.27.4.819.297</a>.</li>
+<li><strong>Xuan, P., Lesser, V., &amp; Zilberstein, S. (2001).</strong> <em>Communication decisions in multi-agent cooperation: model and error analysis.</em> In Proceedings of the 5th International Conference on Autonomous Agents (AGENTS), pp. 516–523. <a href="https://doi.org/10.1145/375735.376435">DOI: 10.1145/375735.376435</a>.</li>
+<li><strong>Goldman, C. V., &amp; Zilberstein, S. (2004).</strong> <em>Optimizing information exchange in cooperative multi-agent systems.</em> In Proceedings of the 2nd International Joint Conference on Autonomous Agents and Multiagent Systems (AAMAS), pp. 137–144. <a href="https://doi.org/10.5555/1018430.1018453">ACM DL: 1018453</a>.</li>
+<li><strong>Oliehoek, F. A., &amp; Amato, C. (2016).</strong> <em>A Concise Introduction to Decentralized POMDPs.</em> SpringerBriefs in Intelligent Systems, Springer. <a href="https://doi.org/10.1007/978-3-319-28929-8">DOI: 10.1007/978-3-319-28929-8</a>.</li>
+<li><strong>Kochenderfer, M. J., Wheeler, T. A., &amp; Wray, K. H. (2015).</strong> <em>Decision Making Under Uncertainty: Theory and Application.</em> MIT Press. <a href="https://mitpress.mit.edu/9780262029254/decision-making-under-uncertainty/">Book Link</a>.</li>
+<li><strong>Lowe, R., Wu, Y., Tamar, A., Harb, J., Abbeel, P., &amp; Mordatch, I. (2017).</strong> <em>Multi-agent actor-critic for mixed cooperative-competitive environments.</em> In Advances in Neural Information Processing Systems (NeurIPS). <a href="https://proceedings.neurips.cc/paper/2017/hash/68a9750337a418a86fe06c1991a1d64c-Abstract.html">NeurIPS Link</a>.</li>
+<li><strong>Rashid, T., Samvelyan, M., Schroeder, C., Farquhar, G., Foerster, J., &amp; Whiteson, S. (2018).</strong> <em>QMIX: Monotonic value function factorisation for deep multi-agent reinforcement learning.</em> In International Conference on Machine Learning (ICML). <a href="https://proceedings.mlr.press/v80/rashid18a.html">PMLR Link</a>.</li>
+<li><strong>Yu, C., Velu, A., Vinitsky, E., Gao, J., Wang, Y., Bayen, A., &amp; Wu, Y. (2022).</strong> <em>The surprising effectiveness of PPO in cooperative multi-agent games.</em> In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI). <a href="https://doi.org/10.1609/aaai.v36i8.20857">DOI: 10.1609/aaai.v36i8.20857</a>.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1916 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A 2D multi-agent reinforcement learning (MARL) testbed for cooperative UAV swarm reconnaissance, obstacle avoidance, and graph communication.">
+      
+      
+        <meta name="author" content="Hamza Ba-mohammed">
+      
+      
+        <link rel="canonical" href="https://hambam.top/scrollswarm/environment/observation/">
+      
+      
+        <link rel="prev" href="../communication/">
+      
+      
+        <link rel="next" href="../actions/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Observation - ScrollSwarm</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#observation-space" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ScrollSwarm" class="md-header__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ScrollSwarm
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Observation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="cyan"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
+          
+  
+  
+  Environment Specification
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/01_parallel_env/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/env/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ScrollSwarm" class="md-nav__button md-logo" aria-label="ScrollSwarm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ScrollSwarm
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HamBa-m/scrollswarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HamBa-m/scrollswarm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration & Telemetry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Environment Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../communication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-sensory-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Sensory Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-7-ray-forward-lidar-rangefinder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 7-Ray Forward LiDAR Rangefinder
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 7-Ray Forward LiDAR Rangefinder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-theoretical-foundation-the-beam-model-of-range-finders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Theoretical Foundation: The Beam Model of Range Finders
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-beam-geometry-field-of-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Beam Geometry &amp; Field of View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-ray-casting-determinant-intersection-math" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Ray-Casting &amp; Determinant Intersection Math
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-stochastic-target-inspection-camera-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Stochastic Target Inspection &amp; Camera Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Stochastic Target Inspection &amp; Camera Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-proximity-dependent-bernoulli-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Proximity-Dependent Bernoulli Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-swarm-team-redundancy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Swarm Team Redundancy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-complete-16-dimensional-observation-vector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Complete 16-Dimensional Observation Vector
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-centralized-state-space-for-ctde" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Centralized State Space for CTDE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../actions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Action
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reward/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reward
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_parallel_env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: PettingZoo ParallelEnv Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_heuristic_baseline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02: Heuristic Reactive Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_gnn_pyg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03: PyG & GNN Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_acceleration_backends/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: Computational Acceleration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_vectorized_marl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05: Vectorized MARL & Scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ScrollSwarmEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/vector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vectorized Runners
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent & Dynamics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensors & Raycasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry Backends
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/comm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Communication Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Map & Entities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/sprites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprites & Rendering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-sensory-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Sensory Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-7-ray-forward-lidar-rangefinder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 7-Ray Forward LiDAR Rangefinder
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 7-Ray Forward LiDAR Rangefinder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-theoretical-foundation-the-beam-model-of-range-finders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Theoretical Foundation: The Beam Model of Range Finders
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-beam-geometry-field-of-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Beam Geometry &amp; Field of View
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-ray-casting-determinant-intersection-math" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Ray-Casting &amp; Determinant Intersection Math
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-stochastic-target-inspection-camera-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Stochastic Target Inspection &amp; Camera Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Stochastic Target Inspection &amp; Camera Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-proximity-dependent-bernoulli-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Proximity-Dependent Bernoulli Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-swarm-team-redundancy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Swarm Team Redundancy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-complete-16-dimensional-observation-vector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Complete 16-Dimensional Observation Vector
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-centralized-state-space-for-ctde" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Centralized State Space for CTDE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="observation-space">Observation Space</h1>
+<p>Each drone acts on local sensor readings while centralized critics can read the full team state during training. This page defines the 7-ray forward LiDAR, the probabilistic camera model, the 16-dimensional observation vector, and the centralized CTDE state representation.</p>
+<hr />
+<h2 id="1-sensory-architecture-overview">1. Sensory Architecture Overview</h2>
+<p>Each UAV in ScrollSwarm operates under partial observability, constructing a local 16-dimensional observation vector <span class="arithmatex">\(\mathbf{o}_i \in [-1.0, 1.0]^{16}\)</span> from four components:</p>
+<ol>
+<li><strong>Normalized Altitude State (<span class="arithmatex">\(1\)</span> float):</strong> Normalized vertical flight coordinate <span class="arithmatex">\(y_i / H \in [0.0, 1.0]\)</span>.</li>
+<li><strong>Forward 7-Ray LiDAR (<span class="arithmatex">\(7\)</span> floats):</strong> Rangefinder beam array measuring normalized intersection distances to approaching obstacles and corridor boundaries (<span class="arithmatex">\(d_k^* / R_{\max} \in [0.0, 1.0]\)</span>).</li>
+<li><strong>Target Tracking Vector (<span class="arithmatex">\(4\)</span> floats):</strong> Relative horizontal displacement, vertical displacement, Euclidean distance, and photo inspection range indicator to the nearest unphotographed target.</li>
+<li><strong>Neighbor Drone Vector (<span class="arithmatex">\(4\)</span> floats):</strong> Relative horizontal displacement, vertical displacement, Euclidean distance, and communication connectivity indicator to the nearest living teammate.</li>
+</ol>
+<pre class="mermaid"><code>flowchart TD
+    subgraph UAV Perception Suite
+        A["Forward 7-Ray LiDAR (Obstacle &amp; Boundary Rays)"] --&gt; E["Observation Vector"]
+        B["Nearest Target Vector (Bearing &amp; Distance)"] --&gt; E
+        C["Nearest Neighbor Vector (Bearing &amp; Link)"] --&gt; E
+        D["Vertical Altitude State (y_i / H)"] --&gt; E
+    end
+    E --&gt; F["16-Dimensional Observation Vector o_i in [-1.0, 1.0]^16"]</code></pre>
+<hr />
+<h2 id="2-7-ray-forward-lidar-rangefinder">2. 7-Ray Forward LiDAR Rangefinder</h2>
+<h3 id="21-theoretical-foundation-the-beam-model-of-range-finders">2.1 Theoretical Foundation: The Beam Model of Range Finders</h3>
+<p>Range sensing in ScrollSwarm builds on the <strong>Beam Model of Range Finders</strong> (<a href="https://mitpress.mit.edu/9780262201629/probabilistic-robotics/">Thrun, Burgard, &amp; Fox, 2005</a>, Chapter 6):</p>
+<div class="arithmatex">\[p(z \mid x, m) = \prod_{k=1}^K p(z_k \mid x, m)\]</div>
+<p>Where an array of <span class="arithmatex">\(K = 7\)</span> range rays is projected from the UAV position <span class="arithmatex">\((x_i, y_i)\)</span> into the oncoming corridor airspace.</p>
+<h3 id="22-beam-geometry-field-of-view">2.2 Beam Geometry &amp; Field of View</h3>
+<p>The 7 sensor beams span a forward field of view <span class="arithmatex">\(\text{FOV} = 120^\circ\)</span> centered horizontally forward along the direction of flight:</p>
+<div class="arithmatex">\[\theta_k = -\frac{\pi}{3} + k \cdot \frac{2\pi}{3(K - 1)}, \quad k \in \{0, 1, \dots, 6\}\]</div>
+<div class="arithmatex">\[\Theta = \big\{ -60^\circ, \;-40^\circ, \;-20^\circ, \;0^\circ, \;+20^\circ, \;+40^\circ, \;+60^\circ \big\}\]</div>
+<ul>
+<li><strong>Maximum Range:</strong> <span class="arithmatex">\(R_{\max} = 400.0\text{ px}\)</span> (spanning the oncoming half of the <span class="arithmatex">\(800\text{ px}\)</span> corridor).</li>
+<li><strong>Beam Angle <span class="arithmatex">\(\theta = 0^\circ\)</span>:</strong> Projects horizontally forward to detect upcoming obstacles.</li>
+<li><strong>Beam Angles <span class="arithmatex">\(\theta &lt; 0\)</span>:</strong> Point upward-forward to detect ceiling boundaries and overhead structures.</li>
+<li><strong>Beam Angles <span class="arithmatex">\(\theta &gt; 0\)</span>:</strong> Point downward-forward to detect ground structures and terrain boundaries.</li>
+</ul>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                  Ray 0 (-60°)  \
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                  Ray 1 (-40°)   \
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                  Ray 2 (-20°)    \
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  UAV [x, y] ---------------------- Ray 3 (0°, Forward)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                  Ray 4 (+20°)    /
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                  Ray 5 (+40°)   /
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                  Ray 6 (+60°)  /
+</span></code></pre></div>
+<h3 id="23-ray-casting-determinant-intersection-math">2.3 Ray-Casting &amp; Determinant Intersection Math</h3>
+<p>For each beam <span class="arithmatex">\(k\)</span> with unit direction vector <span class="arithmatex">\(\mathbf{u}_k = (\cos \theta_k, \sin \theta_k)\)</span>, the true range <span class="arithmatex">\(d_k^*\)</span> is computed as the minimum intersection distance across all environmental primitives:</p>
+<div class="arithmatex">\[d_k^* = \min \big( R_{\max}, \;t_{\text{ceil}}, \;t_{\text{floor}}, \;\min_{j} t_{\text{obs}, j} \big)\]</div>
+<ol>
+<li>
+<p><strong>Analytical Boundary Intersections:</strong></p>
+<p>If <span class="arithmatex">\(\sin \theta_k &lt; 0\)</span>, then:</p>
+<div class="arithmatex">\[t_{\text{ceil}} = \frac{y_{\text{ceil}} - y_i}{\sin \theta_k}\]</div>
+<p>If <span class="arithmatex">\(\sin \theta_k &gt; 0\)</span>, then:</p>
+<div class="arithmatex">\[t_{\text{floor}} = \frac{y_{\text{floor}} - y_i}{\sin \theta_k}\]</div>
+</li>
+<li>
+<p><strong>Ray-Segment Determinant Intersection for Polygon Edges:</strong></p>
+<p>For a polygon edge with endpoints <span class="arithmatex">\(\mathbf{v}_a = (x_a, y_a)\)</span> and <span class="arithmatex">\(\mathbf{v}_b = (x_b, y_b)\)</span>, the parametric ray <span class="arithmatex">\(\mathbf{p}(t) = \mathbf{p}_0 + t \mathbf{u}_k\)</span> and edge segment <span class="arithmatex">\(\mathbf{e}(u) = \mathbf{v}_a + u(\mathbf{v}_b - \mathbf{v}_a)\)</span> intersect when:</p>
+<p>$<span class="arithmatex">\(t = \frac{(x_a - x_i)(y_b - y_a) - (y_a - y_i)(x_b - x_a)}{\cos \theta_k (y_b - y_a) - \sin \theta_k (x_b - x_a)}\)</span>$</p>
+<p>and</p>
+<p>$<span class="arithmatex">\(u = \frac{(x_a - x_i)\sin \theta_k - (y_a - y_i)\cos \theta_k}{\cos \theta_k (y_b - y_a) - \sin \theta_k (x_b - x_a)}\)</span>$</p>
+</li>
+</ol>
+<p>An intersection is valid if <span class="arithmatex">\(0 \le t &lt; R_{\max}\)</span> and <span class="arithmatex">\(0 \le u \le 1\)</span>.</p>
+<ol>
+<li>
+<p><strong>Normalization:</strong></p>
+<p>$<span class="arithmatex">\(d_{\text{norm}, k} = \frac{d_k^*}{R_{\max}} \in [0.0, 1.0]\)</span>$</p>
+</li>
+</ol>
+<hr />
+<h2 id="3-stochastic-target-inspection-camera-model">3. Stochastic Target Inspection &amp; Camera Model</h2>
+<h3 id="31-proximity-dependent-bernoulli-detection">3.1 Proximity-Dependent Bernoulli Detection</h3>
+<p>Target observation is modeled as a stochastic inspection process under camera sensor uncertainty, following standard mobile sensor network models (<a href="https://doi.org/10.1109/TRA.2004.824698">Cortés et al., 2004</a>; <a href="https://press.princeton.edu/books/hardcover/9780691149219/small-unmanned-aircraft">Beard &amp; McLain, 2012</a>).</p>
+<p>A target located at <span class="arithmatex">\((x_{\text{tgt}}, y_{\text{tgt}})\)</span> can only be photographed if a drone <span class="arithmatex">\(j\)</span> is within the physical inspection radius:</p>
+<div class="arithmatex">\[d_j = \sqrt{(x_j - x_{\text{tgt}})^2 + (y_j - y_{\text{tgt}})^2} \le D_{\text{photo}} = 45.0\text{ px}\]</div>
+<p>The probability of drone <span class="arithmatex">\(j\)</span> capturing a clear, high-quality photograph is a function of proximity and intrinsic sensor reliability:</p>
+<div class="arithmatex">\[P_j(\text{clear} \mid d_j) = \left( 1 - \frac{d_j}{D_{\text{photo}}} \right) \cdot \mu_{\text{sensor}}\]</div>
+<p>Where:</p>
+<ul>
+<li><span class="arithmatex">\(D_{\text{photo}} = 45.0\text{ px}\)</span> is the maximum photo radius.</li>
+<li><span class="arithmatex">\(\mu_{\text{sensor}} = 0.85\)</span> models camera blur, lighting variations, and vibration disturbances.</li>
+</ul>
+<h3 id="32-swarm-team-redundancy">3.2 Swarm Team Redundancy</h3>
+<p>When multiple living drones <span class="arithmatex">\(\mathcal{N}_{\text{target}}\)</span> are simultaneously within photo range of the target, their observations are conditionally independent Bernoulli trials:</p>
+<div class="arithmatex">\[P_{\text{team}}(\text{success}) = 1 - \prod_{j \in \mathcal{N}_{\text{target}}} \Big( 1 - P_j(\text{clear} \mid d_j) \Big)\]</div>
+<p>If <span class="arithmatex">\(X \sim \text{Bernoulli}(P_{\text{team}})\)</span> yields <span class="arithmatex">\(1\)</span>, the target is successfully photographed, marked completed, and awards the team inspection reward. This mathematical formulation naturally incentivizes multi-UAV team redundancy: if one drone is near the perimeter (<span class="arithmatex">\(P_1 = 0.2\)</span>), a second drone flying close (<span class="arithmatex">\(P_2 = 0.8\)</span>) elevates the team capture probability to:</p>
+<div class="arithmatex">\[P_{\text{team}} = 1 - (1 - 0.2)(1 - 0.8) = 1 - (0.8 \times 0.2) = 0.84\]</div>
+<hr />
+<h2 id="4-complete-16-dimensional-observation-vector">4. Complete 16-Dimensional Observation Vector</h2>
+<p>Each living agent receives a normalized 16-dimensional continuous feature vector <span class="arithmatex">\(\mathbf{o}_i \in [-1.0, 1.0]^{16}\)</span>:</p>
+<div class="arithmatex">\[\mathbf{o}_i = \big[ y_{\text{norm}}, \;\mathbf{d}_{\text{LiDAR}}^\top, \;\mathbf{f}_{\text{target}}^\top, \;\mathbf{f}_{\text{neighbor}}^\top \big]^\top\]</div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Index</th>
+<th style="text-align: center;">Feature Symbol</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: center;">Mathematical Definition</th>
+<th style="text-align: center;">Range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><strong><code>0</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(y_{\text{norm}}\)</span></td>
+<td style="text-align: left;">Normalized vertical flight altitude</td>
+<td style="text-align: center;"><span class="arithmatex">\(y_i / H\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>1</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{LiDAR}, 0}\)</span></td>
+<td style="text-align: left;">LiDAR Ray 0 distance (-60° up-forward)</td>
+<td style="text-align: center;"><span class="arithmatex">\(d_0^* / R_{\max}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>2</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{LiDAR}, 1}\)</span></td>
+<td style="text-align: left;">LiDAR Ray 1 distance (-40° up-forward)</td>
+<td style="text-align: center;"><span class="arithmatex">\(d_1^* / R_{\max}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>3</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{LiDAR}, 2}\)</span></td>
+<td style="text-align: left;">LiDAR Ray 2 distance (-20° up-forward)</td>
+<td style="text-align: center;"><span class="arithmatex">\(d_2^* / R_{\max}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>4</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{LiDAR}, 3}\)</span></td>
+<td style="text-align: left;">LiDAR Ray 3 distance (0° horizontal forward)</td>
+<td style="text-align: center;"><span class="arithmatex">\(d_3^* / R_{\max}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>5</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{LiDAR}, 4}\)</span></td>
+<td style="text-align: left;">LiDAR Ray 4 distance (+20° down-forward)</td>
+<td style="text-align: center;"><span class="arithmatex">\(d_4^* / R_{\max}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>6</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{LiDAR}, 5}\)</span></td>
+<td style="text-align: left;">LiDAR Ray 5 distance (+40° down-forward)</td>
+<td style="text-align: center;"><span class="arithmatex">\(d_5^* / R_{\max}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>7</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{LiDAR}, 6}\)</span></td>
+<td style="text-align: left;">LiDAR Ray 6 distance (+60° down-forward)</td>
+<td style="text-align: center;"><span class="arithmatex">\(d_6^* / R_{\max}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>8</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(\Delta x_{\text{tgt}}\)</span></td>
+<td style="text-align: left;">Relative horizontal offset to nearest target</td>
+<td style="text-align: center;"><span class="arithmatex">\((x_{\text{tgt}} - x_i) / W\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([-1.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>9</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(\Delta y_{\text{tgt}}\)</span></td>
+<td style="text-align: left;">Relative vertical offset to nearest target</td>
+<td style="text-align: center;"><span class="arithmatex">\((y_{\text{tgt}} - y_i) / H\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([-1.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>10</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{tgt}}\)</span></td>
+<td style="text-align: left;">Normalized Euclidean distance to nearest target</td>
+<td style="text-align: center;"><span class="arithmatex">\(\|\mathbf{p}_{\text{tgt}} - \mathbf{p}_i\| / \sqrt{W^2 + H^2}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>11</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(\mathbf{1}_{\text{in\_range}}\)</span></td>
+<td style="text-align: left;">Photo inspection range indicator</td>
+<td style="text-align: center;"><span class="arithmatex">\(\mathbf{1}_{d_{\text{tgt}} \le D_{\text{photo}}}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(\{0.0, 1.0\}\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>12</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(\Delta x_{\text{nbr}}\)</span></td>
+<td style="text-align: left;">Relative horizontal offset to nearest neighbor</td>
+<td style="text-align: center;"><span class="arithmatex">\((x_{\text{nbr}} - x_i) / W\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([-1.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>13</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(\Delta y_{\text{nbr}}\)</span></td>
+<td style="text-align: left;">Relative vertical offset to nearest neighbor</td>
+<td style="text-align: center;"><span class="arithmatex">\((y_{\text{nbr}} - y_i) / H\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([-1.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>14</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(d_{\text{nbr}}\)</span></td>
+<td style="text-align: left;">Normalized Euclidean distance to nearest neighbor</td>
+<td style="text-align: center;"><span class="arithmatex">\(\|\mathbf{p}_{\text{nbr}} - \mathbf{p}_i\| / \sqrt{W^2 + H^2}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\([0.0, 1.0]\)</span></td>
+</tr>
+<tr>
+<td style="text-align: center;"><strong><code>15</code></strong></td>
+<td style="text-align: center;"><span class="arithmatex">\(\mathbf{1}_{\text{comm}}\)</span></td>
+<td style="text-align: left;">Inter-drone communication connectivity flag</td>
+<td style="text-align: center;"><span class="arithmatex">\(\mathbf{1}_{d_{\text{nbr}} \le R_{\text{comm}}}\)</span></td>
+<td style="text-align: center;"><span class="arithmatex">\(\{0.0, 1.0\}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><em>(Defaults: LiDAR indices 1–7 return <span class="arithmatex">\(1.0\)</span> when no obstacle is within <span class="arithmatex">\(R_{\max}\)</span>; target indices 8–11 default to <span class="arithmatex">\([0.0, 0.0, 1.0, 0.0]\)</span> when no active targets exist; neighbor indices 12–15 default to <span class="arithmatex">\([0.0, 0.0, 1.0, 0.0]\)</span> when no living neighbors exist.)</em></p>
+<hr />
+<h2 id="5-centralized-state-space-for-ctde">5. Centralized State Space for CTDE</h2>
+<p>For algorithms employing <strong>Centralized Training with Decentralized Execution</strong> (such as MAPPO, QMIX, and MADDPG), <code>env.state()</code> returns the global concatenated state vector:</p>
+<div class="arithmatex">\[\mathbf{s} = \big[ \mathbf{o}_1^\top, \;\mathbf{o}_2^\top, \;\dots, \;\mathbf{o}_N^\top \big]^\top \in \mathbb{R}^{16N}\]</div>
+<ul>
+<li><strong>State Space:</strong> <code>spaces.Box(low=-1.0, high=1.0, shape=(16 * num_agents,), dtype=np.float32)</code>.</li>
+<li><strong>Dead Agent Zero-Masking:</strong> If agent <span class="arithmatex">\(i\)</span> has crashed (<code>alive = False</code>), its corresponding slice in the state vector is replaced with zero: <span class="arithmatex">\(\mathbf{o}_i = \mathbf{0}_{16} \quad \text{if } \text{alive}_i = \text{False}\)</span>.</li>
+</ul>
+<hr />
+<h2 id="6-references">6. References</h2>
+<ol>
+<li><strong>Thrun, S., Burgard, W., &amp; Fox, D. (2005).</strong> <em>Probabilistic Robotics.</em> MIT Press. Chapter 6: "Sensor Models: Beam Model of Range Finders". <a href="https://mitpress.mit.edu/9780262201629/probabilistic-robotics/">MIT Press Link</a>.</li>
+<li><strong>Cortés, J., Martínez, S., Karatas, T., &amp; Bullo, F. (2004).</strong> <em>Coverage control for mobile sensing networks.</em> IEEE Transactions on Robotics and Automation, 20(2), 243–255. <a href="https://doi.org/10.1109/TRA.2004.824698">DOI: 10.1109/TRA.2004.824698</a>.</li>
+<li><strong>Beard, R. W., &amp; McLain, T. W. (2012).</strong> <em>Small Unmanned Aircraft: Theory and Practice.</em> Princeton University Press. <a href="https://press.princeton.edu/books/hardcover/9780691149219/small-unmanned-aircraft">Princeton Univ Press Link</a>.</li>
+<li><strong>Oliehoek, F. A., &amp; Amato, C. (2016).</strong> <em>A Concise Introduction to Decentralized POMDPs.</em> SpringerBriefs in Intelligent Systems, Springer. <a href="https://doi.org/10.1007/978-3-319-28929-8">DOI: 10.1007/978-3-319-28929-8</a>.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

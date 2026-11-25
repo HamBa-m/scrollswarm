@@ -16,10 +16,13 @@ Provides a standard Multi-Agent Reinforcement Learning (MARL) interface:
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 import functools
+import logging
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from pettingzoo import ParallelEnv
+
+from scrollswarm.geometry import resolve_backend
 
 from scrollswarm.map import (
     ScrollingMap,
@@ -42,6 +45,8 @@ from scrollswarm.agent import Agent, Action, create_agents, COLOR_AGENT_DEAD
 from scrollswarm.sensors import RaySensor
 from scrollswarm.comm import CommunicationGraph, TopologyType
 from scrollswarm.sprites import get_quadcopter_sprite
+
+logger = logging.getLogger(__name__)
 
 
 class ScrollSwarmEnv(ParallelEnv):
@@ -151,6 +156,23 @@ class ScrollSwarmEnv(ParallelEnv):
         self._font = None
         self._id_font = None
 
+        try:
+            resolved_backend = resolve_backend(self.backend)
+        except (ValueError, RuntimeError):
+            resolved_backend = f"unresolved({self.backend})"
+
+        logger.info(
+            "Initialized ScrollSwarmEnv (agents=%d, max_cycles=%d, topology=%s, "
+            "team_reward=%s, backend=%s->%s, render_mode=%s)",
+            self._num_agents,
+            self.max_cycles,
+            self.comm_graph.topology.value,
+            self.team_reward,
+            self.backend,
+            resolved_backend,
+            self.render_mode,
+        )
+
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent: str) -> gym.Space:
         """
@@ -257,6 +279,13 @@ class ScrollSwarmEnv(ParallelEnv):
         """
         self.step_count = 0
         self.agents = self.possible_agents[:]
+
+        logger.debug(
+            "Reset ScrollSwarmEnv (seed=%s, num_agents=%d, backend=%s)",
+            seed,
+            self._num_agents,
+            self.backend,
+        )
 
         # Reset scrolling map with provided seed
         self.scrolling_map.reset(seed=seed)
@@ -509,6 +538,7 @@ class ScrollSwarmEnv(ParallelEnv):
             import pygame
             pygame.quit()
             self._pygame_initialized = False
+            logger.debug("Closed ScrollSwarmEnv Pygame display resources.")
 
     def get_adjacency_matrix(self) -> np.ndarray:
         """Convenience method: returns the (N, N) binary adjacency matrix."""

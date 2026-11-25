@@ -2,6 +2,10 @@
 ScrollSwarm: A side-scrolling multi-agent reinforcement learning testbed.
 """
 
+import logging
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
+
 from scrollswarm.env import ScrollSwarmEnv
 from scrollswarm.map import (
     ScrollingMap,

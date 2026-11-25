@@ -9,7 +9,12 @@ logic, allowing runtime selection between:
 - ``auto``: Automatically selects the fastest available backend on the host system.
 """
 
-from typing import List, Optional, Tuple, TYPE_CHECKING
+import importlib
+import logging
+import os
+from pathlib import Path
+import sys
+from typing import Any, List, Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
 from scrollswarm.geometry.numpy_backend import (
@@ -17,6 +22,8 @@ from scrollswarm.geometry.numpy_backend import (
     point_in_polygon_numpy,
     distance_to_polygon_numpy,
 )
+
+logger = logging.getLogger(__name__)
 
 # Optional Numba backend
 try:
@@ -27,36 +34,54 @@ try:
         distance_to_polygon_numba,
         HAS_NUMBA,
     )
-except ImportError:
+except ImportError as exc:
+    logger.debug("Numba geometry backend unavailable: %s", exc)
     HAS_NUMBA = False
     cast_rays_numba = None
     point_in_polygon_numba = None
     distance_to_polygon_numba = None
 
-import os
-import sys
 
-# Optional C++20 native extension
-try:
+def _has_compiled_cpp_artifact(geometry_dir: Optional[Path] = None) -> bool:
+    """Returns True if a compiled C++ geometry extension binary exists on disk."""
+    target_dir = geometry_dir if geometry_dir is not None else Path(__file__).resolve().parent
+    return any(target_dir.glob("_geometry_cpp*.pyd")) or any(target_dir.glob("_geometry_cpp*.so"))
+
+
+def _load_cpp_extension(geometry_dir: Optional[Path] = None) -> Optional[Any]:
+    """Attempts to load the compiled C++20 geometry extension with failure diagnostics."""
     if os.name == "nt" and hasattr(os, "add_dll_directory"):
         base_prefix = getattr(sys, "base_prefix", sys.prefix)
         if os.path.exists(base_prefix):
             try:
                 os.add_dll_directory(base_prefix)
-            except Exception:
+            except OSError:
                 pass
-    try:
-        from scrollswarm.geometry import _geometry_cpp
-    except ImportError:
-        import _geometry_cpp
 
+    try:
+        try:
+            return importlib.import_module("scrollswarm.geometry._geometry_cpp")
+        except ImportError:
+            return importlib.import_module("_geometry_cpp")
+    except (ImportError, OSError, AttributeError) as exc:
+        if _has_compiled_cpp_artifact(geometry_dir):
+            logger.warning(
+                "Compiled C++20 geometry extension exists but failed to load (%s); falling back.",
+                exc,
+            )
+        else:
+            logger.debug("Compiled C++20 geometry extension not built (%s).", exc)
+        return None
+
+
+_geometry_cpp = _load_cpp_extension()
+if _geometry_cpp is not None:
     cast_rays_cpp = _geometry_cpp.cast_rays_cpp
     point_in_polygon_cpp = _geometry_cpp.point_in_polygon_cpp
     distance_to_polygon_cpp = _geometry_cpp.distance_to_polygon_cpp
     HAS_CPP = True
-except (ImportError, AttributeError):
+else:
     HAS_CPP = False
-    _geometry_cpp = None
     cast_rays_cpp = None
     point_in_polygon_cpp = None
     distance_to_polygon_cpp = None

@@ -15,19 +15,14 @@
 
 ![ScrollSwarm Environment Simulation](assets/demo.gif)
 
-ScrollSwarm is a lightweight, high-throughput multi-agent simulation where a team of autonomous drones flies forward through an aerial corridor. Agents must dodge obstacles of various shapes and sizes while coordinating to take photos of targets scattered along their flight path.
+ScrollSwarm is a lightweight, high-throughput multi-agent simulation where autonomous drones fly forward through an aerial corridor, dodging obstacles while coordinating to photograph targets along their path:
 
----
-
-## Scenario at a Glance
-
-- **Airspace & Movement:** Drones cruise forward in a straight line at a constant speed ($v_{\text{scroll}} = 1\text{ px/step}$). The vertical axis represents flight altitude, and each drone controls its altitude with discrete actions: **climb up**, **dive down**, or **maintain height**.
-- **Procedural Obstacles:** 2D obstacles of varying shapes and sizes are procedurally distributed across the corridor. An open flight passage is always guaranteed ($G_{\min} \ge 110\text{ px}$), ensuring drones never face impassable bottlenecks.
-- **Reconnaissance & Photo Missions:** Drones have the mission of observing designated target waypoints by flying within inspection range ($D_{\text{photo}} = 45\text{ px}$).
-- **Image Quality & Redundancy:** Capturing a clear photo isn't guaranteed—clarity is modeled probabilistically, improving as an agent gets closer to the target. When targets appear at different altitudes, the team must coordinate to provide redundancy ($P_{\text{team}} = 1 - \prod (1 - P_j)$), ensuring at least one drone captures each target.
-- **Forward Rangefinder Vision:** Each drone is equipped with 7 forward sensor rays (LiDAR) to detect oncoming obstacles ahead, alongside relative bearings to the closest target and neighboring drones.
-- **Graph Communication:** Living drones can pass messages to their teammates across configurable network graphs (chain, ring, spatial radius, or broadcast) with native PyTorch Geometric (PyG) tensor export.
-- **Safety:** Colliding with any obstacle or corridor boundary immediately disables that drone, while surviving teammates continue the mission.
+- **Corridor & Altitude Control:** Drones cruise forward at a constant speed ($v_{\text{scroll}} = 1\text{ px/step}$) and choose one discrete vertical action per step: **climb up**, **dive down**, or **stay level**.
+- **Procedural Obstacles:** 2D obstacles of varying shapes and sizes populate the corridor, while a minimum navigable gap ($G_{\min} \ge 110\text{ px}$) guarantees paths are never blocked.
+- **Probabilistic Target Photography:** Drones inspect targets within range ($D_{\text{photo}} = 45\text{ px}$), where photo success increases with proximity. Spreading across altitudes provides redundancy ($P_{\text{team}} = 1 - \prod (1 - P_j)$) so at least one drone captures each target.
+- **Forward LiDAR & Bearings:** Each drone scans forward with 7 LiDAR rays to detect oncoming obstacles and tracks relative bearings to the nearest target and teammate.
+- **Graph Communication:** Living drones exchange messages over configurable network graphs (`chain`, `ring`, `full`, `radius`, or `capped`) with native PyTorch Geometric (PyG) tensor export.
+- **Crash Handling:** Hitting any obstacle or corridor boundary causes that drone to crash immediately, while surviving teammates continue the mission.
 
 ---
 

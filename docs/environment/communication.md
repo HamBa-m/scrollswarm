@@ -1,6 +1,6 @@
 # Communication Graph & Network Topologies
 
-This page details the mathematical graph communication layer in ScrollSwarm: formal graph topology formulations, dynamic dead-agent edge pruning invariants, and theoretical message passing and aggregation operators.
+Decentralized drones use a dynamic communication graph to coordinate beyond their local field of view. This page defines the five supported graph topologies, how links are pruned when drones crash, and the message aggregation operators.
 
 ---
 
@@ -69,8 +69,8 @@ $$A_{ij} = \begin{cases} 1 & \text{if } j \in \mathcal{N}_k(i) \\ 0 & \text{othe
 
 ## 3. Dynamic Dead-Agent Edge Pruning Invariant
 
-In real-world swarm robotics, disabled or crashed agents cannot transmit or receive radio messages. ScrollSwarm enforces strict **dynamic edge pruning** ([Oliehoek & Amato, 2016](https://doi.org/10.1007/978-3-319-28929-8)):
-s
+In real-world swarm robotics, crashed agents cannot transmit or receive radio messages. ScrollSwarm enforces strict **dynamic edge pruning** ([Oliehoek & Amato, 2016](https://doi.org/10.1007/978-3-319-28929-8)):
+
 For all pairs $(i, j) \in \{1, \dots, N\}^2$ and all time steps $t$:
 
 $$A_{ij}(t) = A_{ij}^{\text{base}} \cdot \mathbf{1}_{\text{alive}_i(t)} \cdot \mathbf{1}_{\text{alive}_j(t)}$$
@@ -79,7 +79,7 @@ If drone $k$ crashes ($\text{alive}_k = \text{False}$), row $k$ and column $k$ o
 
 $$\sum_{j=1}^N A_{kj}(t) = 0 \quad \text{and} \quad \sum_{i=1}^N A_{ik}(t) = 0$$
 
-All incident edges vanish from the graph, preventing zombie signal propagation in Graph Neural Networks.
+All incident edges vanish from the graph, preventing stale messages from reaching Graph Neural Networks.
 
 ---
 
@@ -100,7 +100,7 @@ Under the Dec-POMDP-Comm formulation, each decision step proceeds in two distinc
    $$a_i \sim \pi_i(a_i \mid o_i, \tilde{\mathbf{m}}_i)$$
 
 ### 4.2 Permutation-Invariant Aggregation Operators
-Because in-degrees vary dynamically across topologies (e.g., spatial radius disks and dead-agent edge pruning), the aggregation function $\bigoplus$ must satisfy strict permutation invariance with respect to neighbor ordering:
+Because in-degrees vary dynamically across topologies (e.g., spatial radius disks and dead-agent edge pruning), the aggregation function $\bigoplus$ must produce the same output regardless of neighbor ordering:
 
 $$\bigoplus \big( \mathbf{m}_{\sigma(1)}, \dots, \mathbf{m}_{\sigma(k)} \big) = \bigoplus \big( \mathbf{m}_1, \dots, \mathbf{m}_k \big) \quad \forall \sigma \in \mathcal{S}_k$$
 

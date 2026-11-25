@@ -1,6 +1,6 @@
 # Decision-Theoretic Formulations
 
-ScrollSwarm is designed as a foundational benchmark for research at the intersection of Multi-Agent Reinforcement Learning (MARL), networked robotics, and sequential decision-making under uncertainty. Depending on the agent configuration, observability assumptions, and communication constraints, ScrollSwarm can be instantiated across multiple formal mathematical frameworks.
+ScrollSwarm is a multi-agent reinforcement learning (MARL) benchmark that supports multiple formal decision-theoretic frameworks depending on team size, observability, and communication settings.
 
 ---
 
@@ -83,7 +83,7 @@ $$\mathcal{M}_{\text{Dec-POMDP-Comm}} = \langle \mathcal{I}, \mathcal{S}, \{\mat
 
 A critical question in multi-agent reinforcement learning is whether the collection of local observations across all agents is sufficient to reconstruct the full underlying state of the environment.
 
-According to Oliehoek & Amato ([2016, Definition 2.4](https://doi.org/10.1007/978-3-319-28929-8)), a Dec-POMDP is **jointly fully observable** (and thus constitutes a **Dec-MDP**) if the joint observation vector $\mathbf{o} = \langle o_1, \dots, o_N \rangle$ deterministically disambiguates the global state:
+According to Oliehoek & Amato ([2016, Definition 2.4](https://doi.org/10.1007/978-3-319-28929-8)), a Dec-POMDP is **jointly fully observable** (and thus constitutes a **Dec-MDP**) if the joint observation vector $\mathbf{o} = \langle o_1, \dots, o_N \rangle$ uniquely determines the global state:
 
 $$\forall \mathbf{o} \in \Omega_1 \times \dots \times \Omega_N, \quad \exists s \in \mathcal{S} \quad \text{such that} \quad P(s \mid \mathbf{o}) = 1$$
 

@@ -1,6 +1,6 @@
 # Tutorial 02: Heuristic Reactive Policy & Evaluation
 
-In Multi-Agent Reinforcement Learning (MARL), training deep neural policies from scratch is computationally expensive. Before training complex MARL models like MAPPO, QMIX, or GNN-based architectures, establishing a **transparent, rule-based heuristic baseline** is critical.
+Training deep neural policies from scratch is computationally expensive. Before reaching for learning algorithms, it helps to establish a **transparent, rule-based baseline** so you have a clear performance floor.
 
 This tutorial guides you through:
 
@@ -197,7 +197,7 @@ class ReactiveSwarmPolicy:
 
 ## 5. Comparative Benchmark: Random vs. Reactive
 
-To evaluate the policy, we run a multi-seed Monte Carlo experiment comparing 5 random exploration episodes against 5 reactive heuristic episodes over a 500-step horizon ($T = 500$):
+To evaluate the policy, we run a multi-seed experiment comparing 5 random exploration episodes against 5 reactive heuristic episodes over a 500-step horizon ($T = 500$):
 
 ```python
 """
@@ -296,7 +296,7 @@ The dynamic execution of both policies can be visually compared below:
 === "Random Action Baseline (Uncoordinated Exploration)"
     ![Random Action Policy Execution](../assets/random_policy.gif)
     
-    *Random Action Baseline: Drones oscillate erratically without obstacle awareness. Drones #4 (step 133) and #3 (step 224) collide into procedural structures and suffer instant structural termination (Return: -6.45).*
+    *Random Action Baseline: Drones oscillate erratically without obstacle awareness. Drones #4 (step 133) and #3 (step 224) collide into procedural structures and crash immediately (Return: -6.45).*
 
 ---
 

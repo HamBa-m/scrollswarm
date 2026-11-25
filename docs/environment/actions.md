@@ -1,6 +1,6 @@
 # Action Space & Kinematics
 
-This page details the discrete action space, kinematic transition dynamics, vertical thrust equations, and joint action space formulations for the multi-agent drone swarm in ScrollSwarm.
+Each drone moves only along the vertical axis using three discrete actions. This page defines the action space, altitude update rules, crash handling, and joint action scaling.
 
 ---
 
@@ -37,12 +37,12 @@ Where:
 - $H = 400\text{ px}$ is the total corridor height.
 - Clamping ensures the drone geometry physically remains within the screen bounds even before boundary collision checks occur.
 
-### 2.2 Terminated / Crashed UAV Invariant
-If a UAV collides with an obstacle or corridor boundary at time $t$, its operational state transitions to `alive = False`:
+### 2.2 Crashed UAV Invariant
+If a UAV collides with an obstacle or corridor boundary at time $t$, it crashes (`alive = False`):
 
 $$\text{If } \text{alive}_i(t) = \text{False} \implies y_{i, t+1} = y_{i, t}, \quad \text{no actions executed}$$
 
-Terminated drones become inactive obstacles on the field; their actions are ignored, and they are pruned from `env.agents`.
+Crashed drones become inactive obstacles on the field; their actions are ignored, and they are pruned from `env.agents`.
 
 ---
 

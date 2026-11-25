@@ -1,6 +1,6 @@
 # Rewards & Episode Horizon
 
-This section formalizes the multi-agent reward structure, optimization objectives, discount factor planning horizon, and finite horizon truncation vs. termination dynamics in ScrollSwarm.
+This page defines the per-step reward components, discounted return objective, and episode termination versus truncation rules.
 
 ---
 
@@ -13,7 +13,7 @@ $$R_i(t) = R_{\text{step}} + R_{\text{target}, i}(t) - R_{\text{crash}, i}(t)$$
 ### 1.1 Component Breakdown
 
 1. **Step Survival Reward ($R_{\text{step}} = +0.01$):**
-   Awarded at every time step that the UAV remains airborne and operational. Provides a dense baseline incentive preventing passive suicide policies.
+   Awarded at every time step that the UAV remains airborne and operational. Encourages staying alive (prevents agents from learning to crash on purpose).
 
 2. **Target Photography Reward ($R_{\text{target}} = +1.0$):**
    Triggered when an uncollected target is successfully photographed within inspection radius $D_{\text{photo}} = 45\text{ px}$ under stochastic camera uncertainty ($X \sim \text{Bernoulli}(P_{\text{team}})$):
@@ -24,12 +24,12 @@ $$R_i(t) = R_{\text{step}} + R_{\text{target}, i}(t) - R_{\text{crash}, i}(t)$$
 
          $$R_{\text{target}, i}(t) = \frac{+1.0}{|\mathcal{V}_{\text{alive}}(t)|}$$
 
-4. **Crash Collision Penalty ($R_{\text{crash}} = -10.0$):**
+3. **Crash Penalty ($R_{\text{crash}} = -10.0$):**
    Assessed instantaneously when any vertex of UAV $i$ penetrates an obstacle or boundary plane:
    $$R_{\text{crash}, i}(t) = \begin{cases} -10.0 & \text{if UAV } i \text{ collides with boundary or obstacle} \\ 0.0 & \text{otherwise} \end{cases}$$
 
 
-   Collision causes immediate structural termination ($\text{alive}_i \leftarrow \text{False}$).
+   A collision causes an immediate crash ($\text{alive}_i \leftarrow \text{False}$).
 
 ---
 

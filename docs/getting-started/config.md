@@ -1,6 +1,6 @@
 # Configuration & Technical Reference
 
-This page provides a unified engineering and parameter reference for environment initialization, `MapConfig` corridor settings, agent physical tuning, observation and state vector schemas, Graph Neural Network (PyG) tensors, and the runtime `infos` telemetry dictionary.
+Use this reference to configure ScrollSwarm environments, corridor physics, agent parameters, PyG graph tensors, and step telemetry.
 
 For the underlying mathematical formulations and proofs, see the [Environment Specification](../environment/overview.md).
 
@@ -42,7 +42,7 @@ env = ScrollSwarmEnv(
 
 ## 2. Corridor Configuration (`MapConfig`)
 
-The physical airspace corridor, obstacle generation rates, and passage invariants are managed via `MapConfig`:
+The airspace corridor, obstacle generation rates, and passage invariants are managed via `MapConfig`:
 
 ```python
 from scrollswarm.map import MapConfig
@@ -100,7 +100,7 @@ assert drone.y == 195.0
 
 | Argument | Location | Default | Range | Impact on Dynamics |
 | :--- | :--- | :---: | :---: | :--- |
-| `step_size` | `Agent.__init__` | `5` | $[1, 20]$ | Vertical agility; larger values allow faster obstacle evasion but coarser vertical positioning |
+| `step_size` | `Agent.__init__` | `5` | $[1, 20]$ | Vertical step size $k$ (px); larger values allow faster obstacle evasion but coarser vertical positioning |
 | `width` | `Agent.__init__` | `20.0` | $[8.0, 40.0]$ | Physical horizontal collision width of the quadcopter |
 | `height` | `Agent.__init__` | `16.0` | $[8.0, 32.0]$ | Physical vertical collision height of the quadcopter |
 | `num_agents` | `ScrollSwarmEnv.__init__` | `5` | $[1, 10]$ | Swarm cardinality $N$, defining joint action space dimension $3^N$ |
@@ -110,26 +110,7 @@ assert drone.y == 195.0
 ## 4. Observation & State Vector Schemas
 
 ### 4.1 Local Observation Vector (`16` floats per UAV)
-Each active drone receives an observation vector $\mathbf{o}_i \in [-1.0, 1.0]^{16}$ conforming to `spaces.Box(low=-1.0, high=1.0, shape=(16,), dtype=np.float32)`:
-
-| Index | Field Symbol | Description | Mathematical Definition | Valid Range | Fallback (No Target / Neighbor) |
-| :---: | :---: | :--- | :---: | :---: | :---: |
-| **`0`** | $y_{\text{norm}}$ | Normalized vertical flight altitude | $y_i / H$ | $[0.0, 1.0]$ | Current position |
-| **`1`** | $d_{\text{LiDAR}, 0}$ | LiDAR Ray 0 distance (-60° up-forward) | $d_0^* / R_{\max}$ | $[0.0, 1.0]$ | $1.0$ (Max range) |
-| **`2`** | $d_{\text{LiDAR}, 1}$ | LiDAR Ray 1 distance (-40° up-forward) | $d_1^* / R_{\max}$ | $[0.0, 1.0]$ | $1.0$ (Max range) |
-| **`3`** | $d_{\text{LiDAR}, 2}$ | LiDAR Ray 2 distance (-20° up-forward) | $d_2^* / R_{\max}$ | $[0.0, 1.0]$ | $1.0$ (Max range) |
-| **`4`** | $d_{\text{LiDAR}, 3}$ | LiDAR Ray 3 distance (0° horizontal forward) | $d_3^* / R_{\max}$ | $[0.0, 1.0]$ | $1.0$ (Max range) |
-| **`5`** | $d_{\text{LiDAR}, 4}$ | LiDAR Ray 4 distance (+20° down-forward) | $d_4^* / R_{\max}$ | $[0.0, 1.0]$ | $1.0$ (Max range) |
-| **`6`** | $d_{\text{LiDAR}, 5}$ | LiDAR Ray 5 distance (+40° down-forward) | $d_5^* / R_{\max}$ | $[0.0, 1.0]$ | $1.0$ (Max range) |
-| **`7`** | $d_{\text{LiDAR}, 6}$ | LiDAR Ray 6 distance (+60° down-forward) | $d_6^* / R_{\max}$ | $[0.0, 1.0]$ | $1.0$ (Max range) |
-| **`8`** | $\Delta x_{\text{tgt}}$ | Relative horizontal offset to nearest target | $(x_{\text{tgt}} - x_i) / W$ | $[-1.0, 1.0]$ | $0.0$ |
-| **`9`** | $\Delta y_{\text{tgt}}$ | Relative vertical offset to nearest target | $(y_{\text{tgt}} - y_i) / H$ | $[-1.0, 1.0]$ | $0.0$ |
-| **`10`** | $d_{\text{tgt}}$ | Normalized Euclidean distance to nearest target | $\|\mathbf{p}_{\text{tgt}} - \mathbf{p}_i\| / \text{diag}$ | $[0.0, 1.0]$ | $1.0$ |
-| **`11`** | $\mathbf{1}_{\text{in\_range}}$ | Photo inspection range indicator | $\mathbf{1}_{d_{\text{tgt}} \le D_{\text{photo}}}$ | $\{0.0, 1.0\}$ | $0.0$ |
-| **`12`** | $\Delta x_{\text{nbr}}$ | Relative horizontal offset to nearest neighbor | $(x_{\text{nbr}} - x_i) / W$ | $[-1.0, 1.0]$ | $0.0$ |
-| **`13`** | $\Delta y_{\text{nbr}}$ | Relative vertical offset to nearest neighbor | $(y_{\text{nbr}} - y_i) / H$ | $[-1.0, 1.0]$ | $0.0$ |
-| **`14`** | $d_{\text{nbr}}$ | Normalized Euclidean distance to nearest neighbor | $\|\mathbf{p}_{\text{nbr}} - \mathbf{p}_i\| / \text{diag}$ | $[0.0, 1.0]$ | $1.0$ |
-| **`15`** | $\mathbf{1}_{\text{comm}}$ | Inter-drone communication connectivity flag | $\mathbf{1}_{d_{\text{nbr}} \le R_{\text{comm}}}$ | $\{0.0, 1.0\}$ | $0.0$ |
+Each active drone receives a 16-dimensional continuous vector $\mathbf{o}_i \in [-1.0, 1.0]^{16}$ (`spaces.Box(low=-1.0, high=1.0, shape=(16,), dtype=np.float32)`) combining normalized altitude (index `0`), 7 forward LiDAR distances (indices `1–7`), nearest-target features (indices `8–11`), and nearest-neighbor features (indices `12–15`). See the [Observation Space Specification](../environment/observation.md#4-complete-16-dimensional-observation-vector) for the complete index table, mathematical definitions, and fallback values.
 
 ### 4.2 Centralized State Vector (`16 * N` floats)
 For Centralized Training with Decentralized Execution (CTDE), `env.state()` returns the global concatenated vector $\mathbf{s} \in \mathbb{R}^{16N}$:
@@ -197,7 +178,7 @@ team_photos = sum(info["targets_photographed"] for info in infos.values())
 
 ## 7. Diagnostic System Logging
 
-`scrollswarm` uses Python's standard `logging` module under the `"scrollswarm"` logger hierarchy with a `logging.NullHandler()` attached by default, ensuring zero unsolicited console/file output and zero hot-path overhead inside `step()`.
+`scrollswarm` uses Python's standard `logging` module under the `"scrollswarm"` logger hierarchy with a `logging.NullHandler()` attached by default, so it produces no output unless configured and adds no overhead inside `step()`.
 
 To inspect backend resolution (`cpp` vs. `numba` vs. `numpy`), C++ extension load warnings, and environment lifecycle diagnostics in your scripts:
 

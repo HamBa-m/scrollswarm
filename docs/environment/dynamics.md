@@ -1,6 +1,6 @@
 # Environment Dynamics
 
-This section details the physical environment dynamics, kinematics of the scrolling aerial corridor, multi-scale procedural obstacle generation, and the mathematical proof of the guaranteed navigable passage invariant.
+This page defines the 2D corridor geometry, scrolling kinematics, procedural obstacles, guaranteed navigable gap proof, and collision checks.
 
 ---
 
@@ -27,7 +27,7 @@ Where:
 The simulation advances in discrete time steps $\Delta t$ at a nominal rate of $30\text{ FPS}$.
 
 ### 2.1 Forward Scrolling Motion
-The airspace scrolls horizontally leftward at constant linear velocity $v_{\text{scroll}}$:
+The corridor scrolls horizontally leftward at constant velocity $v_{\text{scroll}}$:
 
 $$x_{t+1} = x_t - v_{\text{scroll}} \cdot \Delta t$$
 
@@ -36,19 +36,19 @@ By default, $v_{\text{scroll}} = 1.0\text{ px/step}$. Because all drones occupy 
 ### 2.2 Procedural Obstacle Models
 Obstacles represent physical hazards of varying geometries and scales:
 
-1. **Ground-Standing Structures (Buildings & Towers):**
+1. **Ground-Standing Structures:**
 
     - Modeled as axis-aligned rectangles rooted at the ground plane $y_{\text{floor}}$: $\text{Rect}_{\text{ground}} = \big[ x - w/2, \;x + w/2 \big] \times \big[ y_{\text{floor}} - h, \;y_{\text{floor}} \big]$
    - Width $w \sim \mathcal{U}(30.0, 70.0)\text{ px}$.
    - Height $h \sim \mathcal{U}(40.0, h_{\max})\text{ px}$.
 
-3. **Overhead Structures (Suspended Fixtures):**
+2. **Overhead Structures:**
     - Modeled as rectangular barriers hanging down from the ceiling $y_{\text{ceil}}$:
          $\text{Rect}_{\text{overhead}} = \big[ x - w/2, \;x + w/2 \big] \times \big[ y_{\text{ceil}}, \;y_{\text{ceil}} + d \big]$
      - Width $w \sim \mathcal{U}(30.0, 70.0)\text{ px}$.
      - Depth $d \sim \mathcal{U}(30.0, d_{\max})\text{ px}$.
 
-5. **Floating Debris & Airborne Hazards:**
+3. **Floating Debris & Airborne Hazards:**
 Modeled as convex polygons with radius $r \sim \mathcal{U}(14.0, 32.0)\text{ px}$ undergoing epicyclic vertical oscillation:  $y(t) = y_{\text{base}} + A \sin(\omega t + \phi)$, where amplitude $A \sim \mathcal{U}(4.0, 16.0)\text{ px}$, frequency $\omega \sim \mathcal{U}(0.02, 0.06)\text{ rad/step}$, and initial phase $\phi \sim \mathcal{U}(0, 2\pi)$.
 
 ---
@@ -91,7 +91,7 @@ Physical collision between a drone and an obstacle is computed using exact point
 
 $$\mathbf{p}_{\text{proj}} = \mathbf{v}_a + \text{clip}\left(\frac{(\mathbf{p} - \mathbf{v}_a) \cdot (\mathbf{v}_b - \mathbf{v}_a)}{\|\mathbf{v}_b - \mathbf{v}_a\|^2}, \;0, \;1\right) (\mathbf{v}_b - \mathbf{v}_a)$$
 
-  If $\min_e \|\mathbf{p} - \mathbf{p}_{\text{proj}}\| \le R_{\text{uav}}$, structural collision occurs.
+  If $\min_e \|\mathbf{p} - \mathbf{p}_{\text{proj}}\| \le R_{\text{uav}}$, a collision occurs.
 
 ---
 

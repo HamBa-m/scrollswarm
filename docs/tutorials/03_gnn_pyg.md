@@ -28,7 +28,7 @@ Where:
 
 ### Dynamic Edge Pruning Invariant
 
-In standard multi-agent benchmarks, communication topologies are often static. In ScrollSwarm, **structural agent crashes trigger immediate topological pruning**:
+In standard multi-agent benchmarks, communication topologies are often static. In ScrollSwarm, **drone crashes trigger immediate edge pruning**:
 
 $$\text{alive}_k(t) = \text{False} \implies \forall i: (k, i) \notin \mathcal{E}(t) \quad \text{and} \quad (i, k) \notin \mathcal{E}(t)$$
 
@@ -306,10 +306,9 @@ if __name__ == "__main__":
 
 ---
 
-## Summary of Tutorials
+## Next Steps
 
-You have completed all three ScrollSwarm tutorials:
+Now that you can extract PyG graph tensors and route neighbor messages:
 
-1. [Tutorial 01: PettingZoo ParallelEnv Loop](01_parallel_env.md) — Mastered the synchronous Dec-POMDP multi-agent simulation loop and CTDE state extraction.
-2. [Tutorial 02: Heuristic Reactive Policy](02_heuristic_baseline.md) — Implemented an explainable 4-tier rule-based baseline using the 7-ray LiDAR rangefinder.
-3. [Tutorial 03: PyG & GNN Integration](03_gnn_pyg.md) — Extracted graph tensors and executed permutation-invariant message passing across dynamic communication networks.
+- Proceed to [Tutorial 04: Computational Geometry Acceleration](04_acceleration_backends.md) to compile the native C++20 kernel, enable Numba JIT, and benchmark stepping throughput.
+- Explore [Tutorial 05: Vectorized MARL & Scaling](05_vectorized_marl.md) to run parallel `(E, N)` corridors and block-diagonal GNN graph batching across CPU cores.

@@ -16,22 +16,15 @@
 
 ![ScrollSwarm Environment Simulation](assets/demo.gif)
 
-ScrollSwarm is a 2D multi-agent simulation where a team of drones flies forward through an aerial corridor, dodging obstacles of different shapes and sizes while working together to take photos of targets along the way.
+ScrollSwarm is a 2D multi-agent simulation where autonomous drones fly forward through an aerial corridor, dodging obstacles while cooperating to photograph targets along their path:
+
+- **Vertical Flight Control:** Drones cruise forward at a constant speed while each chooses one discrete vertical action per step: **climb up**, **dive down**, or **stay level**.
+- **Guaranteed Navigable Obstacles:** 2D obstacles of varying shapes and sizes fill the corridor, while a minimum navigable gap is always preserved so paths are never blocked.
+- **Probabilistic Photography & Redundancy:** Photo success is probabilistic—the closer the drone, the higher the chance of a clear shot. When targets sit at different altitudes, the team must spread out so at least one drone captures each target.
+- **Forward Perception & Communication:** Each drone scans forward with 7 LiDAR rays for obstacle detection, tracks bearing to the nearest target, and exchanges messages with teammates over a configurable communication graph.
+- **Crash Handling:** Hitting any obstacle or corridor boundary causes that drone to crash immediately, while surviving teammates continue the mission.
 
 > **Documentation & API Reference:** Detailed guides and specifications are hosted at [https://hambam.top/scrollswarm/](https://hambam.top/scrollswarm/).
-
----
-
-## Scenario Description
-
-ScrollSwarm models a swarm of autonomous UAVs (drones) flying forward through an aerial corridor, where the vertical axis represents their flight altitude:
-
-- **Movement & Controls:** The drones cruise forward in a straight line at a steady speed. Each drone simply chooses its vertical action at each step: **climb up**, **dive down**, or **maintain current altitude**.
-- **Obstacles of Different Sizes:** 2D obstacles of varying shapes and sizes are distributed across the flight path. An open flight passage is always guaranteed through the corridor so drones never encounter blocked paths.
-- **Observation & Target Missions:** Drones have the mission of observing specific target points along the way by flying close enough to photograph them.
-- **Photo Quality & Redundancy:** Capturing a clear photo isn't guaranteed every time—we model image clarity with a probability that increases the closer a drone gets to the target. When targets are scattered across different altitudes, the team must coordinate to cover the entire space and provide redundancy, ensuring at least one drone successfully captures each target with sufficient quality.
-- **Forward Perception & Communication:** Each drone uses 7 forward rangefinder rays (LiDAR) to spot oncoming obstacles ahead, tracks relative directions to nearby targets, and can share messages with teammates across configurable network graphs (chain, ring, spatial radius, or broadcast).
-- **Safety:** Hitting any obstacle or corridor boundary immediately disables that drone, while the remaining team members continue the mission.
 
 ---
 
@@ -105,13 +98,7 @@ uv run python scripts/benchmark_vector.py --steps 400 --num-agents 4
 
 ### Empirical Benchmark Baseline (500 Steps, 5 Seeds)
 
-| Metric | Random Action Baseline | Reactive Swarm Policy | Performance Delta |
-| :--- | :---: | :---: | :--- |
-| **Mean Episodic Return** | $-28.55 \pm 10.50$ | **$-10.39 \pm 18.00$** | $+18.16$ reduction in crash penalties |
-| **Mean Survival Horizon** | $257.9 \pm 66.8\text{ steps}$ | **$356.7 \pm 75.7\text{ steps}$** | $+98.8\text{ steps}$ ($+38.3\%$ longer flight time) |
-| **Mean Targets Photographed** | $0.60 \pm 0.49$ | **$1.80 \pm 0.75$** | $\mathbf{3.0\times}$ increase in mission yield |
-| **Drone Crash Rate** | $84.0\%$ ($21/25$ dead) | **$60.0\%$** ($15/25$ dead) | $24.0\text{ percentage point}$ reduction |
-| **Inference Latency** | $\sim 0.002\text{ ms}$ | $\sim 0.013\text{ ms}$ | Negligible CPU overhead |
+Over 5 seeds (500 steps each), the reactive LiDAR heuristic captures **$3.0\times$ more targets** ($1.80$ vs. $0.60$), survives **$38.3\%$ longer** ($356.7$ vs. $257.9$ steps), and reduces crashes by $24$ percentage points ($60\%$ vs. $84\%$) compared to random actions. See [Tutorial 02: Heuristic Reactive Policy](https://hambam.top/scrollswarm/tutorials/02_heuristic_baseline/) for the full benchmark table and analysis.
 
 ### Multi-Backend Computational Acceleration (NumPy vs. C++ vs. Numba)
 
@@ -124,14 +111,7 @@ Profiling revealed that **79.3%** of raw Python stepping is consumed by 2D LiDAR
 
 #### Head-to-Head Performance (4 UAVs, 500 Steps, Seed 42)
 
-| Metric / Characteristic | 1. NumPy Baseline | 2. Native C++20 Kernel | 3. Numba LLVM JIT |
-| :--- | :---: | :---: | :---: |
-| **LiDAR Raycasting Latency** | $214.24\,\mu\text{s}$ / call | **$6.41\,\mu\text{s}$ / call** | **$4.28\,\mu\text{s}$ / call** |
-| **Isolated Raycasting Speedup** | $1.00\times$ (reference) | **$33.44\times$ faster** | **$50.08\times$ faster** |
-| **End-to-End Stepping Throughput** | $691.4\text{ steps/s}$ ($1.446\text{ ms}$) | **$1,652.3\text{ steps/s}$ ($0.605\text{ ms}$)** | **$1,740.2\text{ steps/s}$ ($0.575\text{ ms}$)** |
-| **Full Environment Speedup** | $1.00\times$ | **$2.39\times$ faster** | **$2.52\times$ faster** |
-| **First-Step JIT Compilation Lag** | $0.0\text{ s}$ | **$0.0\text{ s}$ (instant)** | $\approx 1.5\text{ s}$ (LLVM compile) |
-| **Build / Tool Requirements** | None | GCC / Clang / MSVC | `uv sync --extra numba` |
+Both accelerated kernels cut isolated raycasting latency by **$33.4\times$ (C++20: $6.41\,\mu\text{s}$)** to **$50.1\times$ (Numba: $4.28\,\mu\text{s}$)** over NumPy ($214.24\,\mu\text{s}$), boosting end-to-end stepping from $691.4\text{ steps/s}$ to $1,652\text{--}1,740\text{ steps/s}$ ($2.39\times\text{--}2.52\times$ speedup; C++20 has zero JIT warmup). See [Tutorial 04: Computational Geometry Acceleration](https://hambam.top/scrollswarm/tutorials/04_acceleration_backends/) for full latency tables, scaling sweeps, and hardware specs.
 
 ```bash
 # Compile native C++ geometry kernel locally (one-time build)

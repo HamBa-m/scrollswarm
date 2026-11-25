@@ -1,6 +1,6 @@
 # Tutorial 04: Computational Geometry Acceleration
 
-In Multi-Agent Reinforcement Learning (MARL), sample throughput is often the primary bottleneck determining training duration. Complex policy gradient algorithms (MAPPO, QMIX, HAPPO) require millions of environment transitions to converge, meaning environment stepping latency directly dictates research velocity.
+Training MARL algorithms (MAPPO, QMIX, HAPPO) requires millions of environment steps, so environment throughput directly limits how fast you can iterate.
 
 In 2D aerial simulations involving LiDAR sensor emulation and complex procedural terrain, **analytical geometric calculations** (raycasting, line-segment intersections, and point-in-polygon queries) represent the vast majority of CPU execution time.
 

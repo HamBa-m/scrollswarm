@@ -1,6 +1,6 @@
 # Tutorial 01: PettingZoo ParallelEnv Multi-Agent Loop
 
-This tutorial walks through building a complete, production-grade Multi-Agent Reinforcement Learning (MARL) control loop in ScrollSwarm using Farama Foundation's **PettingZoo `ParallelEnv`** standard.
+This tutorial walks through building a complete MARL training loop in ScrollSwarm using Farama Foundation's **PettingZoo `ParallelEnv`** standard.
 
 You will learn how to:
 
@@ -36,7 +36,7 @@ All actions are dispatched in parallel via Python dictionaries keyed by agent id
 ScrollSwarm maintains two distinct agent lists conforming to PettingZoo specifications:
 
 - **`env.possible_agents`**: The immutable, static list of all potential agents that could exist in the environment (e.g., `["agent_0", "agent_1", "agent_2", "agent_3", "agent_4"]`). This set never shrinks or changes during an episode.
-- **`env.agents`**: The dynamic list of agents currently active (alive and un-truncated). When a drone collides with an obstacle or boundary, it suffers structural termination (`alive = False`), is penalized, and is removed from `env.agents` on the subsequent step.
+- **`env.agents`**: The dynamic list of agents currently active (alive and un-truncated). When a drone collides with an obstacle or boundary, it crashes (`alive = False`), is penalized, and is removed from `env.agents` on the subsequent step.
 
 !!! warning "Important: Active Agent Set"
     The action dictionary passed to `env.step(actions)` must contain keys for **all** currently active agents in `env.agents`. Attempting to submit actions for dead agents is ignored, while omitting active agents will skip their physical updates.
@@ -70,7 +70,7 @@ env = ScrollSwarmEnv(
     map_config=custom_map,                  # Corridor geometry
     comm_topology=TopologyType.CHAIN,       # Communication graph network
     target_reward=1.0,                      # Photo acquisition reward
-    crash_penalty=10.0,                     # Structural destruction penalty
+    crash_penalty=10.0,                     # Crash penalty
     step_reward=0.01,                       # Per-step survival incentive
     team_reward=False,                      # Individual vs. team-shared rewards
     render_mode="human",                    # "human", "rgb_array", or None

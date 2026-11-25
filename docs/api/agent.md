@@ -8,7 +8,7 @@ The `agent` module defines the physical autonomous quadcopter UAV entity, moveme
 
 - **Entity Model:** 2D quadcopter with fixed longitudinal station-keeping column, dynamic vertical position $y(t)$, and bounding hitbox ($20 \times 16\text{ px}$).
 - **Kinematic Update:** $\Delta y = -k$ (UP), $\Delta y = 0$ (STAY), $\Delta y = +k$ (DOWN), clamped to corridor boundary margins.
-- **Collision & Lifecycle:** Immediate structural termination (`alive = False`) upon boundary or obstacle contact.
+- **Collision & Lifecycle:** Immediate crash (`alive = False`) upon boundary or obstacle contact.
 
 ---
 

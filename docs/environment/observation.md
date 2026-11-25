@@ -1,6 +1,6 @@
 # Observation Space
 
-This section formalizes the multi-modal sensory suite equipped on each UAV: the 7-ray forward LiDAR rangefinder, the stochastic camera target-inspection model, the complete 16-dimensional observation vector, and the centralized state space representation for Centralized Training with Decentralized Execution (CTDE).
+Each drone acts on local sensor readings while centralized critics can read the full team state during training. This page defines the 7-ray forward LiDAR, the probabilistic camera model, the 16-dimensional observation vector, and the centralized CTDE state representation.
 
 ---
 
@@ -29,7 +29,7 @@ flowchart TD
 ## 2. 7-Ray Forward LiDAR Rangefinder
 
 ### 2.1 Theoretical Foundation: The Beam Model of Range Finders
-Range sensing in ScrollSwarm builds on the **Beam Model of Range Finders** established in probabilistic mobile robotics ([Thrun, Burgard, & Fox, 2005](https://mitpress.mit.edu/9780262201629/probabilistic-robotics/), Chapter 6):
+Range sensing in ScrollSwarm builds on the **Beam Model of Range Finders** ([Thrun, Burgard, & Fox, 2005](https://mitpress.mit.edu/9780262201629/probabilistic-robotics/), Chapter 6):
 
 $$p(z \mid x, m) = \prod_{k=1}^K p(z_k \mid x, m)$$
 
@@ -146,7 +146,7 @@ $$\mathbf{o}_i = \big[ y_{\text{norm}}, \;\mathbf{d}_{\text{LiDAR}}^\top, \;\mat
 | **`14`** | $d_{\text{nbr}}$ | Normalized Euclidean distance to nearest neighbor | $\|\mathbf{p}_{\text{nbr}} - \mathbf{p}_i\| / \sqrt{W^2 + H^2}$ | $[0.0, 1.0]$ |
 | **`15`** | $\mathbf{1}_{\text{comm}}$ | Inter-drone communication connectivity flag | $\mathbf{1}_{d_{\text{nbr}} \le R_{\text{comm}}}$ | $\{0.0, 1.0\}$ |
 
-*(If no active targets exist, indices 8–11 default to $[0.0, 0.0, 1.0, 0.0]$. If no living neighbors exist, indices 12–15 default to $[0.0, 0.0, 1.0, 0.0]$).*
+*(Defaults: LiDAR indices 1–7 return $1.0$ when no obstacle is within $R_{\max}$; target indices 8–11 default to $[0.0, 0.0, 1.0, 0.0]$ when no active targets exist; neighbor indices 12–15 default to $[0.0, 0.0, 1.0, 0.0]$ when no living neighbors exist.)*
 
 ---
 

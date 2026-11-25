@@ -6,7 +6,7 @@
 [![PettingZoo](https://img.shields.io/badge/pettingzoo-parallel__env-green.svg)](https://pettingzoo.farama.org/)
 [![PyG](https://img.shields.io/badge/PyG-Compatible-EE4C2C.svg?logo=pytorch&logoColor=white)](tutorials/03_gnn_pyg.md)
 [![Acceleration](https://img.shields.io/badge/acceleration-Numba%20%7C%20C%2B%2B20-orange.svg)](api/geometry.md)
-[![Tests](https://img.shields.io/badge/tests-64%20passed-brightgreen.svg)](https://github.com/HamBa-m/scrollswarm/tree/main/tests)
+[![Tests](https://img.shields.io/badge/tests-69%20passed-brightgreen.svg)](https://github.com/HamBa-m/scrollswarm/tree/main/tests)
 [![Managed with uv](https://img.shields.io/badge/managed%20with-uv-DE5FE9.svg?logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

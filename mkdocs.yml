@@ -89,6 +89,7 @@ nav:
       - "04: Computational Acceleration": tutorials/04_acceleration_backends.md
   - API Reference:
       - ScrollSwarmEnv: api/env.md
+      - Vectorized Runners: api/vector.md
       - Agent & Dynamics: api/agent.md
       - Sensors & Raycasting: api/sensors.md
       - Geometry Backends: api/geometry.md

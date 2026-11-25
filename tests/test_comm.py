@@ -167,3 +167,38 @@ def test_message_routing_with_dead_agent():
     assert inbox["agent_1"][0] == pytest.approx(0.0)
     # Agent 2 was only connected to 1 (now dead) -> receives [0.0]
     assert inbox["agent_2"][0] == pytest.approx(0.0)
+
+
+def test_message_routing_max_concat_and_invalid():
+    """Verifies max/concat message aggregations and invalid aggregation error handling."""
+    agents = create_agents(num_agents=3)
+    comm = CommunicationGraph(topology=TopologyType.CHAIN)
+    messages = {
+        "agent_0": np.array([1.0, 5.0], dtype=np.float32),
+        "agent_1": np.array([2.0, 3.0], dtype=np.float32),
+        "agent_2": np.array([4.0, 1.0], dtype=np.float32),
+    }
+
+    inbox_max = comm.route_messages(messages, agents, aggregation="max")
+    # Agent 1 neighbors are 0 and 2 -> element-wise max([1, 5], [4, 1]) = [4, 5]
+    np.testing.assert_allclose(inbox_max["agent_1"], np.array([4.0, 5.0], dtype=np.float32))
+
+    inbox_concat = comm.route_messages(messages, agents, aggregation="concat")
+    # Agent 1 neighbors are 0 and 2 -> concatenated [1, 5, 4, 1]
+    np.testing.assert_allclose(inbox_concat["agent_1"], np.array([1.0, 5.0, 4.0, 1.0], dtype=np.float32))
+
+    with pytest.raises(ValueError):
+        comm.route_messages(messages, agents, aggregation="invalid_op")
+
+
+def test_single_agent_comm_topologies():
+    """Verifies N=1 edge case produces empty edge sets across all graph topologies."""
+    agents = create_agents(num_agents=1)
+    for topo in TopologyType:
+        comm = CommunicationGraph(topology=topo)
+        adj = comm.get_adjacency_matrix(agents)
+        assert adj.shape == (1, 1)
+        assert adj[0, 0] == 0.0
+        edge_index, edge_attr = comm.get_edge_index_and_attributes(agents)
+        assert edge_index.shape == (2, 0)
+        assert edge_attr.shape == (0, 3)

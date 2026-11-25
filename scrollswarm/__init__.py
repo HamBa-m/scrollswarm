@@ -7,6 +7,11 @@ import logging
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 from scrollswarm.env import ScrollSwarmEnv
+from scrollswarm.vector import (
+    BaseVectorScrollSwarm,
+    SyncVectorScrollSwarm,
+    AsyncVectorScrollSwarm,
+)
 from scrollswarm.map import (
     ScrollingMap,
     MapConfig,
@@ -46,6 +51,9 @@ from scrollswarm.geometry import (
 
 __all__ = [
     "ScrollSwarmEnv",
+    "BaseVectorScrollSwarm",
+    "SyncVectorScrollSwarm",
+    "AsyncVectorScrollSwarm",
     "ScrollingMap",
     "MapConfig",
     "Agent",

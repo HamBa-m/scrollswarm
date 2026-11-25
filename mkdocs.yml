@@ -87,6 +87,7 @@ nav:
       - "02: Heuristic Reactive Policy": tutorials/02_heuristic_baseline.md
       - "03: PyG & GNN Integration": tutorials/03_gnn_pyg.md
       - "04: Computational Acceleration": tutorials/04_acceleration_backends.md
+      - "05: Vectorized MARL & Scaling": tutorials/05_vectorized_marl.md
   - API Reference:
       - ScrollSwarmEnv: api/env.md
       - Vectorized Runners: api/vector.md

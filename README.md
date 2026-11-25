@@ -97,6 +97,9 @@ uv run python scripts/run_heuristic_policy.py --episodes 5 --max-cycles 500 --no
 
 # 4. Multi-backend computational acceleration benchmark
 uv run python scripts/benchmark_backends.py --steps 500 --num-agents 4
+
+# 5. Multi-core vectorized scaling benchmark (Sync vs Async across E corridors)
+uv run python scripts/benchmark_vector.py --steps 400 --num-agents 4
 ```
 
 ### Empirical Benchmark Baseline (500 Steps, 5 Seeds)
@@ -147,6 +150,7 @@ Step-by-step guides are hosted on the [Documentation Site](https://hambam.top/sc
 2. **[Tutorial 02: Heuristic Reactive Policy](https://hambam.top/scrollswarm/tutorials/02_heuristic_baseline/):** Designing an explainable 4-tier rule-based baseline using the 7-ray LiDAR rangefinder and target tracking.
 3. **[Tutorial 03: PyG & GNN Integration](https://hambam.top/scrollswarm/tutorials/03_gnn_pyg/):** Extracting graph tensors (`edge_index`, `edge_attr`), packaging into `torch_geometric.data.Data`, and executing native message passing.
 4. **[Tutorial 04: Computational Geometry Acceleration](https://hambam.top/scrollswarm/tutorials/04_acceleration_backends/):** Compiling the native C++20 kernel, enabling Numba JIT, invoking standalone geometry kernels, and benchmarking swarm scaling ($N \in [1, 10]$).
+5. **[Tutorial 05: Vectorized MARL & Multi-Core Scaling](https://hambam.top/scrollswarm/tutorials/05_vectorized_marl/):** Running parallel `(E, N)` corridors with `SyncVectorScrollSwarm` / `AsyncVectorScrollSwarm`, auto-reset bootstrapping, and block-diagonal PyG graph batching.
 
 ---
 

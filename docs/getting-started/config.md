@@ -192,3 +192,18 @@ for agent_id, info in infos.items():
 
 team_photos = sum(info["targets_photographed"] for info in infos.values())
 ```
+
+---
+
+## 7. Diagnostic System Logging
+
+`scrollswarm` uses Python's standard `logging` module under the `"scrollswarm"` logger hierarchy with a `logging.NullHandler()` attached by default, ensuring zero unsolicited console/file output and zero hot-path overhead inside `step()`.
+
+To inspect backend resolution (`cpp` vs. `numba` vs. `numpy`), C++ extension load warnings, and environment lifecycle diagnostics in your scripts:
+
+```python
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("scrollswarm").setLevel(logging.DEBUG)  # Optional: include reset() & probe details
+```
